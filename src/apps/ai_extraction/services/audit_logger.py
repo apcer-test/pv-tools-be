@@ -1,29 +1,30 @@
 """Audit Logger - Comprehensive audit logging for extraction operations"""
-from sqlalchemy import select
-from typing import Annotated, Dict, Any, Optional
-from ulid import ULID
+
+import logging
 from datetime import datetime
 from decimal import Decimal
-import logging
+from typing import Annotated, Any, Dict, Optional
 
 from fastapi import Depends
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from ulid import ULID
 
-from core.db import db_session
+from apps.ai_extraction.models.doctype import DocTypeModel
 from apps.ai_extraction.models.extraction_audit import ExtractionAuditModel
+from apps.ai_extraction.models.fallback import FallbackStepModel
+from apps.ai_extraction.models.llm import LLMCredentialModel, LLMModel
 from apps.ai_extraction.schemas.request import DocType
 from apps.ai_extraction.schemas.response import ExtractionDataResult, ExtractionError
-from apps.ai_extraction.models.doctype import DocTypeModel
-from apps.ai_extraction.models.llm import LLMModel, LLMCredentialModel
-from apps.ai_extraction.models.fallback import FallbackStepModel
+from core.db import db_session
 
 
 class AuditLogger:
     """Service for logging extraction operations and maintaining audit trails."""
-    
+
     def __init__(self, session: Annotated[AsyncSession, Depends(db_session)]) -> None:
         """Initialize with database session.
-        
+
         Args:
             session: Database session for audit logging
         """
@@ -32,15 +33,16 @@ class AuditLogger:
         # Cache for ID lookups within the same request
         self._id_cache = {}
 
-    async def log_request_start(self,
+    async def log_request_start(
+        self,
         request_id: ULID,
         doc_type: DocType,
         file_name: str,
         file_size: int,
-        external_id: Optional[str] = None
+        external_id: Optional[str] = None,
     ) -> None:
         """Log the start of a new extraction request.
-        
+
         Args:
             request_id: Request correlation ID
             doc_type: Document type being processed
@@ -48,8 +50,10 @@ class AuditLogger:
             file_size: Size of uploaded file in bytes
             external_id: Optional external correlation ID
         """
-        self.logger.info(f"Extraction request started - RequestID: {request_id}, DocType: {doc_type}, File: {file_name}, Size: {file_size}")
-        
+        self.logger.info(
+            f"Extraction request started - RequestID: {request_id}, DocType: {doc_type}, File: {file_name}, Size: {file_size}"
+        )
+
         # Log to database
         await self._insert_extraction_audit(
             request_id=request_id,
@@ -64,26 +68,26 @@ class AuditLogger:
             status="REQUEST_STARTED",
             tokens_prompt=0,
             tokens_completion=0,
-            cost_usd=Decimal('0.00'),
+            cost_usd=Decimal("0.00"),
             latency_ms=0,
             error_message=None,
-            step_id=None
+            step_id=None,
         )
 
-    async def log_preprocessing_start(self,
-        request_id: ULID,
-        file_path: str,
-        doc_type: DocType
+    async def log_preprocessing_start(
+        self, request_id: ULID, file_path: str, doc_type: DocType
     ) -> None:
         """Log the start of preprocessing phase.
-        
+
         Args:
             request_id: Request correlation ID
             file_path: Path to file being processed
             doc_type: Document type being processed
         """
-        self.logger.info(f"Preprocessing started - RequestID: {request_id}, File: {file_path}")
-        
+        self.logger.info(
+            f"Preprocessing started - RequestID: {request_id}, File: {file_path}"
+        )
+
         await self._insert_extraction_audit(
             request_id=request_id,
             external_id=None,
@@ -97,21 +101,22 @@ class AuditLogger:
             status="PREPROCESSING_STARTED",
             tokens_prompt=0,
             tokens_completion=0,
-            cost_usd=Decimal('0.00'),
+            cost_usd=Decimal("0.00"),
             latency_ms=0,
             error_message=None,
-            step_id=None
+            step_id=None,
         )
 
-    async def log_preprocessing_complete(self,
+    async def log_preprocessing_complete(
+        self,
         request_id: ULID,
         file_type: str,
         doc_type: DocType,
         page_count: Optional[int] = None,
-        word_count: Optional[int] = None
+        word_count: Optional[int] = None,
     ) -> None:
         """Log the completion of preprocessing phase.
-        
+
         Args:
             request_id: Request correlation ID
             file_type: Type of file processed
@@ -119,8 +124,10 @@ class AuditLogger:
             page_count: Number of pages (for PDFs)
             word_count: Number of words extracted
         """
-        self.logger.info(f"Preprocessing completed - RequestID: {request_id}, Type: {file_type}, Pages: {page_count}, Words: {word_count}")
-        
+        self.logger.info(
+            f"Preprocessing completed - RequestID: {request_id}, Type: {file_type}, Pages: {page_count}, Words: {word_count}"
+        )
+
         await self._insert_extraction_audit(
             request_id=request_id,
             external_id=None,
@@ -134,26 +141,26 @@ class AuditLogger:
             status="PREPROCESSING_COMPLETED",
             tokens_prompt=0,
             tokens_completion=0,
-            cost_usd=Decimal('0.00'),
+            cost_usd=Decimal("0.00"),
             latency_ms=0,
             error_message=None,
-            step_id=None
+            step_id=None,
         )
 
-    async def log_preprocessing_error(self,
-        request_id: ULID,
-        error_message: str,
-        doc_type: DocType
+    async def log_preprocessing_error(
+        self, request_id: ULID, error_message: str, doc_type: DocType
     ) -> None:
         """Log preprocessing error.
-        
+
         Args:
             request_id: Request correlation ID
             error_message: Error description
             doc_type: Document type being processed
         """
-        self.logger.error(f"Preprocessing failed - RequestID: {request_id}, Error: {error_message}")
-        
+        self.logger.error(
+            f"Preprocessing failed - RequestID: {request_id}, Error: {error_message}"
+        )
+
         await self._insert_extraction_audit(
             request_id=request_id,
             external_id=None,
@@ -167,21 +174,22 @@ class AuditLogger:
             status="PREPROCESSING_FAILED",
             tokens_prompt=0,
             tokens_completion=0,
-            cost_usd=Decimal('0.00'),
+            cost_usd=Decimal("0.00"),
             latency_ms=0,
             error_message=error_message,
-            step_id=None
+            step_id=None,
         )
 
-    async def log_agent_start(self,
+    async def log_agent_start(
+        self,
         request_id: ULID,
         agent_code: str,
         agent_id: ULID,
         template_id: ULID,
-        doc_type: DocType
+        doc_type: DocType,
     ) -> None:
         """Log the start of agent execution.
-        
+
         Args:
             request_id: Request correlation ID
             agent_code: Code of the extraction agent
@@ -189,8 +197,10 @@ class AuditLogger:
             template_id: Template ULID being used
             doc_type: Document type being processed
         """
-        self.logger.info(f"Agent execution started - RequestID: {request_id}, Agent: {agent_code}, Template: {template_id}")
-        
+        self.logger.info(
+            f"Agent execution started - RequestID: {request_id}, Agent: {agent_code}, Template: {template_id}"
+        )
+
         await self._insert_extraction_audit(
             request_id=request_id,
             external_id=None,
@@ -204,13 +214,14 @@ class AuditLogger:
             status="AGENT_STARTED",
             tokens_prompt=0,
             tokens_completion=0,
-            cost_usd=Decimal('0.00'),
+            cost_usd=Decimal("0.00"),
             latency_ms=0,
             error_message=None,
-            step_id=None
+            step_id=None,
         )
 
-    async def log_llm_call_start(self,
+    async def log_llm_call_start(
+        self,
         request_id: ULID,
         step: FallbackStepModel,
         agent_code: str,
@@ -218,10 +229,10 @@ class AuditLogger:
         provider: str,
         doc_type: DocType,
         agent_id: Optional[ULID] = None,
-        template_id: Optional[ULID] = None
+        template_id: Optional[ULID] = None,
     ) -> None:
         """Log the start of an LLM call.
-        
+
         Args:
             request_id: Request correlation ID
             step: Fallback step being executed
@@ -232,8 +243,10 @@ class AuditLogger:
             agent_id: Agent ULID
             template_id: Template ULID
         """
-        self.logger.info(f"LLM call started - RequestID: {request_id}, Agent: {agent_code}, Model: {model_name}, Provider: {provider}")
-        
+        self.logger.info(
+            f"LLM call started - RequestID: {request_id}, Agent: {agent_code}, Model: {model_name}, Provider: {provider}"
+        )
+
         await self._insert_extraction_audit(
             request_id=request_id,
             external_id=None,
@@ -247,13 +260,14 @@ class AuditLogger:
             status="LLM_CALL_STARTED",
             tokens_prompt=0,
             tokens_completion=0,
-            cost_usd=Decimal('0.00'),
+            cost_usd=Decimal("0.00"),
             latency_ms=0,
             error_message=None,
-            step_id=step.id
+            step_id=step.id,
         )
 
-    async def log_llm_call_success(self,
+    async def log_llm_call_success(
+        self,
         request_id: ULID,
         step: FallbackStepModel,
         agent_code: str,
@@ -265,10 +279,10 @@ class AuditLogger:
         latency_ms: int,
         doc_type: DocType,
         agent_id: Optional[ULID] = None,
-        template_id: Optional[ULID] = None
+        template_id: Optional[ULID] = None,
     ) -> None:
         """Log successful LLM call.
-        
+
         Args:
             request_id: Request correlation ID
             step: Fallback step that was executed
@@ -283,8 +297,10 @@ class AuditLogger:
             agent_id: Agent ULID
             template_id: Template ULID
         """
-        self.logger.info(f"LLM call successful - RequestID: {request_id}, Agent: {agent_code}, Model: {model_name}, Tokens: {tokens_prompt}/{tokens_completion}, Cost: ${cost_usd}, Latency: {latency_ms}ms")
-        
+        self.logger.info(
+            f"LLM call successful - RequestID: {request_id}, Agent: {agent_code}, Model: {model_name}, Tokens: {tokens_prompt}/{tokens_completion}, Cost: ${cost_usd}, Latency: {latency_ms}ms"
+        )
+
         await self._insert_extraction_audit(
             request_id=request_id,
             external_id=None,
@@ -301,10 +317,11 @@ class AuditLogger:
             cost_usd=cost_usd,
             latency_ms=latency_ms,
             error_message=None,
-            step_id=step.id
+            step_id=step.id,
         )
 
-    async def log_llm_call_failed(self,
+    async def log_llm_call_failed(
+        self,
         request_id: ULID,
         step: FallbackStepModel,
         agent_code: str,
@@ -314,10 +331,10 @@ class AuditLogger:
         doc_type: DocType,
         agent_id: Optional[ULID] = None,
         template_id: Optional[ULID] = None,
-        latency_ms: int = 0
+        latency_ms: int = 0,
     ) -> None:
         """Log failed LLM call.
-        
+
         Args:
             request_id: Request correlation ID
             step: Fallback step that failed
@@ -330,8 +347,10 @@ class AuditLogger:
             template_id: Template ULID
             latency_ms: Response latency in milliseconds (if any)
         """
-        self.logger.error(f"LLM call failed - RequestID: {request_id}, Agent: {agent_code}, Model: {model_name}, Error: {error_message}")
-        
+        self.logger.error(
+            f"LLM call failed - RequestID: {request_id}, Agent: {agent_code}, Model: {model_name}, Error: {error_message}"
+        )
+
         await self._insert_extraction_audit(
             request_id=request_id,
             external_id=None,
@@ -345,21 +364,22 @@ class AuditLogger:
             status="LLM_CALL_FAILED",
             tokens_prompt=0,
             tokens_completion=0,
-            cost_usd=Decimal('0.00'),
+            cost_usd=Decimal("0.00"),
             latency_ms=latency_ms,
             error_message=error_message,
-            step_id=step.id
+            step_id=step.id,
         )
 
-    async def log_validation_start(self,
+    async def log_validation_start(
+        self,
         request_id: ULID,
         agent_code: str,
         doc_type: DocType,
         agent_id: ULID,
-        template_id: ULID
+        template_id: ULID,
     ) -> None:
         """Log the start of response validation.
-        
+
         Args:
             request_id: Request correlation ID
             agent_code: Code of the extraction agent
@@ -367,8 +387,10 @@ class AuditLogger:
             agent_id: Agent ULID
             template_id: Template ULID
         """
-        self.logger.info(f"Validation started - RequestID: {request_id}, Agent: {agent_code}, DocType: {doc_type}")
-        
+        self.logger.info(
+            f"Validation started - RequestID: {request_id}, Agent: {agent_code}, DocType: {doc_type}"
+        )
+
         await self._insert_extraction_audit(
             request_id=request_id,
             external_id=None,
@@ -382,22 +404,23 @@ class AuditLogger:
             status="VALIDATION_STARTED",
             tokens_prompt=0,
             tokens_completion=0,
-            cost_usd=Decimal('0.00'),
+            cost_usd=Decimal("0.00"),
             latency_ms=0,
             error_message=None,
-            step_id=None
+            step_id=None,
         )
 
-    async def log_validation_success(self,
+    async def log_validation_success(
+        self,
         request_id: ULID,
         agent_code: str,
         doc_type: DocType,
         field_count: int,
         agent_id: ULID,
-        template_id: ULID
+        template_id: ULID,
     ) -> None:
         """Log successful validation.
-        
+
         Args:
             request_id: Request correlation ID
             agent_code: Code of the extraction agent
@@ -406,8 +429,10 @@ class AuditLogger:
             agent_id: Agent ULID
             template_id: Template ULID
         """
-        self.logger.info(f"Validation successful - RequestID: {request_id}, Agent: {agent_code}, DocType: {doc_type}, Fields: {field_count}")
-        
+        self.logger.info(
+            f"Validation successful - RequestID: {request_id}, Agent: {agent_code}, DocType: {doc_type}, Fields: {field_count}"
+        )
+
         await self._insert_extraction_audit(
             request_id=request_id,
             external_id=None,
@@ -421,22 +446,23 @@ class AuditLogger:
             status="VALIDATION_SUCCESS",
             tokens_prompt=0,
             tokens_completion=0,
-            cost_usd=Decimal('0.00'),
+            cost_usd=Decimal("0.00"),
             latency_ms=0,
             error_message=None,
-            step_id=None
+            step_id=None,
         )
 
-    async def log_validation_failed(self,
+    async def log_validation_failed(
+        self,
         request_id: ULID,
         agent_code: str,
         doc_type: DocType,
         error_message: str,
         agent_id: ULID,
-        template_id: ULID
+        template_id: ULID,
     ) -> None:
         """Log validation failure.
-        
+
         Args:
             request_id: Request correlation ID
             agent_code: Code of the extraction agent
@@ -445,8 +471,10 @@ class AuditLogger:
             agent_id: Agent ULID
             template_id: Template ULID
         """
-        self.logger.error(f"Validation failed - RequestID: {request_id}, Agent: {agent_code}, DocType: {doc_type}, Error: {error_message}")
-        
+        self.logger.error(
+            f"Validation failed - RequestID: {request_id}, Agent: {agent_code}, DocType: {doc_type}, Error: {error_message}"
+        )
+
         await self._insert_extraction_audit(
             request_id=request_id,
             external_id=None,
@@ -460,13 +488,14 @@ class AuditLogger:
             status="VALIDATION_FAILED",
             tokens_prompt=0,
             tokens_completion=0,
-            cost_usd=Decimal('0.00'),
+            cost_usd=Decimal("0.00"),
             latency_ms=0,
             error_message=error_message,
-            step_id=None
+            step_id=None,
         )
 
-    async def log_agent_complete(self,
+    async def log_agent_complete(
+        self,
         request_id: ULID,
         agent_code: str,
         agent_id: ULID,
@@ -474,10 +503,10 @@ class AuditLogger:
         field_count: int,
         total_cost: Decimal,
         total_latency: int,
-        template_id: ULID
+        template_id: ULID,
     ) -> None:
         """Log successful agent completion.
-        
+
         Args:
             request_id: Request correlation ID
             agent_code: Code of the extraction agent
@@ -488,8 +517,10 @@ class AuditLogger:
             total_latency: Total latency for this agent
             template_id: Template ULID
         """
-        self.logger.info(f"Agent completed - RequestID: {request_id}, Agent: {agent_code}, Fields: {field_count}, Cost: ${total_cost}, Latency: {total_latency}ms")
-        
+        self.logger.info(
+            f"Agent completed - RequestID: {request_id}, Agent: {agent_code}, Fields: {field_count}, Cost: ${total_cost}, Latency: {total_latency}ms"
+        )
+
         await self._insert_extraction_audit(
             request_id=request_id,
             external_id=None,
@@ -506,19 +537,20 @@ class AuditLogger:
             cost_usd=total_cost,
             latency_ms=total_latency,
             error_message=None,
-            step_id=None
+            step_id=None,
         )
 
-    async def log_agent_failed(self,
+    async def log_agent_failed(
+        self,
         request_id: ULID,
         agent_code: str,
         agent_id: ULID,
         doc_type: DocType,
         error_message: str,
-        template_id: ULID
+        template_id: ULID,
     ) -> None:
         """Log agent failure.
-        
+
         Args:
             request_id: Request correlation ID
             agent_code: Code of the extraction agent
@@ -527,8 +559,10 @@ class AuditLogger:
             error_message: Error description
             template_id: Template ULID
         """
-        self.logger.error(f"Agent failed - RequestID: {request_id}, Agent: {agent_code}, Error: {error_message}")
-        
+        self.logger.error(
+            f"Agent failed - RequestID: {request_id}, Agent: {agent_code}, Error: {error_message}"
+        )
+
         await self._insert_extraction_audit(
             request_id=request_id,
             external_id=None,
@@ -542,13 +576,14 @@ class AuditLogger:
             status="AGENT_FAILED",
             tokens_prompt=0,
             tokens_completion=0,
-            cost_usd=Decimal('0.00'),
+            cost_usd=Decimal("0.00"),
             latency_ms=0,
             error_message=error_message,
-            step_id=None
+            step_id=None,
         )
 
-    async def log_extraction_complete(self,
+    async def log_extraction_complete(
+        self,
         request_id: ULID,
         doc_type: DocType,
         total_agents: int,
@@ -556,10 +591,10 @@ class AuditLogger:
         total_cost: Decimal,
         total_latency: int,
         total_fields: int,
-        template_id: ULID | None = None
+        template_id: ULID | None = None,
     ) -> None:
         """Log successful extraction completion.
-        
+
         Args:
             request_id: Request correlation ID
             doc_type: Document type processed
@@ -570,8 +605,10 @@ class AuditLogger:
             total_fields: Total number of fields extracted
             template_id: Template ULID
         """
-        self.logger.info(f"Extraction completed - RequestID: {request_id}, DocType: {doc_type}, Agents: {successful_agents}/{total_agents}, Fields: {total_fields}, Cost: ${total_cost}, Latency: {total_latency}ms")
-        
+        self.logger.info(
+            f"Extraction completed - RequestID: {request_id}, DocType: {doc_type}, Agents: {successful_agents}/{total_agents}, Fields: {total_fields}, Cost: ${total_cost}, Latency: {total_latency}ms"
+        )
+
         await self._insert_extraction_audit(
             request_id=request_id,
             external_id=None,
@@ -588,10 +625,11 @@ class AuditLogger:
             cost_usd=total_cost,
             latency_ms=total_latency,
             error_message=None,
-            step_id=None
+            step_id=None,
         )
 
-    async def process_outcome(self,
+    async def process_outcome(
+        self,
         outcome: Dict[str, Any],
         request_id: ULID,
         template_id: ULID,
@@ -599,10 +637,10 @@ class AuditLogger:
         agent_code: Optional[str] = None,
         agent_id: Optional[ULID] = None,
         chain_id: Optional[ULID] = None,
-        step_id: Optional[ULID] = None
+        step_id: Optional[ULID] = None,
     ) -> ExtractionDataResult:
         """Process successful outcome and create audit record.
-        
+
         Args:
             outcome: Extraction outcome with model results
             request_id: Request correlation ID
@@ -612,7 +650,7 @@ class AuditLogger:
             agent_id: Optional agent ULID
             chain_id: Optional chain ULID
             step_id: Optional step ULID
-            
+
         Returns:
             ExtractionDataResult for client response
         """
@@ -633,9 +671,9 @@ class AuditLogger:
             cost_usd=outcome.get("cost_usd"),
             latency_ms=outcome.get("latency_ms"),
             error_message=None,
-            step_id=step_id
+            step_id=step_id,
         )
-        
+
         # Return success response
         return ExtractionDataResult(
             request_id=request_id,
@@ -648,10 +686,11 @@ class AuditLogger:
             latency_ms=outcome.get("latency_ms"),
             template_id=template_id,
             agent_code=agent_code,
-            extracted_at=datetime.utcnow()
+            extracted_at=datetime.utcnow(),
         )
 
-    async def log_error(self,
+    async def log_error(
+        self,
         request_id: ULID,
         error_code: str,
         error_message: str,
@@ -662,10 +701,10 @@ class AuditLogger:
         agent_id: Optional[ULID] = None,
         template_id: Optional[ULID] = None,
         chain_id: Optional[ULID] = None,
-        step_id: Optional[ULID] = None
+        step_id: Optional[ULID] = None,
     ) -> ExtractionError:
         """Log extraction error and return error response.
-        
+
         Args:
             request_id: Request correlation ID
             error_code: Error classification code
@@ -678,12 +717,14 @@ class AuditLogger:
             template_id: Optional template ULID
             chain_id: Optional chain ULID
             step_id: Optional step ULID
-            
+
         Returns:
             ExtractionError for client response
         """
-        self.logger.error(f"Extraction error - RequestID: {request_id}, Code: {error_code}, Step: {failed_at_step}, Error: {error_message}")
-        
+        self.logger.error(
+            f"Extraction error - RequestID: {request_id}, Code: {error_code}, Step: {failed_at_step}, Error: {error_message}"
+        )
+
         # Create error response
         error_response = ExtractionError(
             request_id=request_id,
@@ -692,9 +733,9 @@ class AuditLogger:
             failed_at_step=failed_at_step,
             retry_count=retry_count,
             agent_code=agent_code,
-            created_at=datetime.utcnow()
+            created_at=datetime.utcnow(),
         )
-        
+
         # Log error to audit table
         await self._insert_extraction_audit(
             request_id=request_id,
@@ -709,15 +750,16 @@ class AuditLogger:
             status="EXTRACTION_ERROR",
             tokens_prompt=0,
             tokens_completion=0,
-            cost_usd=Decimal('0.00'),
+            cost_usd=Decimal("0.00"),
             latency_ms=0,
             error_message=error_message,
-            step_id=step_id
+            step_id=step_id,
         )
-        
+
         return error_response
 
-    async def _insert_extraction_audit(self,
+    async def _insert_extraction_audit(
+        self,
         request_id: ULID,
         external_id: str | None,
         doc_type_id: ULID | None,
@@ -733,10 +775,10 @@ class AuditLogger:
         cost_usd: Decimal,
         latency_ms: int,
         error_message: str | None = None,
-        step_id: ULID | None = None
+        step_id: ULID | None = None,
     ) -> None:
         """Insert audit record into database.
-        
+
         Args:
             request_id: Request correlation ID
             external_id: External correlation ID
@@ -772,29 +814,31 @@ class AuditLogger:
                 cost_usd=cost_usd,
                 latency_ms=latency_ms,
                 error_message=error_message,
-                step_id=step_id
+                step_id=step_id,
             )
-            
+
             self.session.add(audit_record)
-            
+
         except Exception as e:
             self.logger.error(f"Failed to insert audit record: {str(e)}")
 
     async def _get_doc_type_id(self, doc_type: DocType) -> ULID | None:
         """Get doc type ULID from code.
-        
+
         Args:
             doc_type: Document type code
-            
+
         Returns:
             Document type ULID or None if not found
         """
         cache_key = f"doc_type_{doc_type}"
         if cache_key in self._id_cache:
             return self._id_cache[cache_key]
-            
+
         try:
-            doc_type_obj = await self.session.scalar(select(DocTypeModel).where(DocTypeModel.code == doc_type))
+            doc_type_obj = await self.session.scalar(
+                select(DocTypeModel).where(DocTypeModel.code == doc_type)
+            )
             result = doc_type_obj.id if doc_type_obj else None
             self._id_cache[cache_key] = result
             return result
@@ -804,22 +848,24 @@ class AuditLogger:
 
     async def _get_model_id(self, model_name: str) -> ULID | None:
         """Get model ULID from name.
-        
+
         Args:
             model_name: Model name
-            
+
         Returns:
             Model ULID or None if not found
         """
         if not model_name:
             return None
-            
+
         cache_key = f"model_{model_name}"
         if cache_key in self._id_cache:
             return self._id_cache[cache_key]
-            
+
         try:
-            model_obj = await self.session.scalar(select(LLMModel).where(LLMModel.name == model_name))
+            model_obj = await self.session.scalar(
+                select(LLMModel).where(LLMModel.name == model_name)
+            )
             result = model_obj.id if model_obj else None
             self._id_cache[cache_key] = result
             return result
@@ -829,20 +875,25 @@ class AuditLogger:
 
     async def _get_agent_id(self, agent_code: str) -> ULID | None:
         """Get agent ULID from code.
-        
+
         Args:
             agent_code: Agent code
-            
+
         Returns:
             Agent ULID or None if not found
         """
         cache_key = f"agent_{agent_code}"
         if cache_key in self._id_cache:
             return self._id_cache[cache_key]
-            
+
         try:
             from apps.ai_extraction.models.llm import ExtractionAgentModel
-            agent_obj = await self.session.scalar(select(ExtractionAgentModel).where(ExtractionAgentModel.code == agent_code))
+
+            agent_obj = await self.session.scalar(
+                select(ExtractionAgentModel).where(
+                    ExtractionAgentModel.code == agent_code
+                )
+            )
             result = agent_obj.id if agent_obj else None
             self._id_cache[cache_key] = result
             return result
@@ -852,43 +903,56 @@ class AuditLogger:
 
     async def _get_template_id(self, template_code: str) -> ULID | None:
         """Get template ULID from code.
-        
+
         Args:
             template_code: Template code
-            
+
         Returns:
             Template ULID or None if not found
         """
         try:
             from apps.ai_extraction.models.prompt_template import PromptTemplateModel
-            template_obj = await self.session.scalar(select(PromptTemplateModel).where(PromptTemplateModel.code == template_code))
+
+            template_obj = await self.session.scalar(
+                select(PromptTemplateModel).where(
+                    PromptTemplateModel.code == template_code
+                )
+            )
             return template_obj.id if template_obj else None
         except Exception as e:
-            self.logger.error(f"Failed to get template ID for {template_code}: {str(e)}")
+            self.logger.error(
+                f"Failed to get template ID for {template_code}: {str(e)}"
+            )
             return None
 
     async def _get_credential_id(self, credential_name: str) -> ULID | None:
         """Get credential ULID from name.
-        
+
         Args:
             credential_name: Credential name
-            
+
         Returns:
             Credential ULID or None if not found
         """
         try:
-            credential_obj = await self.session.scalar(select(LLMCredentialModel).where(LLMCredentialModel.name == credential_name))
+            credential_obj = await self.session.scalar(
+                select(LLMCredentialModel).where(
+                    LLMCredentialModel.name == credential_name
+                )
+            )
             return credential_obj.id if credential_obj else None
         except Exception as e:
-            self.logger.error(f"Failed to get credential ID for {credential_name}: {str(e)}")
+            self.logger.error(
+                f"Failed to get credential ID for {credential_name}: {str(e)}"
+            )
             return None
 
     async def _get_next_sequence_number(self, request_id: ULID) -> int:
         """Get next sequence number for a request.
-        
+
         Args:
             request_id: Request correlation ID
-            
+
         Returns:
             Next sequence number
         """
@@ -901,19 +965,20 @@ class AuditLogger:
             )
             return (result or 0) + 1
         except Exception as e:
-            self.logger.error(f"Failed to get next sequence number for {request_id}: {str(e)}")
+            self.logger.error(
+                f"Failed to get next sequence number for {request_id}: {str(e)}"
+            )
             return 1
 
-    async def get_extraction_stats(self,
-        doc_type: DocType | None = None,
-        days: int = 30
+    async def get_extraction_stats(
+        self, doc_type: DocType | None = None, days: int = 30
     ) -> Dict[str, Any]:
         """Get extraction statistics.
-        
+
         Args:
             doc_type: Optional document type filter
             days: Number of days to look back
-            
+
         Returns:
             Dictionary with extraction statistics
         """
@@ -924,19 +989,18 @@ class AuditLogger:
             "average_cost_usd": 0.0,
             "average_latency_ms": 0,
             "top_models": [],
-            "error_breakdown": {}
+            "error_breakdown": {},
         }
 
-    async def get_cost_breakdown(self,
-        start_date: datetime | None = None,
-        end_date: datetime | None = None
+    async def get_cost_breakdown(
+        self, start_date: datetime | None = None, end_date: datetime | None = None
     ) -> Dict[str, Any]:
         """Get cost breakdown by model, provider, etc.
-        
+
         Args:
             start_date: Optional start date filter
             end_date: Optional end date filter
-            
+
         Returns:
             Dictionary with cost breakdown
         """
@@ -946,8 +1010,5 @@ class AuditLogger:
             "cost_by_provider": {},
             "cost_by_model": {},
             "cost_by_doc_type": {},
-            "tokens_breakdown": {
-                "prompt_tokens": 0,
-                "completion_tokens": 0
-            }
-        } 
+            "tokens_breakdown": {"prompt_tokens": 0, "completion_tokens": 0},
+        }

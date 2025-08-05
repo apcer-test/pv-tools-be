@@ -57,12 +57,16 @@ class Settings(BaseSettings):
     # Microsoft SSO Settings
     MICROSOFT_GRAPH_URL: Optional[str] = Field(None, alias="MICROSOFT_GRAPH_URL")
     MICROSOFT_CLIENT_ID: Optional[str] = Field(None, alias="MICROSOFT_CLIENT_ID")
-    MICROSOFT_CLIENT_SECRET: Optional[str] = Field(None, alias="MICROSOFT_CLIENT_SECRET")
+    MICROSOFT_CLIENT_SECRET: Optional[str] = Field(
+        None, alias="MICROSOFT_CLIENT_SECRET"
+    )
     MICROSOFT_METADATA_URL: Optional[str] = Field(None, alias="MICROSOFT_METADATA_URL")
     MICROSOFT_SCOPE: Optional[str] = Field(None, alias="MICROSOFT_SCOPE")
     MICROSOFT_TOKEN_URL: Optional[str] = Field(None, alias="MICROSOFT_TOKEN_URL")
     SOCIAL_AUTH_ENDPOINT: Optional[str] = Field(None, alias="SOCIAL_AUTH_ENDPOINT")
-    SOCIAL_AUTH_REDIRECT_URL: Optional[str] = Field(None, alias="SOCIAL_AUTH_REDIRECT_URL")
+    SOCIAL_AUTH_REDIRECT_URL: Optional[str] = Field(
+        None, alias="SOCIAL_AUTH_REDIRECT_URL"
+    )
 
     LOGIN_REDIRECT_URL: Optional[str] = Field(None, alias="LOGIN_REDIRECT_URL")
     UI_LOGIN_SCREEN: Optional[str] = Field(None, alias="UI_LOGIN_SCREEN")

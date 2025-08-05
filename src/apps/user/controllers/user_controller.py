@@ -1,10 +1,10 @@
 from typing import Annotated
 from uuid import UUID
 
+import httpx
 from authlib.integrations.base_client import OAuthError
 from fastapi import APIRouter, Body, Depends, Path, Query, Request, status
 from fastapi.responses import JSONResponse
-import httpx
 from starlette.responses import RedirectResponse
 
 import constants
@@ -13,15 +13,16 @@ from apps.user.schemas.request import EncryptedRequest
 from apps.user.schemas.response import BaseUserResponse
 from apps.user.services import UserService
 from apps.user.services.microsoft_sso import MicrosoftSSOService
+from config import AppEnvironment, settings
 from core.auth import AdminHasPermission, HasPermission
 from core.types import Providers, RoleType
+from core.utils import logger
 from core.utils.schema import BaseResponse
 from core.utils.set_cookies import set_auth_cookies
-from config import AppEnvironment, settings
-from core.utils import logger
 from core.utils.sso_client import SSOOAuthClient
 
 router = APIRouter(prefix="/api/user", tags=["User"])
+
 
 @router.get(
     "/openid/login/{provider}",
@@ -31,7 +32,9 @@ router = APIRouter(prefix="/api/user", tags=["User"])
     description="endpoint for login using provider",
     operation_id="sso_login",
 )
-async def login_by_provider(request: Request, provider: Annotated[Providers, Path()]) -> RedirectResponse:
+async def login_by_provider(
+    request: Request, provider: Annotated[Providers, Path()]
+) -> RedirectResponse:
     """
     Open api provider login function
     """
@@ -40,7 +43,9 @@ async def login_by_provider(request: Request, provider: Annotated[Providers, Pat
         match provider:
             case Providers.MICROSOFT:
                 if settings.ENV == AppEnvironment.LOCAL:
-                    redirect_uri = request.url_for("sso_auth_callback", provider=provider.value)
+                    redirect_uri = request.url_for(
+                        "sso_auth_callback", provider=provider.value
+                    )
                 else:
                     redirect_uri = f"{settings.SOCIAL_AUTH_REDIRECT_URL}/{settings.SOCIAL_AUTH_ENDPOINT}/{provider}"
                 redirect_uri = f"{redirect_uri}?client_ids=123"
@@ -56,6 +61,7 @@ async def login_by_provider(request: Request, provider: Annotated[Providers, Pat
         logger.error(f"SSO login error for provider {provider}: {str(e)}")
         return RedirectResponse(url=settings.UI_LOGIN_SCREEN)
 
+
 @router.get(
     "/{provider}",
     status_code=status.HTTP_200_OK,
@@ -67,7 +73,7 @@ async def auth(
     request: Request,
     client_ids: Annotated[str, Query()],
     service: Annotated[MicrosoftSSOService, Depends()],
-    provider: Annotated[Providers, Path()]
+    provider: Annotated[Providers, Path()],
 ) -> RedirectResponse:
     """
     get details by provider
@@ -86,7 +92,7 @@ async def auth(
                         .oauth.create_client(provider.value)
                         .authorize_access_token(request)
                     )
-            
+
                     print(f"token: {token}")
                     if not token:
                         logger.error("Failed to get access token from Microsoft")
@@ -106,14 +112,20 @@ async def auth(
                         .userinfo(token=token)
                     )
 
-                    logger.info(f"Successfully got user data from Microsoft: {user_data.get('email')}")
+                    logger.info(
+                        f"Successfully got user data from Microsoft: {user_data.get('email')}"
+                    )
                     return {"user_data": user_data}
 
                 except OAuthError as oauth_error:
-                    logger.error(f"OAuth error during Microsoft callback: {str(oauth_error)}")
+                    logger.error(
+                        f"OAuth error during Microsoft callback: {str(oauth_error)}"
+                    )
                     return RedirectResponse(url=settings.UI_LOGIN_SCREEN)
                 except Exception as e:
-                    logger.error(f"Unexpected error during Microsoft callback: {str(e)}")
+                    logger.error(
+                        f"Unexpected error during Microsoft callback: {str(e)}"
+                    )
                     return RedirectResponse(url=settings.UI_LOGIN_SCREEN)
                 finally:
                     # Clean up session

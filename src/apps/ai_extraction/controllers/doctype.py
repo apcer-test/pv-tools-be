@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
-from uuid import UUID
-from apps.ai_extraction.services.doctype import DocTypeService
-from apps.ai_extraction.schemas.response import DocumentTypeResponse
-from core.utils.schema import BaseResponse
 from typing import Annotated, List, Optional
-from fastapi import status
+from uuid import UUID
+
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+
+from apps.ai_extraction.schemas.response import DocumentTypeResponse
+from apps.ai_extraction.services.doctype import DocTypeService
+from core.utils.schema import BaseResponse
 
 router = APIRouter(prefix="/api/doc-types", tags=["Document Types"])
 
@@ -18,22 +19,24 @@ router = APIRouter(prefix="/api/doc-types", tags=["Document Types"])
     response_model=BaseResponse[List[DocumentTypeResponse]],
     responses={
         200: {"description": "List of document types with related data"},
-        404: {"description": "No document types found"}
-    }
+        404: {"description": "No document types found"},
+    },
 )
 async def get_all_doc_types(
     service: Annotated[DocTypeService, Depends()],
-    search: Optional[str] = Query(None, description="Search by document type ID or code")
+    search: Optional[str] = Query(
+        None, description="Search by document type ID or code"
+    ),
 ) -> BaseResponse[List[DocumentTypeResponse]]:
     """
     Retrieve all document types with their related data.
-    
+
     This endpoint returns a list of all document types with their prompt templates
     and extraction agents.
-        
+
     Returns:
         BaseResponse[List[DocumentTypeResponse]]: List of document types with related data
-        
+
     Raises:
         HTTPException: If no document types are found
     """
@@ -47,5 +50,5 @@ async def get_all_doc_types(
         # Handle any other exceptions
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"An error occurred while fetching document types: {str(e)}"
+            detail=f"An error occurred while fetching document types: {str(e)}",
         )

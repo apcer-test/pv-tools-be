@@ -28,6 +28,7 @@ class RoleType(StrEnum):
     ANY = "ANY"
     OPTIONAL = "OPTIONAL"
 
+
 class Providers(StrEnum):
     """
     Enumeration of supported authentication providers.
