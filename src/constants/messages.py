@@ -53,3 +53,25 @@ EMAIL_FIELD_REQUIRED = "Email field is required."
 PASSWORD_FIELD_REQUIRED = "Password field is required."
 
 EMAIL_NOT_FOUND = "Email not found."
+
+MAILBOX_ALREADY_CONFIGURED = "This receipted email is already configured."
+
+INVALID_AUTH_TOKEN = "please retry with a new valid code"
+
+START_DATE_INVALID = "Start date cannot be in the past."
+
+END_DATE_INVALID = "End date cannot be in the past or before the start date."
+
+MAILBOX_CONFIG_NOT_FOUND = "Mailbox configuration not found."
+
+DATE_TIME_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
+
+SIGKILL = "SIGKILL"
+
+CONTENT_TYPE = "application/x-www-form-urlencoded"
+
+GRANT_TYPE = "authorization_code"
+
+ACCESS_TOKEN_SCOPE = "openid"
+
+ACCESS_TOKEN_GRANT_TYPE = "refresh_token"

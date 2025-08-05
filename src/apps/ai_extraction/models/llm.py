@@ -120,9 +120,12 @@ class ExtractionAgentModel(Base, ULIDPrimaryKeyMixin, TimeStampMixin):
     description: Mapped[str | None] = mapped_column(Text)
     prompt_template_id: Mapped[str] = mapped_column(ForeignKey("prompt_template.id"))
     fallback_chain_id: Mapped[str] = mapped_column(ForeignKey("fallback_chain.id"))
-    llm_credential_id: Mapped[str] = mapped_column(ForeignKey("llm_credential.id"))
+    llm_credential_id: Mapped[str] = mapped_column(
+        ForeignKey("llm_credential.id")
+    )  # remove
     is_active: Mapped[bool] = mapped_column(default=True)
     sequence_no: Mapped[int] = mapped_column(unique=True)
+    preferred_model: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
     # Relationships
     doc_type: Mapped["DocTypeModel"] = relationship(

@@ -21,6 +21,7 @@ if TYPE_CHECKING:
     from apps.ai_extraction.models.fallback import FallbackChainModel, FallbackStepModel
     from apps.ai_extraction.models.llm import LLMCredentialModel, LLMModel
     from apps.ai_extraction.models.prompt_template import PromptTemplateModel
+    from apps.document_intake.models.document_intake import DocumentIntakeHistory
 
 
 class ExtractionAuditModel(Base, ULIDPrimaryKeyMixin, TimeStampMixin):
@@ -50,6 +51,11 @@ class ExtractionAuditModel(Base, ULIDPrimaryKeyMixin, TimeStampMixin):
     step_id: Mapped[str | None] = mapped_column(ForeignKey("fallback_step.id"))
     meta_data: Mapped[dict | None] = mapped_column(JSON)
 
+    # Document intake tracking for retry functionality
+    document_intake_id: Mapped[str | None] = mapped_column(
+        ForeignKey("document_intake_history.id"), nullable=True
+    )
+
     # Relationships
     doc_type: Mapped["DocTypeModel"] = relationship(
         "DocTypeModel", back_populates="extraction_audits"
@@ -72,6 +78,11 @@ class ExtractionAuditModel(Base, ULIDPrimaryKeyMixin, TimeStampMixin):
     credential: Mapped["LLMCredentialModel"] = relationship("LLMCredentialModel")
 
     agent: Mapped["ExtractionAgentModel"] = relationship("ExtractionAgentModel")
+
+    # Relationship for document intake history
+    document_intake: Mapped["DocumentIntakeHistory"] = relationship(
+        "DocumentIntakeHistory", back_populates="extraction_audits"
+    )
 
     def __repr__(self) -> str:
         return f"<ExtractionAuditModel(id={self.id}, request_id={self.request_id}, status={self.status})>"

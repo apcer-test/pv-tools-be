@@ -1,12 +1,15 @@
 import uuid
-from typing import Self
+from typing import TYPE_CHECKING, Self
 
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from ulid import ULID
 
 from core.db import Base
 from core.types import RoleType
 from core.utils.mixins import TimeStampMixin, ULIDPrimaryKeyMixin, UserMixin
+
+if TYPE_CHECKING:
+    from apps.tenant.models.models import Tenant, TenantUsers
 
 
 class UserModel(Base, ULIDPrimaryKeyMixin, TimeStampMixin, UserMixin):
@@ -32,6 +35,21 @@ class UserModel(Base, ULIDPrimaryKeyMixin, TimeStampMixin, UserMixin):
     phone: Mapped[str] = mapped_column(index=True, unique=True)
     password: Mapped[str] = mapped_column()
     role: Mapped[RoleType] = mapped_column()
+    tenants: Mapped[list["Tenant"]] = relationship(
+        "Tenant",
+        secondary="tenant_users",
+        back_populates="users",
+        primaryjoin="UserModel.id == TenantUsers.user_id",
+        secondaryjoin="TenantUsers.tenant_id == Tenant.id",
+        viewonly=True,
+    )
+
+    tenant_users: Mapped[list["TenantUsers"]] = relationship(
+        "TenantUsers",
+        back_populates="user",
+        primaryjoin="UserModel.id == TenantUsers.user_id",
+        cascade="all, delete-orphan",
+    )
 
     def __str__(self) -> str:
         """

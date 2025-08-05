@@ -35,5 +35,9 @@ class DocTypeModel(Base, ULIDPrimaryKeyMixin, TimeStampMixin):
         "ExtractionAgentModel", back_populates="doc_type"
     )
 
+    document_intakes: Mapped[List["DocumentIntakeHistory"]] = relationship(
+        "DocumentIntakeHistory", back_populates="doc_type"
+    )
+
     def __repr__(self) -> str:
         return f"<DocTypeModel(id={self.id}, code={self.code})>"

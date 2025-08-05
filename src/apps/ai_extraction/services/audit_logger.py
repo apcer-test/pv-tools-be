@@ -32,6 +32,8 @@ class AuditLogger:
         self.logger = logging.getLogger(__name__)
         # Cache for ID lookups within the same request
         self._id_cache = {}
+        # Store document_intake_id for use across methods
+        self.current_document_intake_id = None
 
     async def log_request_start(
         self,
@@ -40,6 +42,7 @@ class AuditLogger:
         file_name: str,
         file_size: int,
         external_id: Optional[str] = None,
+        document_intake_id: str = None,
     ) -> None:
         """Log the start of a new extraction request.
 
@@ -49,7 +52,9 @@ class AuditLogger:
             file_name: Name of uploaded file
             file_size: Size of uploaded file in bytes
             external_id: Optional external correlation ID
+            document_intake_id: Document intake history ID for retry functionality
         """
+        self.current_document_intake_id = document_intake_id
         self.logger.info(
             f"Extraction request started - RequestID: {request_id}, DocType: {doc_type}, File: {file_name}, Size: {file_size}"
         )
@@ -72,6 +77,7 @@ class AuditLogger:
             latency_ms=0,
             error_message=None,
             step_id=None,
+            document_intake_id=document_intake_id,
         )
 
     async def log_preprocessing_start(
@@ -105,6 +111,7 @@ class AuditLogger:
             latency_ms=0,
             error_message=None,
             step_id=None,
+            document_intake_id=self.current_document_intake_id,
         )
 
     async def log_preprocessing_complete(
@@ -145,6 +152,7 @@ class AuditLogger:
             latency_ms=0,
             error_message=None,
             step_id=None,
+            document_intake_id=self.current_document_intake_id,
         )
 
     async def log_preprocessing_error(
@@ -178,6 +186,7 @@ class AuditLogger:
             latency_ms=0,
             error_message=error_message,
             step_id=None,
+            document_intake_id=self.current_document_intake_id,
         )
 
     async def log_agent_start(
@@ -218,6 +227,7 @@ class AuditLogger:
             latency_ms=0,
             error_message=None,
             step_id=None,
+            document_intake_id=self.current_document_intake_id,
         )
 
     async def log_llm_call_start(
@@ -264,6 +274,7 @@ class AuditLogger:
             latency_ms=0,
             error_message=None,
             step_id=step.id,
+            document_intake_id=self.current_document_intake_id,
         )
 
     async def log_llm_call_success(
@@ -318,6 +329,7 @@ class AuditLogger:
             latency_ms=latency_ms,
             error_message=None,
             step_id=step.id,
+            document_intake_id=self.current_document_intake_id,
         )
 
     async def log_llm_call_failed(
@@ -368,6 +380,7 @@ class AuditLogger:
             latency_ms=latency_ms,
             error_message=error_message,
             step_id=step.id,
+            document_intake_id=self.current_document_intake_id,
         )
 
     async def log_validation_start(
@@ -408,6 +421,7 @@ class AuditLogger:
             latency_ms=0,
             error_message=None,
             step_id=None,
+            document_intake_id=self.current_document_intake_id,
         )
 
     async def log_validation_success(
@@ -450,6 +464,7 @@ class AuditLogger:
             latency_ms=0,
             error_message=None,
             step_id=None,
+            document_intake_id=self.current_document_intake_id,
         )
 
     async def log_validation_failed(
@@ -492,6 +507,7 @@ class AuditLogger:
             latency_ms=0,
             error_message=error_message,
             step_id=None,
+            document_intake_id=self.current_document_intake_id,
         )
 
     async def log_agent_complete(
@@ -538,6 +554,7 @@ class AuditLogger:
             latency_ms=total_latency,
             error_message=None,
             step_id=None,
+            document_intake_id=self.current_document_intake_id,
         )
 
     async def log_agent_failed(
@@ -580,6 +597,7 @@ class AuditLogger:
             latency_ms=0,
             error_message=error_message,
             step_id=None,
+            document_intake_id=self.current_document_intake_id,
         )
 
     async def log_extraction_complete(
@@ -626,6 +644,7 @@ class AuditLogger:
             latency_ms=total_latency,
             error_message=None,
             step_id=None,
+            document_intake_id=self.current_document_intake_id,
         )
 
     async def process_outcome(
@@ -672,6 +691,7 @@ class AuditLogger:
             latency_ms=outcome.get("latency_ms"),
             error_message=None,
             step_id=step_id,
+            document_intake_id=self.current_document_intake_id,
         )
 
         # Return success response
@@ -754,6 +774,7 @@ class AuditLogger:
             latency_ms=0,
             error_message=error_message,
             step_id=step_id,
+            document_intake_id=self.current_document_intake_id,
         )
 
         return error_response
@@ -776,6 +797,7 @@ class AuditLogger:
         latency_ms: int,
         error_message: str | None = None,
         step_id: ULID | None = None,
+        document_intake_id: str | None = None,
     ) -> None:
         """Insert audit record into database.
 
@@ -796,6 +818,7 @@ class AuditLogger:
             latency_ms: Response latency
             error_message: Error message if failed
             step_id: Fallback step ULID
+            document_intake_id: Document intake history ID for retry functionality
         """
         try:
             audit_record = ExtractionAuditModel(
@@ -815,6 +838,7 @@ class AuditLogger:
                 latency_ms=latency_ms,
                 error_message=error_message,
                 step_id=step_id,
+                document_intake_id=document_intake_id,
             )
 
             self.session.add(audit_record)

@@ -1,5 +1,17 @@
 # User table seeding
 
+sql_for_tenant = '''
+INSERT INTO tenant (id, secret_key, is_active, created_at, updated_at, deleted_at, created_by, updated_by, deleted_by)
+VALUES
+('03K1D6VT352M83632KFQA55DF1', 'secret_key', TRUE, NOW(), NOW(), NULL, NULL, NULL, NULL);
+'''
+
+sql_for_tenant_users = '''
+INSERT INTO tenant_users (tenant_id, user_id, role, created_at, updated_at, deleted_at, created_by, updated_by, deleted_by)
+VALUES
+('03K1D6VT352M83632KFQA55DF1', '01K1D6VT352M83632KFQA55DF1', 'ADMIN', NOW(), NOW(), NULL, NULL, NULL, NULL);
+'''
+
 sql_for_create_admin = '''
 INSERT INTO users (first_name, last_name, email, password, phone, role, id, created_at, updated_at, deleted_at, created_by, updated_by, deleted_by)
 VALUES

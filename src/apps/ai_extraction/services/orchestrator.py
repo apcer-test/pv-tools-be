@@ -52,6 +52,7 @@ class Orchestrator:
         file_path: Path,
         doc_type: DocType,
         audit_logger: Optional[AuditLogger] = None,
+        document_intake_id: str = None,
     ) -> Union[ExtractionResult, ExtractionError]:
         """High-level asynchronous API for document extraction.
 
@@ -241,7 +242,7 @@ class Orchestrator:
 
                     # Store results by agent code
                     if isinstance(agent_result, ExtractionDataResult):
-                        extraction_results[agent.code] = agent_result.data
+                        extraction_results.update(agent_result.data["data"])
                         successful_agents += 1
 
                         # Accumulate costs and latency
@@ -277,6 +278,7 @@ class Orchestrator:
                         agent_id=agent.id,
                         doc_type=doc_type,
                         error_message=error_msg,
+                        template_id=agent.prompt_template_id,
                     )
 
                     await logger_instance.log_error(

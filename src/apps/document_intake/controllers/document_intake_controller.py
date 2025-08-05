@@ -57,25 +57,6 @@ async def extract_document_endpoint(
             f"Document extraction request received - RequestID: {request_id}, DocType: {doc_type}, File: {file.filename}"
         )
 
-        # Get file size for logging
-        file_size = 0
-        if hasattr(file, "size"):
-            file_size = file.size
-        else:
-            # Read file to get size if not available
-            content = await file.read()
-            file_size = len(content)
-            # Reset file position for processing
-            await file.seek(0)
-
-        # Log request start with audit logger
-        await audit_logger.log_request_start(
-            request_id=request_id,
-            doc_type=doc_type,
-            file_name=file.filename or "unknown",
-            file_size=file_size,
-        )
-
         # Process the document
         result = await service.process_document(
             file=file,

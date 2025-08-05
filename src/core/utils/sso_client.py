@@ -26,7 +26,6 @@ class SSOOAuthClient:
         self.provider = provider
 
         match self.provider:
-
             case Providers.MICROSOFT:
                 self.oauth.register(
                     self.provider,

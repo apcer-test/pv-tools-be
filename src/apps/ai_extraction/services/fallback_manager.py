@@ -25,8 +25,8 @@ from apps.ai_extraction.schemas.response import LLMCallResult
 from apps.ai_extraction.services.audit_logger import AuditLogger
 from apps.ai_extraction.services.llm_gateway import LLMGateway
 from apps.ai_extraction.services.schema_validator import SchemaValidator
-from config import settings
 from core.db import db_session
+from src.config import settings
 
 
 class FallbackManager:
@@ -80,14 +80,33 @@ class FallbackManager:
         chain = agent.fallback_chain
         steps = chain.fallback_steps
 
+        # If agent has a preferred model, find the step with that model and start from there
+        start_index = 0
+        if agent.preferred_model:
+            preferred_step_index = None
+            for i, step in enumerate(steps):
+                if step.model.name == agent.preferred_model:
+                    preferred_step_index = i
+                    break
+
+            if preferred_step_index is not None:
+                start_index = preferred_step_index
+                self.logger.info(
+                    f"Starting from preferred model step {start_index + 1} - RequestID: {request_id}, Agent: {agent.code}, Preferred Model: {agent.preferred_model}"
+                )
+            else:
+                self.logger.warning(
+                    f"Preferred model '{agent.preferred_model}' not found in fallback chain - RequestID: {request_id}, Agent: {agent.code}, Starting from first step"
+                )
+
         self.logger.info(
-            f"Executing fallback chain - RequestID: {request_id}, Agent: {agent.code}, Steps: {len(steps)}"
+            f"Executing fallback chain - RequestID: {request_id}, Agent: {agent.code}, Steps: {len(steps)}, Start Index: {start_index}"
         )
 
         last_error = None
 
-        # Try each step in the chain
-        for step_index, step in enumerate(steps):
+        # Try each step in the chain starting from the preferred model step
+        for step_index, step in enumerate(steps[start_index:], start=start_index):
             self.logger.info(
                 f"Executing step {step_index + 1}/{len(steps)} - RequestID: {request_id}, Agent: {agent.code}, Model: {step.model.name}"
             )
@@ -208,18 +227,19 @@ class FallbackManager:
                         agent_code=agent.code,
                         doc_type=doc_type,
                         error_message=str(e),
+                        agent_id=agent.id,
+                        template_id=agent.prompt_template_id,
                     )
 
                 self.logger.warning(
                     f"Step {step_index + 1} failed - RequestID: {request_id}, Agent: {agent.code}, Model: {step.model.name}, Error: {str(e)}"
                 )
 
-                # Wait before trying next step
-                if step.retry_delay_ms > 0:
-                    self.logger.info(
-                        f"Waiting {step.retry_delay_ms}ms before next step - RequestID: {request_id}, Agent: {agent.code}"
+                # If this was the preferred model and it failed, log a warning
+                if agent.preferred_model and step.model.name == agent.preferred_model:
+                    self.logger.warning(
+                        f"Preferred model '{agent.preferred_model}' failed validation - RequestID: {request_id}, Agent: {agent.code}"
                     )
-                    await asyncio.sleep(step.retry_delay_ms / 1000)
 
                 continue
 
