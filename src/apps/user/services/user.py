@@ -115,7 +115,12 @@ class UserService:
         return await create_tokens(user_id=user.id, role=user.role)
 
     async def create_user(
-        self, request: Request, encrypted_data: str, encrypted_key: str, iv: str, current_user_id: UUID = None
+        self,
+        request: Request,
+        encrypted_data: str,
+        encrypted_key: str,
+        iv: str,
+        current_user_id: UUID = None,
     ) -> UserModel:
         """
         Create a new user.
@@ -171,7 +176,7 @@ class UserService:
         if current_user_id:
             user.created_by = current_user_id
             user.updated_by = current_user_id
-        
+
         self.session.add(user)
         return user
 

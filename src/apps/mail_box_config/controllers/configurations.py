@@ -1,19 +1,20 @@
 from typing import Annotated
-from fastapi import Depends, status, Path, Body
-from fastapi import Request as FastAPIRequest
-from fastapi.routing import APIRouter
 from uuid import UUID
 
-from core.auth import AdminHasPermission
+from fastapi import Body, Depends, Path
+from fastapi import Request as FastAPIRequest
+from fastapi import status
+from fastapi.routing import APIRouter
+
 from apps.admin.schemas.request import EncryptedRequest
-
-from core.utils.schema import BaseResponse
 from apps.mail_box_config.services.configurations import MicrosoftCredentialsService
-
+from core.auth import AdminHasPermission
+from core.utils.schema import BaseResponse
 
 router = APIRouter(
     tags=["Microsoft Credentials"], dependencies=[Depends(AdminHasPermission())]
 )
+
 
 @router.patch(
     "/{tenant_id}/microsoft-credentials",
@@ -40,7 +41,8 @@ async def update_microsoft_credentials(
     return BaseResponse(
         data=await service.update_microsoft_credentials(
             request=request, tenant_id=tenant_id, **body.model_dump(exclude_unset=True)
-        ))
+        )
+    )
 
 
 @router.get(

@@ -9,10 +9,10 @@ from apps.mail_box_config.schemas import (
     CreateUpdateMailBoxConfigResponse,
     MailBoxConfigResponse,
 )
+from apps.mail_box_config.services.mail_box_config import MailBoxService
 from core.auth import AdminHasPermission
 from core.utils import BaseResponse
 from core.utils.schema import SuccessResponse
-from apps.mail_box_config.services.mail_box_config import MailBoxService
 
 router = APIRouter(
     prefix="/{tenant_id}/mail-box",
@@ -40,7 +40,9 @@ async def configure_mail_box(
     :return: CreateUserResponse
     """
     return BaseResponse(
-        data=await service.add_mail_box_config(tenant_id=tenant_id, **request.model_dump())
+        data=await service.add_mail_box_config(
+            tenant_id=tenant_id, **request.model_dump()
+        )
     )
 
 
@@ -65,7 +67,9 @@ async def update_mail_box_configurations(
     """
     return BaseResponse(
         data=await service.update_mail_box_config(
-            tenant_id=tenant_id, mail_box_config_id=mail_box_config_id, **request.model_dump()
+            tenant_id=tenant_id,
+            mail_box_config_id=mail_box_config_id,
+            **request.model_dump()
         )
     )
 

@@ -41,14 +41,14 @@ class UserModel(Base, ULIDPrimaryKeyMixin, TimeStampMixin, UserMixin):
         back_populates="users",
         primaryjoin="UserModel.id == TenantUsers.user_id",
         secondaryjoin="TenantUsers.tenant_id == Tenant.id",
-        viewonly=True
+        viewonly=True,
     )
-    
+
     tenant_users: Mapped[list["TenantUsers"]] = relationship(
         "TenantUsers",
         back_populates="user",
         primaryjoin="UserModel.id == TenantUsers.user_id",
-        cascade="all, delete-orphan"
+        cascade="all, delete-orphan",
     )
 
     def __str__(self) -> str:

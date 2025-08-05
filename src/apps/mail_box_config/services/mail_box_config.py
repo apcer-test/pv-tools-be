@@ -12,15 +12,18 @@ from sqlalchemy.orm import load_only
 from ulid import ULID
 
 import constants
+from apps.mail_box_config.exceptions import (
+    MailBoxAlreadyConfigured,
+    MailBoxConfigNotFound,
+)
 from apps.mail_box_config.helper import revoke_running_task
-from apps.mail_box_config.exceptions import MailBoxAlreadyConfigured, MailBoxConfigNotFound
-from core.utils.schema import SuccessResponse
+from apps.mail_box_config.models.mail_box import MicrosoftMailBoxConfig
 from core.common_helpers import fetch_outlook_settings
 from core.db import db_session, redis
 from core.types import FrequencyType, Providers
 from core.utils.celery_worker import pooling_mail_box
 from core.utils.microsoft_oauth_util import generate_refresh_token
-from apps.mail_box_config.models.mail_box import MicrosoftMailBoxConfig
+from core.utils.schema import SuccessResponse
 
 
 class MailBoxService:
@@ -184,28 +187,28 @@ class MailBoxService:
         reschedule_task = False
 
         if app_password:
-                (
-                    client_id,
-                    redirect_uri,
-                    client_secret,
-                    refresh_token_validity_days,
-                    microsoft_tenant_id,
-                ) = await fetch_outlook_settings(tenant_id=tenant_id)
+            (
+                client_id,
+                redirect_uri,
+                client_secret,
+                refresh_token_validity_days,
+                microsoft_tenant_id,
+            ) = await fetch_outlook_settings(tenant_id=tenant_id)
 
-                app_password = await generate_refresh_token(
-                    app_password,
-                    client_id,
-                    redirect_uri,
-                    client_secret,
-                    refresh_token_validity_days,
-                    microsoft_tenant_id,
-                )
-                refresh_token_exp = datetime.now(UTC).replace(tzinfo=None) + timedelta(
-                    days=float(refresh_token_validity_days)  # type: ignore
-                )
+            app_password = await generate_refresh_token(
+                app_password,
+                client_id,
+                redirect_uri,
+                client_secret,
+                refresh_token_validity_days,
+                microsoft_tenant_id,
+            )
+            refresh_token_exp = datetime.now(UTC).replace(tzinfo=None) + timedelta(
+                days=float(refresh_token_validity_days)  # type: ignore
+            )
 
-                mail_box_config.app_password = app_password
-                mail_box_config.app_password_expired_at = refresh_token_exp
+            mail_box_config.app_password = app_password
+            mail_box_config.app_password_expired_at = refresh_token_exp
 
         if provider:
             mail_box_config.provider = provider
@@ -243,7 +246,9 @@ class MailBoxService:
             else:
                 eta = datetime(
                     year=start_date.year if start_date else mail_box_config.start_date,
-                    month=start_date.month if start_date else mail_box_config.start_date,
+                    month=(
+                        start_date.month if start_date else mail_box_config.start_date
+                    ),
                     day=start_date.day if start_date else mail_box_config.start_date,
                     hour=now.hour,
                     minute=now.minute,

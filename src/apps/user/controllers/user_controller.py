@@ -1,10 +1,11 @@
+import logging
 from typing import Annotated
 from uuid import UUID
-import logging
+
 import httpx
+from authlib.integrations.base_client.errors import OAuthError
 from fastapi import APIRouter, Body, Depends, Path, Query, Request, status
 from fastapi.responses import JSONResponse, RedirectResponse
-from authlib.integrations.base_client.errors import OAuthError
 
 import constants
 from apps.user.models.user import UserModel
@@ -23,6 +24,7 @@ from src.core.utils.sso_client import SSOOAuthClient
 router = APIRouter(prefix="/api/user", tags=["User"])
 logger = logging.getLogger(__name__)
 
+
 @router.get(
     "/openid/login/{provider}",
     status_code=status.HTTP_200_OK,
@@ -31,7 +33,9 @@ logger = logging.getLogger(__name__)
     description="endpoint for login using provider",
     operation_id="sso_login",
 )
-async def login_by_provider(request: Request, provider: Annotated[Providers, Path()]) -> RedirectResponse:
+async def login_by_provider(
+    request: Request, provider: Annotated[Providers, Path()]
+) -> RedirectResponse:
     """
     Open api provider login function
     """
@@ -39,7 +43,9 @@ async def login_by_provider(request: Request, provider: Annotated[Providers, Pat
         match provider:
             case Providers.MICROSOFT:
                 if settings.ENV == AppEnvironment.LOCAL:
-                    redirect_uri = request.url_for("sso_auth_callback", provider=provider.value)
+                    redirect_uri = request.url_for(
+                        "sso_auth_callback", provider=provider.value
+                    )
                 else:
                     redirect_uri = f"{settings.SOCIAL_AUTH_REDIRECT_URL}/{settings.SOCIAL_AUTH_ENDPOINT}/{provider}"
                 redirect_uri = f"{redirect_uri}?client_ids=123"
@@ -54,6 +60,7 @@ async def login_by_provider(request: Request, provider: Annotated[Providers, Pat
         logger.error(f"SSO login error for provider {provider}: {str(e)}")
         return RedirectResponse(url=settings.UI_LOGIN_SCREEN)
 
+
 @router.get(
     "/{provider}",
     status_code=status.HTTP_200_OK,
@@ -63,9 +70,9 @@ async def login_by_provider(request: Request, provider: Annotated[Providers, Pat
 )
 async def auth(
     request: Request,
-    client_ids:Annotated[str, Query()],
+    client_ids: Annotated[str, Query()],
     service: Annotated[MicrosoftSSOService, Depends()],
-    provider: Annotated[Providers, Path()]
+    provider: Annotated[Providers, Path()],
 ) -> RedirectResponse:
     """
     get details by provider
@@ -100,14 +107,22 @@ async def auth(
                         .userinfo(token=token)
                     )
 
-                    logger.info(f"Successfully got user data from Microsoft: {user_data.get('email')}")
-                    return await service.sso_user(token=token.get("id_token"), **user_data)
+                    logger.info(
+                        f"Successfully got user data from Microsoft: {user_data.get('email')}"
+                    )
+                    return await service.sso_user(
+                        token=token.get("id_token"), **user_data
+                    )
 
                 except OAuthError as oauth_error:
-                    logger.error(f"OAuth error during Microsoft callback: {str(oauth_error)}")
+                    logger.error(
+                        f"OAuth error during Microsoft callback: {str(oauth_error)}"
+                    )
                     return RedirectResponse(url=settings.UI_LOGIN_SCREEN)
                 except Exception as e:
-                    logger.error(f"Unexpected error during Microsoft callback: {str(e)}")
+                    logger.error(
+                        f"Unexpected error during Microsoft callback: {str(e)}"
+                    )
                     return RedirectResponse(url=settings.UI_LOGIN_SCREEN)
                 finally:
                     # Clean up session
@@ -119,6 +134,7 @@ async def auth(
     except Exception as e:
         logger.error(f"Global error in auth callback: {str(e)}")
         return RedirectResponse(url=settings.UI_LOGIN_SCREEN)
+
 
 @router.get(
     "/auth/generate-code",
@@ -144,9 +160,7 @@ async def generate_code(request: Request) -> RedirectResponse:
     description="callback endpoint for generate code",
     operation_id="generate_code_callback",
 )
-async def generate_code_callback(
-    request: Request,
-) -> RedirectResponse:
+async def generate_code_callback(request: Request) -> RedirectResponse:
     """
     get details by generate code callback
     """

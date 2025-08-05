@@ -1,6 +1,7 @@
 from datetime import date, datetime
 
 from pydantic import EmailStr, field_serializer
+
 from src.core.types import FrequencyType
 from src.core.utils.schema import CamelCaseModel
 
@@ -54,6 +55,7 @@ class MailBoxConfigResponse(CamelCaseModel):
         if value:
             return value.strftime("%d-%m-%Y")
         return None
+
 
 class BaseMailBoxPollingConfigResponse(CamelCaseModel):
     """This is the base class for the mail box polling configuration response.

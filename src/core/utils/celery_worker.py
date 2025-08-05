@@ -9,6 +9,7 @@ from sentry_sdk.integrations.redis import RedisIntegration
 from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
 from ulid import ULID
 
+from apps.mail_box_config.helper import revoke_running_task
 from config import settings
 from core.common_helpers import (
     capture_exception,
@@ -20,11 +21,8 @@ from core.common_helpers import (
 from core.db import redis
 from core.exceptions import CustomException
 from core.types import FrequencyType, Providers
-from core.utils.email_utils import fetch_email_outlook, logger
-from apps.mail_box_config.helper import revoke_running_task
 from core.utils.celery_config import celery_app
-
-
+from core.utils.email_utils import fetch_email_outlook, logger
 
 if settings.ACTIVATE_WORKER_SENTRY is True:
 
@@ -355,7 +353,6 @@ if settings.ACTIVATE_WORKER_SENTRY is True:
 #         print(f"{filename},\n {traceback.format_exc()}")
 
 
-
 @celery_app.task(bind=True, ignore_result=True)
 def pooling_mail_box(
     self,
@@ -391,7 +388,6 @@ def pooling_mail_box(
         email = mail_box_config.recipient_email
         end_date = datetime.combine(end_date, time.min)
 
-        
         print(f"Current time: {current_time}, End date: {end_date}")
         print(f"MailBox :{email}")
         if current_time >= end_date:
@@ -406,7 +402,7 @@ def pooling_mail_box(
             last_execution_date = datetime.combine(mail_box_config.start_date, time.min)
         company_emails = mail_box_config.company_emails
         subject_lines = mail_box_config.subject_lines
-    
+
         if len(company_emails) >= 1:
             if provider == Providers.MICROSOFT:
                 (
@@ -430,7 +426,9 @@ def pooling_mail_box(
                     app_password_expiry=mail_box_config.app_password_expired_at,
                 )
                 # No further action required for now after fetching emails
-                print(f"Fetched {len(list_of_items)} email(s) from mailbox, no further action taken.")
+                print(
+                    f"Fetched {len(list_of_items)} email(s) from mailbox, no further action taken."
+                )
                 return
 
             polling_session_id = str(ULID())
@@ -463,7 +461,7 @@ def pooling_mail_box(
             #                 additional_filter,
             #                 polling_session_id,  # Pass session ID for full traceability
             #             )
-            
+
             # Log only if attachments were found and processed
             # if attachments_found > 0:
             #     asyncio.get_event_loop().run_until_complete(

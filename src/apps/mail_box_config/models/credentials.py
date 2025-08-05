@@ -12,6 +12,7 @@ class MicrosoftCredentialsConfig(Base, ULIDPrimaryKeyMixin, TimeStampMixin, User
     """
     Model for storing microsoft credentials.
     """
+
     __tablename__ = "microsoft_credentials_config"
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id", ondelete="cascade"))
     config: Mapped[str | None] = mapped_column()
@@ -30,4 +31,4 @@ class MicrosoftCredentialsConfig(Base, ULIDPrimaryKeyMixin, TimeStampMixin, User
         Returns:
             MicrosoftCredentialsConfig instance
         """
-        return cls(id=str(ULID()), tenant_id=tenant_id, config=config) 
+        return cls(id=str(ULID()), tenant_id=tenant_id, config=config)

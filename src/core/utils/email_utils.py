@@ -4,9 +4,9 @@ from typing import Any
 import httpx
 
 from config import settings
+from constants import ALLOWED_ATTACHMENT_EXTENSIONS, DATE_TIME_FORMAT, OUTLOOK_PAGE_SIZE
 from core.utils import logger
 from core.utils.microsoft_oauth_util import generate_access_token
-from constants import ALLOWED_ATTACHMENT_EXTENSIONS, OUTLOOK_PAGE_SIZE, DATE_TIME_FORMAT
 
 
 def build_outlook_filter(
@@ -15,28 +15,28 @@ def build_outlook_filter(
     last_execution_date: datetime | None = None,
 ) -> str:
     """Build filter for Outlook API to fetch emails based on configuration.
-    
+
     Args:
         company_emails: List of company email addresses to filter from
         subject_lines: List of subject lines to match
         last_execution_date: Optional datetime to filter emails after this date
-        
+
     Returns:
         str: Microsoft Graph API filter string
     """
     # Filter for company emails (from addresses)
     from_conditions = [
-        f"startswith(from/emailAddress/address, '{email}')"
-        for email in company_emails
+        f"startswith(from/emailAddress/address, '{email}')" for email in company_emails
     ]
     from_filter = f"({' or '.join(from_conditions)})" if from_conditions else ""
 
     # Filter for subject lines
     subject_conditions = [
-        f"contains(subject, '{subject}')" 
-        for subject in subject_lines
+        f"contains(subject, '{subject}')" for subject in subject_lines
     ]
-    subject_filter = f"({' or '.join(subject_conditions)})" if subject_conditions else ""
+    subject_filter = (
+        f"({' or '.join(subject_conditions)})" if subject_conditions else ""
+    )
 
     # Combine filters
     filters = []
@@ -44,10 +44,10 @@ def build_outlook_filter(
         filters.append(from_filter)
     if subject_filter:
         filters.append(subject_filter)
-    
+
     # Add attachment and date filters
     filters.append("hasAttachments eq true")
-    
+
     if last_execution_date:
         date_str = last_execution_date.strftime("%Y-%m-%dT%H:%M:%SZ")
         filters.append(f"receivedDateTime ge {date_str}")
@@ -68,7 +68,7 @@ def fetch_email_outlook(
     app_password_expiry: datetime | None = None,
 ) -> list[dict[str, Any]]:
     """Fetch emails from Outlook based on configured filters.
-    
+
     Args:
         client_id: Microsoft app client ID
         client_secret: Microsoft app client secret
@@ -79,21 +79,23 @@ def fetch_email_outlook(
         last_execution_date: Optional datetime to filter emails after this date
         additional_filter: Optional additional filter string
         app_password_expiry: Optional expiry datetime for app password
-        
+
     Returns:
         list[dict]: List of matching emails with attachments
     """
     try:
-        if app_password_expiry and app_password_expiry < datetime.now(UTC).replace(tzinfo=None):
+        if app_password_expiry and app_password_expiry < datetime.now(UTC).replace(
+            tzinfo=None
+        ):
             logger.warning("Refresh token expired for user")
             return []
 
         access_token = generate_access_token(
             password, client_id, client_secret, microsoft_tenant_id
         )
-        
+
         url = f"{settings.MICROSOFT_GRAPH_URL}/mailFolders/Inbox/messages"
-        
+
         # Use either additional_filter or build filter from config
         if additional_filter:
             params = {"$filter": additional_filter, "$top": OUTLOOK_PAGE_SIZE}
@@ -111,7 +113,7 @@ def fetch_email_outlook(
         while url:
             response = httpx.get(url, params=params, headers=headers)
             data = response.json()
-            
+
             for email in data["value"]:
                 # Skip emails without attachments
                 if not email["hasAttachments"]:
@@ -121,8 +123,7 @@ def fetch_email_outlook(
                 email_id = email["id"]
                 from_address = email["from"]["emailAddress"]["address"]
                 received_date = datetime.strptime(
-                    email["receivedDateTime"], 
-                    DATE_TIME_FORMAT
+                    email["receivedDateTime"], DATE_TIME_FORMAT
                 ).replace(tzinfo=None)
 
                 # Skip old emails if last_execution_date is set
@@ -130,17 +131,22 @@ def fetch_email_outlook(
                     continue
 
                 # Get attachments
-                attachments_url = f"{settings.MICROSOFT_GRAPH_URL}/messages/{email_id}/attachments"
+                attachments_url = (
+                    f"{settings.MICROSOFT_GRAPH_URL}/messages/{email_id}/attachments"
+                )
                 attachments_response = httpx.get(attachments_url, headers=headers)
                 attachments = attachments_response.json()["value"]
 
                 # Process attachments
                 email_attachments = []
                 attachment_names = []
-                
+
                 for attachment in attachments:
                     file_name = attachment["name"]
-                    if file_name.split(".")[-1].lower() in ALLOWED_ATTACHMENT_EXTENSIONS:
+                    if (
+                        file_name.split(".")[-1].lower()
+                        in ALLOWED_ATTACHMENT_EXTENSIONS
+                    ):
                         content_url = f"{settings.MICROSOFT_GRAPH_URL}/messages/{email_id}/attachments/{attachment['id']}/$value"
                         content_response = httpx.get(content_url, headers=headers)
                         email_attachments.append(content_response.content)
@@ -148,14 +154,16 @@ def fetch_email_outlook(
 
                 # Only add emails with valid attachments
                 if email_attachments:
-                    matching_emails.append({
-                        "id": email_id,
-                        "from": from_address,
-                        "subject": email["subject"],
-                        "attachment": email_attachments,
-                        "filename": attachment_names,
-                        "date": received_date,
-                    })
+                    matching_emails.append(
+                        {
+                            "id": email_id,
+                            "from": from_address,
+                            "subject": email["subject"],
+                            "attachment": email_attachments,
+                            "filename": attachment_names,
+                            "date": received_date,
+                        }
+                    )
 
             # Get next page if available
             url = data.get("@odata.nextLink")
@@ -165,4 +173,3 @@ def fetch_email_outlook(
     except Exception as e:
         logger.exception(f"Error fetching emails: {e}")
         raise e
-

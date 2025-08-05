@@ -1,9 +1,8 @@
-from copy import deepcopy
 import json
-from cryptography.fernet import Fernet
-
+from copy import deepcopy
 from typing import Annotated
 
+from cryptography.fernet import Fernet
 from fastapi import Depends
 from fastapi import Request as FastAPIRequest
 from sqlalchemy import select
@@ -67,7 +66,6 @@ class MicrosoftCredentialsService:
 
         return result
 
-
     async def update_microsoft_credentials(
         self,
         request: FastAPIRequest,
@@ -96,7 +94,9 @@ class MicrosoftCredentialsService:
         new_settings_data = json.loads(decrypted_data)
 
         tenant_settings = await self.session.scalar(
-            select(MicrosoftCredentialsConfig).where(MicrosoftCredentialsConfig.tenant_id == tenant_id)
+            select(MicrosoftCredentialsConfig).where(
+                MicrosoftCredentialsConfig.tenant_id == tenant_id
+            )
         )
 
         if not tenant_settings:
@@ -105,8 +105,7 @@ class MicrosoftCredentialsService:
             ).decode("utf-8")
 
             tenant_settings = MicrosoftCredentialsConfig.create(
-                tenant_id=tenant_id,
-                config=encrypted_settings
+                tenant_id=tenant_id, config=encrypted_settings
             )
             self.session.add(tenant_settings)
 
@@ -127,28 +126,25 @@ class MicrosoftCredentialsService:
 
         return merged_settings
 
+    async def get_microsoft_credentials(self, tenant_id: str) -> dict:
+        """Retrieve tenant settings from the database.
 
-    async def get_microsoft_credentials(
-            self,
-            tenant_id: str,
-        ) -> dict:
-            """Retrieve tenant settings from the database.
+        Args:
+            tenant_id (UUID): The tenant's unique identifier.
+            user_id (UUID): The user's unique identifier.
 
-            Args:
-                tenant_id (UUID): The tenant's unique identifier.
-                user_id (UUID): The user's unique identifier.
-
-            Returns:
-                dict: Tenant settings stored in the database.
-            """
-            tenant_settings = await self.session.scalar(
-                select(MicrosoftCredentialsConfig).where(MicrosoftCredentialsConfig.tenant_id == tenant_id)
+        Returns:
+            dict: Tenant settings stored in the database.
+        """
+        tenant_settings = await self.session.scalar(
+            select(MicrosoftCredentialsConfig).where(
+                MicrosoftCredentialsConfig.tenant_id == tenant_id
             )
-            if not tenant_settings:
-                return {}
-            settings_data = json.loads(
-                self.cipher.decrypt(tenant_settings.config).decode("utf-8")
-            )
+        )
+        if not tenant_settings:
+            return {}
+        settings_data = json.loads(
+            self.cipher.decrypt(tenant_settings.config).decode("utf-8")
+        )
 
-            return settings_data
-            
+        return settings_data

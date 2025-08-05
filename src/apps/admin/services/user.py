@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import load_only
 
 import constants
+from apps.admin.schemas.admin_user_response import AdminListUsersResponse
 from apps.user.exceptions import (
     InvalidCredentialsException,
     InvalidRequestException,
@@ -25,8 +26,7 @@ from core.exceptions import BadRequestError
 from core.types import RoleType
 from core.utils import strong_password
 from core.utils.hashing import hash_password, verify_password
-from core.utils.pagination import PaginationParams, PaginatedResponse, paginate_query
-from apps.admin.schemas.admin_user_response import AdminListUsersResponse
+from core.utils.pagination import PaginatedResponse, PaginationParams, paginate_query
 
 
 class AdminUserService:
@@ -207,7 +207,9 @@ class AdminUserService:
 
         return current_user
 
-    async def get_users_advanced(self, params: PaginationParams) -> PaginatedResponse[AdminListUsersResponse]:
+    async def get_users_advanced(
+        self, params: PaginationParams
+    ) -> PaginatedResponse[AdminListUsersResponse]:
         """
         Retrieve a paginated list of users with advanced features.
 
@@ -229,7 +231,6 @@ class AdminUserService:
                 UserModel.email,
                 UserModel.phone,
                 UserModel.role,
-
                 UserModel.created_at,
                 UserModel.updated_at,
                 UserModel.created_by,
@@ -246,7 +247,13 @@ class AdminUserService:
             params=params,
             search_fields=["first_name", "last_name", "email", "phone"],
             allowed_filters=["role", "created_by", "updated_by"],
-            allowed_sort_fields=["first_name", "last_name", "email", "created_at", "updated_at"],
+            allowed_sort_fields=[
+                "first_name",
+                "last_name",
+                "email",
+                "created_at",
+                "updated_at",
+            ],
             date_field="created_at",
         )
 
@@ -264,27 +271,36 @@ class AdminUserService:
 
             if user.created_by:
                 created_by_user = await self.session.scalar(
-                    select(UserModel).options(load_only(UserModel.first_name, UserModel.last_name))
+                    select(UserModel)
+                    .options(load_only(UserModel.first_name, UserModel.last_name))
                     .where(UserModel.id == user.created_by)
                 )
                 if created_by_user:
-                    created_by_user_name = f"{created_by_user.first_name} {created_by_user.last_name}"
+                    created_by_user_name = (
+                        f"{created_by_user.first_name} {created_by_user.last_name}"
+                    )
 
             if user.updated_by:
                 updated_by_user = await self.session.scalar(
-                    select(UserModel).options(load_only(UserModel.first_name, UserModel.last_name))
+                    select(UserModel)
+                    .options(load_only(UserModel.first_name, UserModel.last_name))
                     .where(UserModel.id == user.updated_by)
                 )
                 if updated_by_user:
-                    updated_by_user_name = f"{updated_by_user.first_name} {updated_by_user.last_name}"
+                    updated_by_user_name = (
+                        f"{updated_by_user.first_name} {updated_by_user.last_name}"
+                    )
 
             if user.deleted_by:
                 deleted_by_user = await self.session.scalar(
-                    select(UserModel).options(load_only(UserModel.first_name, UserModel.last_name))
+                    select(UserModel)
+                    .options(load_only(UserModel.first_name, UserModel.last_name))
                     .where(UserModel.id == user.deleted_by)
                 )
                 if deleted_by_user:
-                    deleted_by_user_name = f"{deleted_by_user.first_name} {deleted_by_user.last_name}"
+                    deleted_by_user_name = (
+                        f"{deleted_by_user.first_name} {deleted_by_user.last_name}"
+                    )
 
             admin_user = AdminListUsersResponse(
                 id=user.id,
@@ -300,7 +316,5 @@ class AdminUserService:
 
         # Create new paginated response with converted data
         return PaginatedResponse.create(
-            items=admin_users,
-            total=paginated_result.total,
-            params=params
+            items=admin_users, total=paginated_result.total, params=params
         )

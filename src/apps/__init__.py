@@ -1,34 +1,36 @@
-from apps.user.models.user import UserModel
-from apps.document_intake.models.document_intake import DocumentIntakeHistory
 from apps.ai_extraction.models import (
-    LLMProviderModel,
-    LLMModel,
-    LLMCredentialModel,
     DocTypeModel,
-    PromptTemplateModel,
+    ExtractionAgentModel,
+    ExtractionAuditModel,
     FallbackChainModel,
     FallbackStepModel,
-    ExtractionAuditModel,
-    ExtractionAgentModel,
+    LLMCredentialModel,
+    LLMModel,
+    LLMProviderModel,
+    PromptTemplateModel,
+)
+from apps.document_intake.models.document_intake import DocumentIntakeHistory
+from apps.mail_box_config.models import (
+    MicrosoftCredentialsConfig,
+    MicrosoftMailBoxConfig,
 )
 from apps.tenant.models import Tenant, TenantUsers
-from apps.mail_box_config.models import MicrosoftCredentialsConfig, MicrosoftMailBoxConfig
+from apps.user.models.user import UserModel
 from core.db import Base
 
 __all__ = [
-    "Base", 
+    "Base",
     "UserModel",
     "LLMProviderModel",
     "LLMModel",
-    "LLMCredentialModel", 
+    "LLMCredentialModel",
     "DocTypeModel",
     "PromptTemplateModel",
     "FallbackChainModel",
     "FallbackStepModel",
     "ExtractionAuditModel",
     "ExtractionAgentModel",
-    "DocumentIntakeHistory"
-    "Tenant",
+    "DocumentIntakeHistory" "Tenant",
     "TenantUsers",
     "MicrosoftCredentialsConfig",
     "MicrosoftMailBoxConfig",

@@ -13,12 +13,9 @@ from apps.user.schemas.response import BaseUserResponse
 from core.auth import AdminHasPermission
 from core.exceptions import UnauthorizedError
 from core.types import RoleType
+from core.utils.pagination import PaginatedResponse, PaginationParams
 from core.utils.schema import BaseResponse
 from core.utils.set_cookies import set_auth_cookies
-from core.utils.pagination import (
-    PaginationParams,
-    PaginatedResponse,
-)
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 
@@ -67,7 +64,7 @@ async def sign_in(
 @router.get(
     "/users",
     status_code=status.HTTP_200_OK,
-    #dependencies=[Depends(AdminHasPermission())],
+    # dependencies=[Depends(AdminHasPermission())],
     name="Admin get all users",
     description="Admin get all users with advanced pagination, search, filtering, and sorting",
     operation_id="admin_get_users",
@@ -76,10 +73,17 @@ async def get_users(
     service: Annotated[AdminUserService, Depends()],
     page: int = Query(1, ge=1, description="Page number"),
     page_size: int = Query(10, ge=1, le=100, description="Items per page"),
-    search: Optional[str] = Query(None, description="Search term across first_name, last_name, email, phone"),
-    sort_by: Optional[str] = Query(None, description="Sort field (first_name, last_name, email, created_at, updated_at)"),
+    search: Optional[str] = Query(
+        None, description="Search term across first_name, last_name, email, phone"
+    ),
+    sort_by: Optional[str] = Query(
+        None,
+        description="Sort field (first_name, last_name, email, created_at, updated_at)",
+    ),
     sort_order: str = Query("asc", regex="^(asc|desc)$", description="Sort order"),
-    filters: Optional[str] = Query(None, description="JSON filters: {'role': 'ADMIN', 'created_by': 'uuid'}"),
+    filters: Optional[str] = Query(
+        None, description="JSON filters: {'role': 'ADMIN', 'created_by': 'uuid'}"
+    ),
     date_from: Optional[str] = Query(None, description="Filter from date (ISO format)"),
     date_to: Optional[str] = Query(None, description="Filter to date (ISO format)"),
 ) -> BaseResponse[PaginatedResponse[AdminListUsersResponse]]:
@@ -112,7 +116,7 @@ async def get_users(
         sort_order=sort_order,
         filters=filters,
         date_from=date_from,
-        date_to=date_to
+        date_to=date_to,
     )
     return BaseResponse(data=await service.get_users_advanced(params=pagination_params))
 

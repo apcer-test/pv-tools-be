@@ -1,6 +1,7 @@
 from datetime import date
 
 from pydantic import EmailStr, field_validator
+
 from src.apps.mail_box_config.exceptions import EndDateException, StartDateException
 from src.core.types import FrequencyType, Providers
 from src.core.utils.schema import CamelCaseModel
@@ -35,6 +36,7 @@ class CreateUpdateMailBoxConfigRequest(CamelCaseModel):
         if end_date < start_date:
             raise EndDateException
         return end_date
+
 
 class BaseMailBoxPollingConfigRequest(CamelCaseModel):
     """This is the base class for the bank configuration request.

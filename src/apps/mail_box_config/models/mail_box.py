@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from typing import Self
 
-from sqlalchemy import String, ARRAY, ForeignKey
+from sqlalchemy import ARRAY, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column
 from ulid import ULID
 
@@ -53,4 +53,3 @@ class MicrosoftMailBoxConfig(Base, ULIDPrimaryKeyMixin, TimeStampMixin, UserMixi
             company_emails=company_emails,
             subject_lines=subject_lines,
         )
- 

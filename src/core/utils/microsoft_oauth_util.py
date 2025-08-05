@@ -42,7 +42,9 @@ async def generate_refresh_token(
         response_data = response.json()
         refresh_token = response_data.get("refresh_token")
         if not refresh_token:
-            raise InvalidTokenException(f"Refresh token not found in response: {response_data}")
+            raise InvalidTokenException(
+                f"Refresh token not found in response: {response_data}"
+            )
         return refresh_token
     except httpx.HTTPStatusError as e:
         # HTTP error occurred
@@ -51,9 +53,13 @@ async def generate_refresh_token(
             error_detail = e.response.json()
         except Exception:
             error_detail = e.response.text if e.response else str(e)
-        raise InvalidTokenException(f"HTTP error: {e.response.status_code if e.response else 'N/A'} - {error_detail}")
+        raise InvalidTokenException(
+            f"HTTP error: {e.response.status_code if e.response else 'N/A'} - {error_detail}"
+        )
     except Exception as e:
-        raise InvalidTokenException(f"An error occurred while generating refresh token: {str(e)}")
+        raise InvalidTokenException(
+            f"An error occurred while generating refresh token: {str(e)}"
+        )
 
 
 def generate_access_token(
