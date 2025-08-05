@@ -1,0 +1,887 @@
+[2025-08-04 17:41:58,231: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 2.00 seconds... (1/100)
+
+[2025-08-04 17:42:00,232: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 4.00 seconds... (2/100)
+
+[2025-08-04 17:42:04,234: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 6.00 seconds... (3/100)
+
+[2025-08-04 17:42:10,237: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 8.00 seconds... (4/100)
+
+[2025-08-04 17:42:18,241: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 10.00 seconds... (5/100)
+
+[2025-08-04 17:42:28,245: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 12.00 seconds... (6/100)
+
+[2025-08-04 17:42:40,249: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 14.00 seconds... (7/100)
+
+[2025-08-04 17:42:54,251: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 16.00 seconds... (8/100)
+
+[2025-08-04 17:43:10,256: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 18.00 seconds... (9/100)
+
+[2025-08-04 17:43:28,261: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 20.00 seconds... (10/100)
+
+[2025-08-04 17:43:48,266: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 22.00 seconds... (11/100)
+
+[2025-08-04 17:44:10,271: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 24.00 seconds... (12/100)
+
+[2025-08-04 17:44:34,282: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 26.00 seconds... (13/100)
+
+[2025-08-04 17:45:00,288: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 28.00 seconds... (14/100)
+
+[2025-08-04 17:45:28,293: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 30.00 seconds... (15/100)
+
+[2025-08-04 17:45:58,297: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 17:46:30,302: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 17:47:02,307: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 17:47:34,314: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 17:48:06,321: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 17:48:38,331: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 17:49:10,339: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 17:49:42,347: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 17:50:14,353: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 17:50:46,361: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 17:51:18,374: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 17:51:50,381: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 17:52:22,389: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 17:52:54,397: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 17:53:26,405: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 17:53:58,412: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 17:54:30,418: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 17:55:02,424: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 17:55:34,431: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 17:56:06,437: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 17:56:38,445: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 17:57:10,449: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 17:57:42,454: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 17:58:14,460: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 17:58:46,467: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 17:59:18,473: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 17:59:50,479: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 18:00:22,486: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 18:00:54,493: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 18:01:26,500: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 18:01:58,507: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 18:02:30,514: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 18:03:02,520: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 18:03:34,527: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 18:04:06,534: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 18:04:38,541: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 18:05:10,548: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 18:05:42,554: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 18:06:14,561: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 18:06:46,570: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 18:07:18,575: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 18:07:50,582: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 18:08:22,589: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 18:08:54,596: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 18:09:26,603: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 18:09:58,608: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 18:10:30,615: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 18:11:02,620: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 18:11:34,627: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 18:12:06,632: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 18:12:38,641: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 18:13:10,648: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 18:13:42,654: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 18:14:14,660: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 18:14:46,667: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 18:15:18,674: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 18:15:50,679: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 18:16:22,685: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 18:16:54,692: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 18:17:26,699: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 18:17:58,703: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 18:18:30,710: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 18:19:02,716: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 18:19:34,728: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 18:20:06,736: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 18:20:38,742: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 18:21:10,747: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 18:21:42,753: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-04 18:22:14,762: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:07:15,603: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 2.00 seconds... (1/100)
+
+[2025-08-05 14:07:17,604: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 4.00 seconds... (2/100)
+
+[2025-08-05 14:07:21,609: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 6.00 seconds... (3/100)
+
+[2025-08-05 14:07:27,612: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 8.00 seconds... (4/100)
+
+[2025-08-05 14:07:35,616: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 10.00 seconds... (5/100)
+
+[2025-08-05 14:07:45,619: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 12.00 seconds... (6/100)
+
+[2025-08-05 14:07:57,622: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 14.00 seconds... (7/100)
+
+[2025-08-05 14:08:11,627: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 16.00 seconds... (8/100)
+
+[2025-08-05 14:08:27,631: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 18.00 seconds... (9/100)
+
+[2025-08-05 14:08:45,637: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 20.00 seconds... (10/100)
+
+[2025-08-05 14:09:05,642: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 22.00 seconds... (11/100)
+
+[2025-08-05 14:09:27,645: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 24.00 seconds... (12/100)
+
+[2025-08-05 14:09:51,649: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 26.00 seconds... (13/100)
+
+[2025-08-05 14:10:17,654: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 28.00 seconds... (14/100)
+
+[2025-08-05 14:10:45,659: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 30.00 seconds... (15/100)
+
+[2025-08-05 14:11:15,664: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:11:47,668: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:12:19,674: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:12:51,679: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:13:23,685: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:13:55,691: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:14:27,697: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:14:59,703: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:15:31,710: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:16:03,714: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:16:35,720: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:17:07,727: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:17:39,732: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:18:11,736: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:18:43,740: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:19:15,746: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:19:47,751: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:20:19,756: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:20:51,762: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:21:23,766: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:21:55,773: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:22:27,778: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:22:59,784: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:23:31,790: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:24:03,796: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:24:35,800: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:25:07,806: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:25:39,813: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:26:11,818: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:26:43,823: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:27:15,829: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:27:47,835: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:28:19,841: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:28:51,848: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:29:23,855: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:29:55,861: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:30:27,868: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:30:59,875: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:31:31,880: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:32:03,886: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:32:35,893: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:33:07,900: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:33:39,907: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:34:11,912: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:34:43,917: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:35:15,923: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:35:47,930: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:36:19,936: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:36:51,943: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:37:23,950: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:37:55,957: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:38:27,964: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:38:59,970: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:39:31,977: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:40:03,984: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:40:35,991: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:41:07,997: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:41:40,004: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:42:12,009: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:42:44,015: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:43:16,024: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:43:48,031: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:44:20,037: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:44:52,044: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:45:24,049: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:45:56,056: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:46:28,061: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:47:00,065: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:47:32,072: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:48:04,079: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:48:36,086: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:49:08,092: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:49:40,098: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:50:12,105: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:50:44,112: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:51:16,119: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:51:48,125: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:52:20,133: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:52:52,139: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:53:24,145: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:53:56,152: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:54:28,157: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:55:00,164: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:55:32,171: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:56:04,177: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 14:56:36,184: CRITICAL/MainProcess] Unrecoverable error: OperationalError('Error 111 connecting to localhost:6383. Connection refused.')
+Traceback (most recent call last):
+  File "/home/web-h-041/.cache/pypoetry/virtualenvs/webelight_fastapi_starter_pack-AUK2JLU9-py3.13/lib/python3.13/site-packages/kombu/transport/virtual/base.py", line 951, in create_channel
+    return self._avail_channels.pop()
+           ~~~~~~~~~~~~~~~~~~~~~~~~^^
+IndexError: pop from empty list
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/web-h-041/.cache/pypoetry/virtualenvs/webelight_fastapi_starter_pack-AUK2JLU9-py3.13/lib/python3.13/site-packages/redis/connection.py", line 357, in connect
+    sock = self.retry.call_with_retry(
+        lambda: self._connect(), lambda error: self.disconnect(error)
+    )
+  File "/home/web-h-041/.cache/pypoetry/virtualenvs/webelight_fastapi_starter_pack-AUK2JLU9-py3.13/lib/python3.13/site-packages/redis/retry.py", line 62, in call_with_retry
+    return do()
+  File "/home/web-h-041/.cache/pypoetry/virtualenvs/webelight_fastapi_starter_pack-AUK2JLU9-py3.13/lib/python3.13/site-packages/redis/connection.py", line 358, in <lambda>
+    lambda: self._connect(), lambda error: self.disconnect(error)
+            ~~~~~~~~~~~~~^^
+  File "/home/web-h-041/.cache/pypoetry/virtualenvs/webelight_fastapi_starter_pack-AUK2JLU9-py3.13/lib/python3.13/site-packages/redis/connection.py", line 730, in _connect
+    raise err
+  File "/home/web-h-041/.cache/pypoetry/virtualenvs/webelight_fastapi_starter_pack-AUK2JLU9-py3.13/lib/python3.13/site-packages/redis/connection.py", line 718, in _connect
+    sock.connect(socket_address)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+ConnectionRefusedError: [Errno 111] Connection refused
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/web-h-041/.cache/pypoetry/virtualenvs/webelight_fastapi_starter_pack-AUK2JLU9-py3.13/lib/python3.13/site-packages/kombu/connection.py", line 472, in _reraise_as_library_errors
+    yield
+  File "/home/web-h-041/.cache/pypoetry/virtualenvs/webelight_fastapi_starter_pack-AUK2JLU9-py3.13/lib/python3.13/site-packages/kombu/connection.py", line 459, in _ensure_connection
+    return retry_over_time(
+        self._connection_factory, self.recoverable_connection_errors,
+    ...<2 lines>...
+        callback, timeout=timeout
+    )
+  File "/home/web-h-041/.cache/pypoetry/virtualenvs/webelight_fastapi_starter_pack-AUK2JLU9-py3.13/lib/python3.13/site-packages/kombu/utils/functional.py", line 318, in retry_over_time
+    return fun(*args, **kwargs)
+  File "/home/web-h-041/.cache/pypoetry/virtualenvs/webelight_fastapi_starter_pack-AUK2JLU9-py3.13/lib/python3.13/site-packages/kombu/connection.py", line 938, in _connection_factory
+    self._connection = self._establish_connection()
+                       ~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/web-h-041/.cache/pypoetry/virtualenvs/webelight_fastapi_starter_pack-AUK2JLU9-py3.13/lib/python3.13/site-packages/kombu/connection.py", line 860, in _establish_connection
+    conn = self.transport.establish_connection()
+  File "/home/web-h-041/.cache/pypoetry/virtualenvs/webelight_fastapi_starter_pack-AUK2JLU9-py3.13/lib/python3.13/site-packages/kombu/transport/virtual/base.py", line 975, in establish_connection
+    self._avail_channels.append(self.create_channel(self))
+                                ~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/web-h-041/.cache/pypoetry/virtualenvs/webelight_fastapi_starter_pack-AUK2JLU9-py3.13/lib/python3.13/site-packages/kombu/transport/virtual/base.py", line 953, in create_channel
+    channel = self.Channel(connection)
+  File "/home/web-h-041/.cache/pypoetry/virtualenvs/webelight_fastapi_starter_pack-AUK2JLU9-py3.13/lib/python3.13/site-packages/kombu/transport/redis.py", line 751, in __init__
+    self.client.ping()
+    ~~~~~~~~~~~~~~~~^^
+  File "/home/web-h-041/.cache/pypoetry/virtualenvs/webelight_fastapi_starter_pack-AUK2JLU9-py3.13/lib/python3.13/site-packages/redis/commands/core.py", line 1212, in ping
+    return self.execute_command("PING", **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "/home/web-h-041/.cache/pypoetry/virtualenvs/webelight_fastapi_starter_pack-AUK2JLU9-py3.13/lib/python3.13/site-packages/redis/client.py", line 559, in execute_command
+    return self._execute_command(*args, **options)
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "/home/web-h-041/.cache/pypoetry/virtualenvs/webelight_fastapi_starter_pack-AUK2JLU9-py3.13/lib/python3.13/site-packages/redis/client.py", line 565, in _execute_command
+    conn = self.connection or pool.get_connection(command_name, **options)
+                              ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/web-h-041/.cache/pypoetry/virtualenvs/webelight_fastapi_starter_pack-AUK2JLU9-py3.13/lib/python3.13/site-packages/redis/connection.py", line 1422, in get_connection
+    connection.connect()
+    ~~~~~~~~~~~~~~~~~~^^
+  File "/home/web-h-041/.cache/pypoetry/virtualenvs/webelight_fastapi_starter_pack-AUK2JLU9-py3.13/lib/python3.13/site-packages/redis/connection.py", line 363, in connect
+    raise ConnectionError(self._error_message(e))
+redis.exceptions.ConnectionError: Error 111 connecting to localhost:6383. Connection refused.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/web-h-041/.cache/pypoetry/virtualenvs/webelight_fastapi_starter_pack-AUK2JLU9-py3.13/lib/python3.13/site-packages/celery/worker/worker.py", line 203, in start
+    self.blueprint.start(self)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/web-h-041/.cache/pypoetry/virtualenvs/webelight_fastapi_starter_pack-AUK2JLU9-py3.13/lib/python3.13/site-packages/celery/bootsteps.py", line 116, in start
+    step.start(parent)
+    ~~~~~~~~~~^^^^^^^^
+  File "/home/web-h-041/.cache/pypoetry/virtualenvs/webelight_fastapi_starter_pack-AUK2JLU9-py3.13/lib/python3.13/site-packages/celery/bootsteps.py", line 365, in start
+    return self.obj.start()
+           ~~~~~~~~~~~~~~^^
+  File "/home/web-h-041/.cache/pypoetry/virtualenvs/webelight_fastapi_starter_pack-AUK2JLU9-py3.13/lib/python3.13/site-packages/celery/worker/consumer/consumer.py", line 341, in start
+    blueprint.start(self)
+    ~~~~~~~~~~~~~~~^^^^^^
+  File "/home/web-h-041/.cache/pypoetry/virtualenvs/webelight_fastapi_starter_pack-AUK2JLU9-py3.13/lib/python3.13/site-packages/celery/bootsteps.py", line 116, in start
+    step.start(parent)
+    ~~~~~~~~~~^^^^^^^^
+  File "/home/web-h-041/.cache/pypoetry/virtualenvs/webelight_fastapi_starter_pack-AUK2JLU9-py3.13/lib/python3.13/site-packages/celery/worker/consumer/connection.py", line 21, in start
+    c.connection = c.connect()
+                   ~~~~~~~~~^^
+  File "/home/web-h-041/.cache/pypoetry/virtualenvs/webelight_fastapi_starter_pack-AUK2JLU9-py3.13/lib/python3.13/site-packages/celery/worker/consumer/consumer.py", line 472, in connect
+    conn = self.connection_for_read(heartbeat=self.amqheartbeat)
+  File "/home/web-h-041/.cache/pypoetry/virtualenvs/webelight_fastapi_starter_pack-AUK2JLU9-py3.13/lib/python3.13/site-packages/celery/worker/consumer/consumer.py", line 478, in connection_for_read
+    return self.ensure_connected(
+           ~~~~~~~~~~~~~~~~~~~~~^
+        self.app.connection_for_read(heartbeat=heartbeat))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/web-h-041/.cache/pypoetry/virtualenvs/webelight_fastapi_starter_pack-AUK2JLU9-py3.13/lib/python3.13/site-packages/celery/worker/consumer/consumer.py", line 530, in ensure_connected
+    conn = conn.ensure_connection(
+        _error_handler, self.app.conf.broker_connection_max_retries,
+        callback=maybe_shutdown,
+    )
+  File "/home/web-h-041/.cache/pypoetry/virtualenvs/webelight_fastapi_starter_pack-AUK2JLU9-py3.13/lib/python3.13/site-packages/kombu/connection.py", line 406, in ensure_connection
+    self._ensure_connection(*args, **kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/web-h-041/.cache/pypoetry/virtualenvs/webelight_fastapi_starter_pack-AUK2JLU9-py3.13/lib/python3.13/site-packages/kombu/connection.py", line 458, in _ensure_connection
+    with ctx():
+         ~~~^^
+  File "/usr/local/lib/python3.13/contextlib.py", line 162, in __exit__
+    self.gen.throw(value)
+    ~~~~~~~~~~~~~~^^^^^^^
+  File "/home/web-h-041/.cache/pypoetry/virtualenvs/webelight_fastapi_starter_pack-AUK2JLU9-py3.13/lib/python3.13/site-packages/kombu/connection.py", line 476, in _reraise_as_library_errors
+    raise ConnectionError(str(exc)) from exc
+kombu.exceptions.OperationalError: Error 111 connecting to localhost:6383. Connection refused.
+[2025-08-05 16:31:47,879: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 2.00 seconds... (1/100)
+
+[2025-08-05 16:31:49,882: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 4.00 seconds... (2/100)
+
+[2025-08-05 16:31:53,886: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 6.00 seconds... (3/100)
+
+[2025-08-05 16:31:59,889: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 8.00 seconds... (4/100)
+
+[2025-08-05 16:32:07,893: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 10.00 seconds... (5/100)
+
+[2025-08-05 16:32:17,897: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 12.00 seconds... (6/100)
+
+[2025-08-05 16:32:29,901: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 14.00 seconds... (7/100)
+
+[2025-08-05 16:32:43,904: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 16.00 seconds... (8/100)
+
+[2025-08-05 16:32:59,909: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 18.00 seconds... (9/100)
+
+[2025-08-05 17:27:55,265: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 2.00 seconds... (1/100)
+
+[2025-08-05 17:27:57,268: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 4.00 seconds... (2/100)
+
+[2025-08-05 17:28:01,273: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 6.00 seconds... (3/100)
+
+[2025-08-05 17:28:07,274: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 8.00 seconds... (4/100)
+
+[2025-08-05 17:28:15,278: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 10.00 seconds... (5/100)
+
+[2025-08-05 17:28:25,282: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 12.00 seconds... (6/100)
+
+[2025-08-05 17:28:37,286: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 14.00 seconds... (7/100)
+
+[2025-08-05 17:28:51,291: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 16.00 seconds... (8/100)
+
+[2025-08-05 17:29:07,295: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 18.00 seconds... (9/100)
+
+[2025-08-05 17:29:25,301: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 20.00 seconds... (10/100)
+
+[2025-08-05 17:29:45,307: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 22.00 seconds... (11/100)
+
+[2025-08-05 17:30:07,311: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 24.00 seconds... (12/100)
+
+[2025-08-05 17:30:31,315: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 26.00 seconds... (13/100)
+
+[2025-08-05 17:30:57,318: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 28.00 seconds... (14/100)
+
+[2025-08-05 17:31:25,324: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 30.00 seconds... (15/100)
+
+[2025-08-05 17:31:55,331: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 17:32:27,340: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 17:32:59,344: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 17:33:31,356: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 17:34:03,363: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 17:34:35,367: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 17:35:07,374: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 17:35:39,382: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 17:36:11,387: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 17:36:43,394: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 17:37:15,399: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 17:37:47,407: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 17:38:19,413: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 17:38:51,420: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6383/0: Error 111 connecting to localhost:6383. Connection refused..
+Trying again in 32.00 seconds... (16/100)
+
+[2025-08-05 17:42:52,702: INFO/MainProcess] Connected to redis://localhost:6381/0
+[2025-08-05 17:42:52,705: INFO/MainProcess] mingle: searching for neighbors
+[2025-08-05 17:42:53,722: INFO/MainProcess] mingle: all alone
+[2025-08-05 17:42:53,787: INFO/MainProcess] celery@web-h-041 ready.
+[2025-08-05 17:42:53,799: ERROR/MainProcess] Received unregistered task of type 'core.utils.celery_worker.pooling_mail_box'.
+The message has been ignored and discarded.
+
+Did you remember to import the module containing this task?
+Or maybe you're using relative imports?
+
+Please see
+https://docs.celeryq.dev/en/latest/internals/protocol.html
+for more information.
+
+The full contents of the message body was:
+b'[["01K1X206XJD42SP3X03YXV087P", "SECONDLY30", null], {}, {"callbacks": null, "errbacks": null, "chain": null, "chord": null}]' (125b)
+
+The full contents of the message headers:
+{'lang': 'py', 'task': 'core.utils.celery_worker.pooling_mail_box', 'id': '01K1X24MWF622S1N69GTYMHE7C', 'shadow': None, 'eta': '2025-08-05T12:08:51.735843', 'expires': None, 'group': None, 'group_index': None, 'retries': 0, 'timelimit': [None, None], 'root_id': '01K1X24MWF622S1N69GTYMHE7C', 'parent_id': None, 'argsrepr': "['01K1X206XJD42SP3X03YXV087P', 'SECONDLY30', None]", 'kwargsrepr': '{}', 'origin': 'gen732377@web-h-041', 'ignore_result': True, 'replaced_task_nesting': 0, 'stamped_headers': None, 'stamps': {}}
+
+The delivery info for this task is:
+{'exchange': '', 'routing_key': 'main-queue'}
+Traceback (most recent call last):
+  File "/home/web-h-041/.cache/pypoetry/virtualenvs/webelight_fastapi_starter_pack-AUK2JLU9-py3.13/lib/python3.13/site-packages/celery/worker/consumer/consumer.py", line 662, in on_task_received
+    strategy = strategies[type_]
+               ~~~~~~~~~~^^^^^^^
+KeyError: 'core.utils.celery_worker.pooling_mail_box'
+[2025-08-05 17:42:53,810: ERROR/MainProcess] Received unregistered task of type 'core.utils.celery_worker.pooling_mail_box'.
+The message has been ignored and discarded.
+
+Did you remember to import the module containing this task?
+Or maybe you're using relative imports?
+
+Please see
+https://docs.celeryq.dev/en/latest/internals/protocol.html
+for more information.
+
+The full contents of the message body was:
+b'[["01K1X27TVN7D3Z5DRMXP3EQSRX", "SECONDLY30", null], {}, {"callbacks": null, "errbacks": null, "chain": null, "chord": null}]' (125b)
+
+The full contents of the message headers:
+{'lang': 'py', 'task': 'core.utils.celery_worker.pooling_mail_box', 'id': '01K1X27TW0ZHQ45BYDGRQ77TD3', 'shadow': None, 'eta': '2025-08-05T12:10:36.170837', 'expires': None, 'group': None, 'group_index': None, 'retries': 0, 'timelimit': [None, None], 'root_id': '01K1X27TW0ZHQ45BYDGRQ77TD3', 'parent_id': None, 'argsrepr': "['01K1X27TVN7D3Z5DRMXP3EQSRX', 'SECONDLY30', None]", 'kwargsrepr': '{}', 'origin': 'gen735019@web-h-041', 'ignore_result': True, 'replaced_task_nesting': 0, 'stamped_headers': None, 'stamps': {}}
+
+The delivery info for this task is:
+{'exchange': '', 'routing_key': 'main-queue'}
+Traceback (most recent call last):
+  File "/home/web-h-041/.cache/pypoetry/virtualenvs/webelight_fastapi_starter_pack-AUK2JLU9-py3.13/lib/python3.13/site-packages/celery/worker/consumer/consumer.py", line 662, in on_task_received
+    strategy = strategies[type_]
+               ~~~~~~~~~~^^^^^^^
+KeyError: 'core.utils.celery_worker.pooling_mail_box'
+[2025-08-05 17:51:47,707: INFO/MainProcess] Connected to redis://localhost:6381/0
+[2025-08-05 17:51:47,710: INFO/MainProcess] mingle: searching for neighbors
+[2025-08-05 17:51:48,729: INFO/MainProcess] mingle: all alone
+[2025-08-05 17:51:48,762: INFO/MainProcess] celery@web-h-041 ready.
+[2025-08-05 17:51:54,564: ERROR/MainProcess] Received unregistered task of type 'core.utils.celery_worker.pooling_mail_box'.
+The message has been ignored and discarded.
+
+Did you remember to import the module containing this task?
+Or maybe you're using relative imports?
+
+Please see
+https://docs.celeryq.dev/en/latest/internals/protocol.html
+for more information.
+
+The full contents of the message body was:
+b'[["01K1X2ECE0CGN93G77J4PAGQMC", "SECONDLY30", null], {}, {"callbacks": null, "errbacks": null, "chain": null, "chord": null}]' (125b)
+
+The full contents of the message headers:
+{'lang': 'py', 'task': 'core.utils.celery_worker.pooling_mail_box', 'id': '01K1X2ECE2Y6JKMF48MMEWVCXH', 'shadow': None, 'eta': '2025-08-05T12:14:10.763475', 'expires': None, 'group': None, 'group_index': None, 'retries': 0, 'timelimit': [None, None], 'root_id': '01K1X2ECE2Y6JKMF48MMEWVCXH', 'parent_id': None, 'argsrepr': "['01K1X2ECE0CGN93G77J4PAGQMC', 'SECONDLY30', None]", 'kwargsrepr': '{}', 'origin': 'gen735019@web-h-041', 'ignore_result': True, 'replaced_task_nesting': 0, 'stamped_headers': None, 'stamps': {}}
+
+The delivery info for this task is:
+{'exchange': '', 'routing_key': 'main-queue'}
+Traceback (most recent call last):
+  File "/home/web-h-041/.cache/pypoetry/virtualenvs/webelight_fastapi_starter_pack-AUK2JLU9-py3.13/lib/python3.13/site-packages/celery/worker/consumer/consumer.py", line 662, in on_task_received
+    strategy = strategies[type_]
+               ~~~~~~~~~~^^^^^^^
+KeyError: 'core.utils.celery_worker.pooling_mail_box'
+[2025-08-05 17:54:14,236: INFO/MainProcess] Connected to redis://localhost:6381/0
+[2025-08-05 17:54:14,239: INFO/MainProcess] mingle: searching for neighbors
+[2025-08-05 17:54:15,257: INFO/MainProcess] mingle: all alone
+[2025-08-05 17:54:15,268: INFO/MainProcess] celery@web-h-041 ready.
+[2025-08-05 17:56:55,387: ERROR/MainProcess] Received unregistered task of type 'core.utils.celery_worker.pooling_mail_box'.
+The message has been ignored and discarded.
+
+Did you remember to import the module containing this task?
+Or maybe you're using relative imports?
+
+Please see
+https://docs.celeryq.dev/en/latest/internals/protocol.html
+for more information.
+
+The full contents of the message body was:
+b'[["01K1X35CH7WH4NAZKZZV4FZXTJ", "SECONDLY30", null], {}, {"callbacks": null, "errbacks": null, "chain": null, "chord": null}]' (125b)
+
+The full contents of the message headers:
+{'lang': 'py', 'task': 'core.utils.celery_worker.pooling_mail_box', 'id': '01K1X35CHCV778GR287H0DEQ7G', 'shadow': None, 'eta': '2025-08-05T12:26:44.533964', 'expires': None, 'group': None, 'group_index': None, 'retries': 0, 'timelimit': [None, None], 'root_id': '01K1X35CHCV778GR287H0DEQ7G', 'parent_id': None, 'argsrepr': "['01K1X35CH7WH4NAZKZZV4FZXTJ', 'SECONDLY30', None]", 'kwargsrepr': '{}', 'origin': 'gen742099@web-h-041', 'ignore_result': True, 'replaced_task_nesting': 0, 'stamped_headers': None, 'stamps': {}}
+
+The delivery info for this task is:
+{'exchange': '', 'routing_key': 'main-queue'}
+Traceback (most recent call last):
+  File "/home/web-h-041/.cache/pypoetry/virtualenvs/webelight_fastapi_starter_pack-AUK2JLU9-py3.13/lib/python3.13/site-packages/celery/worker/consumer/consumer.py", line 662, in on_task_received
+    strategy = strategies[type_]
+               ~~~~~~~~~~^^^^^^^
+KeyError: 'core.utils.celery_worker.pooling_mail_box'
+[2025-08-05 18:11:49,496: INFO/MainProcess] Connected to redis://localhost:6381/0
+[2025-08-05 18:11:49,499: INFO/MainProcess] mingle: searching for neighbors
+[2025-08-05 18:11:50,516: INFO/MainProcess] mingle: all alone
+[2025-08-05 18:11:50,529: INFO/MainProcess] celery@web-h-041 ready.

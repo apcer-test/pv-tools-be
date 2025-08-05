@@ -57,16 +57,22 @@ class Settings(BaseSettings):
     # Microsoft SSO Settings
     MICROSOFT_GRAPH_URL: Optional[str] = Field(None, alias="MICROSOFT_GRAPH_URL")
     MICROSOFT_CLIENT_ID: Optional[str] = Field(None, alias="MICROSOFT_CLIENT_ID")
-    MICROSOFT_CLIENT_SECRET: Optional[str] = Field(
-        None, alias="MICROSOFT_CLIENT_SECRET"
-    )
+    MICROSOFT_CLIENT_SECRET: Optional[str] = Field(None, alias="MICROSOFT_CLIENT_SECRET")
     MICROSOFT_METADATA_URL: Optional[str] = Field(None, alias="MICROSOFT_METADATA_URL")
     MICROSOFT_SCOPE: Optional[str] = Field(None, alias="MICROSOFT_SCOPE")
     MICROSOFT_TOKEN_URL: Optional[str] = Field(None, alias="MICROSOFT_TOKEN_URL")
     SOCIAL_AUTH_ENDPOINT: Optional[str] = Field(None, alias="SOCIAL_AUTH_ENDPOINT")
-    SOCIAL_AUTH_REDIRECT_URL: Optional[str] = Field(
-        None, alias="SOCIAL_AUTH_REDIRECT_URL"
-    )
+    SOCIAL_AUTH_REDIRECT_URL: Optional[str] = Field(None, alias="SOCIAL_AUTH_REDIRECT_URL")
+    MICROSOFT_BASE_URL: Optional[str] = Field(None, alias="MICROSOFT_BASE_URL")
+    MICROSOFT_TENANT_ID: Optional[str] = Field(None, alias="MICROSOFT_TENANT_ID")
+
+    GENERATE_CODE_REDIRECT_URL: Optional[str] = Field(None, alias="GENERATE_CODE_REDIRECT_URL")
+    CODE_REDIRECT_URL: Optional[str] = Field(None, alias="CODE_REDIRECT_URL")
+
+    CELERY_BROKER_URL: Optional[str] = Field(None, alias="CELERY_BROKER_URL")
+    CELERY_RESULT_BACKEND: Optional[str] = Field(None, alias="CELERY_RESULT_BACKEND")
+
+    ACTIVATE_WORKER_SENTRY: Optional[bool] = Field(False, alias="ACTIVATE_WORKER_SENTRY")
 
     LOGIN_REDIRECT_URL: Optional[str] = Field(None, alias="LOGIN_REDIRECT_URL")
     UI_LOGIN_SCREEN: Optional[str] = Field(None, alias="UI_LOGIN_SCREEN")

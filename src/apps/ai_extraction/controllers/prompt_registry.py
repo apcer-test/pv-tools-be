@@ -1,12 +1,13 @@
+from fastapi import APIRouter, Depends, status, HTTPException, Query
 from typing import Annotated, Optional
-
-from fastapi import APIRouter, Depends, HTTPException, Query, status
 from ulid import ULID
 
+from fastapi import status, HTTPException
+from core.utils.schema import BaseResponse
+from apps.ai_extraction.services.prompt_registry import PromptRegistry
 from apps.ai_extraction.schemas.request import PromptTemplateCreateRequest
 from apps.ai_extraction.schemas.response import PromptTemplateResponse
-from apps.ai_extraction.services.prompt_registry import PromptRegistry
-from core.utils.schema import BaseResponse
+
 
 router = APIRouter(prefix="/api/prompt-templates", tags=["Prompt Templates"])
 
@@ -20,17 +21,17 @@ router = APIRouter(prefix="/api/prompt-templates", tags=["Prompt Templates"])
 )
 async def create_prompt_template(
     template_data: PromptTemplateCreateRequest,
-    service: Annotated[PromptRegistry, Depends()],
+    service: Annotated[PromptRegistry, Depends()]
 ) -> BaseResponse[PromptTemplateResponse]:
     """
     Create a new prompt template.
-
+    
     Args:
         template_data: The template data to create
-
+        
     Returns:
         The created template with its ID
-
+        
     Raises:
         HTTPException: If document type doesn't exist or validation fails
     """
@@ -40,7 +41,7 @@ async def create_prompt_template(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to create prompt template: {str(e)}",
+            detail=f"Failed to create prompt template: {str(e)}"
         )
 
 
@@ -57,10 +58,10 @@ async def get_prompt_templates(
 ) -> BaseResponse[list[PromptTemplateResponse]]:
     """
     Get all prompt templates.
-
+    
     Args:
         search: Search string to filter by ID
-
+        
     Returns:
         List of prompt templates
     """
@@ -70,7 +71,7 @@ async def get_prompt_templates(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to list prompt templates: {str(e)}",
+            detail=f"Failed to list prompt templates: {str(e)}"
         )
 
 
@@ -84,18 +85,18 @@ async def get_prompt_templates(
 async def update_prompt_template(
     template_id: ULID,
     template_data: PromptTemplateCreateRequest,
-    service: Annotated[PromptRegistry, Depends()],
+    service: Annotated[PromptRegistry, Depends()]
 ) -> BaseResponse[PromptTemplateResponse]:
     """
     Update an existing prompt template.
-
+    
     Args:
         template_id: The ID of the template to update
         template_data: The updated template data
-
+        
     Returns:
         The updated template with its ID
-
+        
     Raises:
         HTTPException: If template or document type doesn't exist or validation fails
     """
@@ -105,5 +106,5 @@ async def update_prompt_template(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to update prompt template: {str(e)}",
+            detail=f"Failed to update prompt template: {str(e)}"
         )

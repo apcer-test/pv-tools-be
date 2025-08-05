@@ -1,12 +1,11 @@
 """Extraction Agent Controller - API endpoints for managing extraction agents"""
-
 from typing import Annotated
-
-from fastapi import APIRouter, Body, Depends, Path, status
 from ulid import ULID
 
-from apps.ai_extraction.schemas.request import ExtractionAgentCreateRequest
+from fastapi import APIRouter, Body, Depends, Path, status
+
 from apps.ai_extraction.services.extraction_agent import ExtractionAgentService
+from apps.ai_extraction.schemas.request import ExtractionAgentCreateRequest
 from core.utils.schema import BaseResponse, SuccessResponse
 
 router = APIRouter(prefix="/extraction-agents", tags=["Extraction Agents"])
@@ -24,7 +23,9 @@ async def create_agent(
     service: Annotated[ExtractionAgentService, Depends()],
 ) -> BaseResponse[SuccessResponse]:
     """Create a new extraction agent."""
-    return BaseResponse(data=await service.create_agent(body))
+    return BaseResponse(
+        data=await service.create_agent(body),
+    )
 
 
 @router.put(
@@ -40,4 +41,6 @@ async def update_agent(
     service: Annotated[ExtractionAgentService, Depends()],
 ) -> BaseResponse[SuccessResponse]:
     """Update an existing extraction agent."""
-    return BaseResponse(data=await service.update_agent(agent_id, **body.model_dump()))
+    return BaseResponse(
+        data=await service.update_agent(agent_id, **body.model_dump()),
+    )

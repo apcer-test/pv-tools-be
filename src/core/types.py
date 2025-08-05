@@ -28,10 +28,18 @@ class RoleType(StrEnum):
     ANY = "ANY"
     OPTIONAL = "OPTIONAL"
 
-
 class Providers(StrEnum):
     """
     Enumeration of supported authentication providers.
     """
 
     MICROSOFT = "microsoft"
+
+class FrequencyType(StrEnum):
+    """Enum class of Frequency type"""
+
+    DAILY = "DAILY"
+    WEEKLY = "WEEKLY"
+    MONTHLY = "MONTHLY"
+    SECONDLY30 = "SECONDLY30"
+    SECONDLY60 = "SECONDLY60"

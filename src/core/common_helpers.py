@@ -1,19 +1,19 @@
 import base64
-import json
 import re
 import secrets
-from datetime import datetime, timedelta, timezone
 from uuid import UUID
 
-from cryptography.fernet import Fernet
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives import padding as crypto_padding
 from cryptography.hazmat.primitives.asymmetric import padding as asym_padding
 from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import padding as asym_padding
+from cryptography.hazmat.backends import default_backend
+from cryptography.fernet import Fernet
 from pydantic import EmailStr
-from sqlalchemy.sql.operators import json_getitem_op
+import sentry_sdk
+from sqlalchemy import select
 
 import constants
 from apps.user.exceptions import (
@@ -29,6 +29,13 @@ from core.auth import access, admin_access, admin_refresh, refresh
 from core.exceptions import InvalidRoleException
 from core.types import RoleType
 from core.utils import strong_password
+from datetime import datetime, timedelta,timezone
+import json
+
+from core.db import async_session
+from apps.mail_box_config.models.mail_box import MicrosoftMailBoxConfig
+from apps.tenant.models.models import Tenant
+from apps.mail_box_config.models.credentials import MicrosoftCredentialsConfig
 
 
 async def create_password():
@@ -82,14 +89,8 @@ def validate_string_fields(values) -> dict:
             )
     return values
 
-
 async def decrypt(
-    rsa_key: rsa.RSAPrivateKey,
-    enc_data: str,
-    encrypt_key: str,
-    iv_input: str,
-    time_check: bool = False,
-    timeout: int = 5,
+    rsa_key: rsa.RSAPrivateKey, enc_data: str, encrypt_key: str, iv_input: str, time_check: bool = False, timeout: int = 5
 ) -> bytes:
     """Decrypts the given encrypted data.
 
@@ -103,14 +104,17 @@ async def decrypt(
     try:
         code_bytes = encrypt_key.encode("UTF-8")
         encoded_by = base64.b64decode(code_bytes)
-        decrypted_key = rsa_key.decrypt(encoded_by, asym_padding.PKCS1v15()).decode()
+        decrypted_key = rsa_key.decrypt(
+            encoded_by,
+            asym_padding.PKCS1v15()
+        ).decode()
 
         iv = base64.b64decode(iv_input)
         enc = base64.b64decode(enc_data)
         cipher = Cipher(
             algorithms.AES(decrypted_key.encode("utf-8")),
             modes.CBC(iv),
-            backend=default_backend(),
+            backend=default_backend()
         )
         decryptor = cipher.decryptor()
         padded_plaintext = decryptor.update(enc) + decryptor.finalize()
@@ -173,7 +177,6 @@ def validate_email(email: str) -> str | None:
 
     return email
 
-
 CIPHER = Fernet(settings.ENCRYPTION_KEY or "")
 
 
@@ -195,3 +198,75 @@ async def encryption(data: str) -> str:
     """
     encrypted_data = CIPHER.encrypt(data.encode("utf-8"))
     return encrypted_data.decode("utf-8")
+
+async def get_tenant_data(tenant_id: str):
+    async with async_session() as session:
+        async with session.begin():
+            tenant_data = await session.scalar(
+                select(Tenant).where(Tenant.id == tenant_id) 
+            )
+            return tenant_data
+
+async def get_last_execution_date(mail_box_config_id: str) -> datetime | None | int:
+    """Get the latest id from the database.
+    :return: int
+    """
+    async with async_session() as session:
+        async with session.begin():
+            emails = await session.scalar(
+                select(MicrosoftMailBoxConfig).where(
+                    MicrosoftMailBoxConfig.id == mail_box_config_id
+                )
+            )
+            if emails is None:
+                return 0
+            last_execution = emails.last_execution
+
+    return last_execution
+
+async def fetch_outlook_settings(tenant_id: str):
+    """:param tenant_id:
+    :return:
+    """
+    async with async_session() as session:
+        async with session.begin():
+            result = await session.scalar(
+                select(MicrosoftCredentialsConfig.config).where(
+                    MicrosoftCredentialsConfig.tenant_id == tenant_id
+                )
+            )
+            result = await decryption(result)
+
+            client_id = result.get("client_id")
+            redirect_uri = result.get("redirect_uri")
+            client_secret = result.get("client_secret")
+            refresh_token_validity_days = result.get(
+                "refresh_token_validity_days"
+            )
+            microsoft_tenant_id = result.get("tenant_id")
+
+        return (
+            client_id,
+            redirect_uri,
+            client_secret,
+            refresh_token_validity_days,
+            microsoft_tenant_id,
+        )
+
+def capture_exception(e: Exception) -> None:
+    """Captures the exception and sends it to Sentry."""
+    if settings.ACTIVATE_WORKER_SENTRY is True:
+        sentry_sdk.capture_exception(e)
+
+async def fetch_mail_box_config(mail_box_config_id) -> MicrosoftMailBoxConfig:
+    """Fetch user configuration from the database.
+    :param mail_box_config_id: ID of the user
+    :return: MicrosoftMailBoxConfig or None
+    """
+    async with async_session() as session:
+        async with session.begin():
+            result = await session.scalar(
+                select(MicrosoftMailBoxConfig)
+                .where(MicrosoftMailBoxConfig.id == mail_box_config_id)
+            )
+    return result

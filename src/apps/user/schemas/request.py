@@ -1,6 +1,5 @@
-from pydantic import BaseModel, EmailStr
-
 from core.utils import CamelCaseModel
+from pydantic import BaseModel, EmailStr
 
 
 class EncryptedRequest(CamelCaseModel):
@@ -15,5 +14,4 @@ class EncryptedRequest(CamelCaseModel):
 
 class MicrosoftSSOInitRequest(BaseModel):
     """Schema for initiating Microsoft SSO with email"""
-
     email: EmailStr

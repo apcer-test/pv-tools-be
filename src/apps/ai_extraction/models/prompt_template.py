@@ -1,9 +1,8 @@
-from datetime import datetime
-from decimal import Decimal
-from typing import TYPE_CHECKING, List
-
-from sqlalchemy import DECIMAL, TIMESTAMP, ForeignKey, String, Text, UniqueConstraint
+from sqlalchemy import String, Text, ForeignKey, UniqueConstraint, DECIMAL, TIMESTAMP
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from typing import List, TYPE_CHECKING
+from decimal import Decimal
+from datetime import datetime
 
 from core.db import Base
 from core.utils.mixins import TimeStampMixin, ULIDPrimaryKeyMixin
@@ -17,7 +16,6 @@ class PromptTemplateModel(Base, ULIDPrimaryKeyMixin, TimeStampMixin):
     """
     Model representing prompt templates for different document types
     """
-
     __tablename__ = "prompt_template"
 
     doc_type_id: Mapped[str] = mapped_column(ForeignKey("doc_type.id"))
@@ -30,12 +28,14 @@ class PromptTemplateModel(Base, ULIDPrimaryKeyMixin, TimeStampMixin):
 
     # Relationships
     doc_type: Mapped["DocTypeModel"] = relationship(
-        "DocTypeModel", back_populates="prompt_templates"
+        "DocTypeModel", 
+        back_populates="prompt_templates"
     )
-
+    
     extraction_audits: Mapped[List["ExtractionAuditModel"]] = relationship(
-        "ExtractionAuditModel", back_populates="template"
+        "ExtractionAuditModel",
+        back_populates="template"
     )
 
     def __repr__(self) -> str:
-        return f"<PromptTemplateModel(id={self.id}, doc_type_id={self.doc_type_id}, version={self.version})>"
+        return f"<PromptTemplateModel(id={self.id}, doc_type_id={self.doc_type_id}, version={self.version})>" 

@@ -1,11 +1,10 @@
 from typing import Annotated
 from uuid import UUID
-
+import logging
 import httpx
-from authlib.integrations.base_client import OAuthError
 from fastapi import APIRouter, Body, Depends, Path, Query, Request, status
-from fastapi.responses import JSONResponse
-from starlette.responses import RedirectResponse
+from fastapi.responses import JSONResponse, RedirectResponse
+from authlib.integrations.base_client.errors import OAuthError
 
 import constants
 from apps.user.models.user import UserModel
@@ -13,16 +12,16 @@ from apps.user.schemas.request import EncryptedRequest
 from apps.user.schemas.response import BaseUserResponse
 from apps.user.services import UserService
 from apps.user.services.microsoft_sso import MicrosoftSSOService
-from config import AppEnvironment, settings
 from core.auth import AdminHasPermission, HasPermission
 from core.types import Providers, RoleType
-from core.utils import logger
 from core.utils.schema import BaseResponse
 from core.utils.set_cookies import set_auth_cookies
-from core.utils.sso_client import SSOOAuthClient
+from src.config import AppEnvironment, settings
+from src.constants.config import MICROSOFT_GENERATE_CODE_SCOPE
+from src.core.utils.sso_client import SSOOAuthClient
 
 router = APIRouter(prefix="/api/user", tags=["User"])
-
+logger = logging.getLogger(__name__)
 
 @router.get(
     "/openid/login/{provider}",
@@ -32,20 +31,15 @@ router = APIRouter(prefix="/api/user", tags=["User"])
     description="endpoint for login using provider",
     operation_id="sso_login",
 )
-async def login_by_provider(
-    request: Request, provider: Annotated[Providers, Path()]
-) -> RedirectResponse:
+async def login_by_provider(request: Request, provider: Annotated[Providers, Path()]) -> RedirectResponse:
     """
     Open api provider login function
     """
-    print("LOGIN: session before redirect:", request.session)
     try:
         match provider:
             case Providers.MICROSOFT:
                 if settings.ENV == AppEnvironment.LOCAL:
-                    redirect_uri = request.url_for(
-                        "sso_auth_callback", provider=provider.value
-                    )
+                    redirect_uri = request.url_for("sso_auth_callback", provider=provider.value)
                 else:
                     redirect_uri = f"{settings.SOCIAL_AUTH_REDIRECT_URL}/{settings.SOCIAL_AUTH_ENDPOINT}/{provider}"
                 redirect_uri = f"{redirect_uri}?client_ids=123"
@@ -54,13 +48,11 @@ async def login_by_provider(
                     .oauth.create_client(provider.value)
                     .authorize_redirect(request, redirect_uri)
                 )
-
             case _:
                 return RedirectResponse(url=settings.UI_LOGIN_SCREEN)
     except Exception as e:
         logger.error(f"SSO login error for provider {provider}: {str(e)}")
         return RedirectResponse(url=settings.UI_LOGIN_SCREEN)
-
 
 @router.get(
     "/{provider}",
@@ -71,29 +63,25 @@ async def login_by_provider(
 )
 async def auth(
     request: Request,
-    client_ids: Annotated[str, Query()],
+    client_ids:Annotated[str, Query()],
     service: Annotated[MicrosoftSSOService, Depends()],
-    provider: Annotated[Providers, Path()],
+    provider: Annotated[Providers, Path()]
 ) -> RedirectResponse:
     """
     get details by provider
     """
-    print("AUTH: session on callback:", request.session)
-    print(f"client_ids: {client_ids}")
+    print(client_ids)
     try:
         match provider:
             case Providers.MICROSOFT:
                 try:
                     user_data = {}
-
                     # Get access token
                     token = (
                         await SSOOAuthClient(provider.value)
                         .oauth.create_client(provider.value)
                         .authorize_access_token(request)
                     )
-
-                    print(f"token: {token}")
                     if not token:
                         logger.error("Failed to get access token from Microsoft")
                         return RedirectResponse(url=settings.UI_LOGIN_SCREEN)
@@ -112,20 +100,14 @@ async def auth(
                         .userinfo(token=token)
                     )
 
-                    logger.info(
-                        f"Successfully got user data from Microsoft: {user_data.get('email')}"
-                    )
-                    return {"user_data": user_data}
+                    logger.info(f"Successfully got user data from Microsoft: {user_data.get('email')}")
+                    return await service.sso_user(token=token.get("id_token"), **user_data)
 
                 except OAuthError as oauth_error:
-                    logger.error(
-                        f"OAuth error during Microsoft callback: {str(oauth_error)}"
-                    )
+                    logger.error(f"OAuth error during Microsoft callback: {str(oauth_error)}")
                     return RedirectResponse(url=settings.UI_LOGIN_SCREEN)
                 except Exception as e:
-                    logger.error(
-                        f"Unexpected error during Microsoft callback: {str(e)}"
-                    )
+                    logger.error(f"Unexpected error during Microsoft callback: {str(e)}")
                     return RedirectResponse(url=settings.UI_LOGIN_SCREEN)
                 finally:
                     # Clean up session
@@ -137,3 +119,36 @@ async def auth(
     except Exception as e:
         logger.error(f"Global error in auth callback: {str(e)}")
         return RedirectResponse(url=settings.UI_LOGIN_SCREEN)
+
+@router.get(
+    "/auth/generate-code",
+    status_code=status.HTTP_200_OK,
+    response_description="",
+    name="generate code",
+    description="endpoint for generate code",
+    operation_id="generate_code",
+)
+async def generate_code(request: Request) -> RedirectResponse:
+    """
+    Open api generate code function
+    """
+
+    url = f"{settings.MICROSOFT_BASE_URL}/{settings.MICROSOFT_TENANT_ID}/oauth2/v2.0/authorize?client_id={settings.MICROSOFT_CLIENT_ID}&response_type=code&redirect_uri={settings.GENERATE_CODE_REDIRECT_URL}&response_mode=query&scope={MICROSOFT_GENERATE_CODE_SCOPE}&state=12345&sso_reload=true"
+    return RedirectResponse(url=url)
+
+
+@router.get(
+    "/auth/generate-code/callback",
+    status_code=status.HTTP_200_OK,
+    name="generate code callback",
+    description="callback endpoint for generate code",
+    operation_id="generate_code_callback",
+)
+async def generate_code_callback(
+    request: Request,
+) -> RedirectResponse:
+    """
+    get details by generate code callback
+    """
+    code = request.query_params.get("code")
+    return RedirectResponse(url=settings.CODE_REDIRECT_URL + f"?code={code}")
