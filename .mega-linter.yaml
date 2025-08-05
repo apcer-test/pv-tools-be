@@ -1,0 +1,32 @@
+# Configuration file for MegaLinter
+# See all available variables at https://megalinter.io/configuration/ and in linters documentation
+
+APPLY_FIXES: none
+ENABLE_LINTERS:
+  - PYTHON_PYLINT
+  - PYTHON_BANDIT
+  - PYTHON_MYPY
+  - REPOSITORY_GITLEAKS
+
+  - DOCKERFILE_HADOLINT
+  - YAML_PRETTIER
+  - MARKDOWN_MARKDOWNLINT
+  - JSON_PRETTIER
+  - HTML_HTMLHINT
+  - ENV_DOTENV_LINTER
+  - GROOVY_NPM_GROOVY_LINT
+  - BASH_SHELLCHECK
+  - BASH_EXEC
+  - BASH_SHFMT
+  - REPOSITORY_CHECKOV
+  - REPOSITORY_DUSTILOCK
+
+FILTER_REGEX_INCLUDE: .
+FILTER_REGEX_EXCLUDE: /src/migration
+
+SHOW_ELAPSED_TIME: true
+FILEIO_REPORTER: false
+VALIDATE_ALL_CODEBASE: true
+LINTER_RULES_PATH: .
+#For Bandit
+PYTHON_BANDIT_FILTER_REGEX_EXCLUDE: '/src/constants/messages\.py'
