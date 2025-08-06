@@ -20,7 +20,7 @@ from apps.document_intake.models.document_intake import (
     DocumentIntakeStatus,
 )
 from apps.document_intake.schemas.response import DocumentExtractionResponse
-from src.core.db import db_session
+from core.db import db_session
 
 
 class DocumentIntakeService:

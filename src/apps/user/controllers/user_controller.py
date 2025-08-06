@@ -17,9 +17,9 @@ from core.auth import AdminHasPermission, HasPermission
 from core.types import Providers, RoleType
 from core.utils.schema import BaseResponse
 from core.utils.set_cookies import set_auth_cookies
-from src.config import AppEnvironment, settings
-from src.constants.config import MICROSOFT_GENERATE_CODE_SCOPE
-from src.core.utils.sso_client import SSOOAuthClient
+from config import AppEnvironment, settings
+from constants.config import MICROSOFT_GENERATE_CODE_SCOPE
+from core.utils.sso_client import SSOOAuthClient
 
 router = APIRouter(prefix="/api/user", tags=["User"])
 logger = logging.getLogger(__name__)

@@ -2,9 +2,9 @@ from datetime import date
 
 from pydantic import EmailStr, field_validator
 
-from src.apps.mail_box_config.exceptions import EndDateException, StartDateException
-from src.core.types import FrequencyType, Providers
-from src.core.utils.schema import CamelCaseModel
+from apps.mail_box_config.exceptions import EndDateException, StartDateException
+from core.types import FrequencyType, Providers
+from core.utils.schema import CamelCaseModel
 
 
 class CreateUpdateMailBoxConfigRequest(CamelCaseModel):

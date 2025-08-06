@@ -2,8 +2,8 @@ from datetime import date, datetime
 
 from pydantic import EmailStr, field_serializer
 
-from src.core.types import FrequencyType
-from src.core.utils.schema import CamelCaseModel
+from core.types import FrequencyType
+from core.utils.schema import CamelCaseModel
 
 
 class CreateUpdateMailBoxConfigResponse(CamelCaseModel):
