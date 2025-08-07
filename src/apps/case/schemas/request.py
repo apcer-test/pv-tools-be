@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import Field, field_validator
 
 from apps.case.exceptions import (
     DuplicateOrderingError,
@@ -12,7 +12,7 @@ from core.utils import CamelCaseModel
 
 
 class CaseNumberComponentCreate(CamelCaseModel):
-    """Schema for creating a case number component"""
+    """Schema for creating a case number component."""
 
     component_type: ComponentType = Field(..., description="Type of the component")
     size: Optional[int] = Field(
@@ -26,7 +26,18 @@ class CaseNumberComponentCreate(CamelCaseModel):
     @field_validator("prompt")
     @classmethod
     def validate_prompt(cls, prompt: Optional[str], info) -> Optional[str]:
-        """Validate that prompt is provided for PROMPT type components"""
+        """Validate that prompt is provided for PROMPT type components.
+
+        Args:
+            prompt: The prompt text
+            info: Validation context containing other field values
+
+        Returns:
+            The validated prompt text
+
+        Raises:
+            ValueError: If prompt is required but not provided
+        """
         component_type = info.data.get("component_type")
         if component_type == ComponentType.PROMPT and not prompt:
             raise ValueError("Prompt is required for PROMPT type components")
@@ -34,7 +45,7 @@ class CaseNumberComponentCreate(CamelCaseModel):
 
 
 class CaseNumberConfigurationCreate(CamelCaseModel):
-    """Schema for creating a case number configuration"""
+    """Schema for creating a case number configuration."""
 
     components: List[CaseNumberComponentCreate] = Field(
         ..., description="List of components that make up the case number"
@@ -47,7 +58,18 @@ class CaseNumberConfigurationCreate(CamelCaseModel):
     @field_validator("separator")
     @classmethod
     def validate_separator(cls, separator: Optional[str], info) -> Optional[str]:
-        """Validate separator based on number of components"""
+        """Validate separator based on number of components.
+
+        Args:
+            separator: The separator character
+            info: Validation context containing other field values
+
+        Returns:
+            The validated separator
+
+        Raises:
+            ValueError: If separator is required but not provided
+        """
         components = info.data.get("components", [])
         if len(components) > 1 and not separator:
             raise ValueError("Separator is required when there are multiple components")
@@ -58,7 +80,17 @@ class CaseNumberConfigurationCreate(CamelCaseModel):
     def validate_sequence_types(
         cls, components: List[CaseNumberComponentCreate]
     ) -> List[CaseNumberComponentCreate]:
-        """Validate that only one type of sequence component is used"""
+        """Validate that only one type of sequence component is used.
+
+        Args:
+            components: List of components to validate
+
+        Returns:
+            The validated components list
+
+        Raises:
+            MultipleSequenceTypesError: If multiple sequence types are found
+        """
         sequence_types = {
             ComponentType.SEQUENCE_MONTH,
             ComponentType.SEQUENCE_YEAR,
@@ -76,7 +108,17 @@ class CaseNumberConfigurationCreate(CamelCaseModel):
     def validate_unique_ordering(
         cls, components: List[CaseNumberComponentCreate]
     ) -> List[CaseNumberComponentCreate]:
-        """Validate that ordering numbers are unique"""
+        """Validate that ordering numbers are unique.
+
+        Args:
+            components: List of components to validate
+
+        Returns:
+            The validated components list
+
+        Raises:
+            DuplicateOrderingError: If duplicate ordering numbers are found
+        """
         order_numbers = {}
         for component in components:
             if component.ordering in order_numbers:
@@ -89,7 +131,17 @@ class CaseNumberConfigurationCreate(CamelCaseModel):
     def validate_ordering_sequence(
         cls, components: List[CaseNumberComponentCreate]
     ) -> List[CaseNumberComponentCreate]:
-        """Validate that ordering numbers form a continuous sequence starting from 1"""
+        """Validate that ordering numbers form a continuous sequence starting from 1.
+
+        Args:
+            components: List of components to validate
+
+        Returns:
+            The validated components list
+
+        Raises:
+            InvalidOrderingSequenceError: If sequence is not continuous or doesn't start from 1
+        """
         if not components:
             raise InvalidOrderingSequenceError
 
@@ -103,7 +155,7 @@ class CaseNumberConfigurationCreate(CamelCaseModel):
 
 
 class CaseCreate(CamelCaseModel):
-    """Schema for creating a new case"""
+    """Schema for creating a new case."""
 
     meta_data: Optional[dict] = Field(
         None, description="Additional metadata for the case"

@@ -78,4 +78,5 @@ class DocumentIntakeHistory(Base, ULIDPrimaryKeyMixin, TimeStampMixin):
     )
 
     def __repr__(self) -> str:
+        """String representation of the document intake history"""
         return f"<DocumentIntakeHistory(id={self.id}, request_id={self.request_id}, status={self.status})>"

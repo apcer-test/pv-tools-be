@@ -36,6 +36,7 @@ class LLMProviderModel(Base, ULIDPrimaryKeyMixin, TimeStampMixin):
     )
 
     def __repr__(self) -> str:
+        """String representation of the LLM provider"""
         return f"<LLMProviderModel(id={self.id}, name={self.name})>"
 
 
@@ -73,6 +74,7 @@ class LLMModel(Base, ULIDPrimaryKeyMixin, TimeStampMixin):
     )
 
     def __repr__(self) -> str:
+        """String representation of the LLM model"""
         return f"<LLMModel(id={self.id}, name={self.name}, provider_id={self.provider_id})>"
 
 
@@ -104,6 +106,7 @@ class LLMCredentialModel(Base, ULIDPrimaryKeyMixin, TimeStampMixin):
     )
 
     def __repr__(self) -> str:
+        """String representation of the LLM credential"""
         return f"<LLMCredentialModel(id={self.id}, alias={self.alias}, provider_id={self.provider_id})>"
 
 
@@ -141,4 +144,5 @@ class ExtractionAgentModel(Base, ULIDPrimaryKeyMixin, TimeStampMixin):
     )
 
     def __repr__(self) -> str:
+        """String representation of the extraction agent"""
         return f"<ExtractionAgentModel(id={self.id}, code={self.code}, doc_type_id={self.doc_type_id})>"

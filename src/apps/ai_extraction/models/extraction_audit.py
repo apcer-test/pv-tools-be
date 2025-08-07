@@ -85,4 +85,5 @@ class ExtractionAuditModel(Base, ULIDPrimaryKeyMixin, TimeStampMixin):
     )
 
     def __repr__(self) -> str:
+        """String representation of the extraction audit"""
         return f"<ExtractionAuditModel(id={self.id}, request_id={self.request_id}, status={self.status})>"

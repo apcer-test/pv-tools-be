@@ -15,12 +15,11 @@ from apps.case.models import (
     CaseNumberConfiguration,
     CaseSequenceTracker,
 )
-from apps.document_intake.models.document_intake import DocumentIntakeHistory
 from apps.mail_box_config.models import (
     MicrosoftCredentialsConfig,
     MicrosoftMailBoxConfig,
 )
-from apps.tenant.models import Tenant, TenantUsers
+from apps.tenant.models import TenantUsers
 from apps.user.models.user import UserModel
 from core.db import Base
 

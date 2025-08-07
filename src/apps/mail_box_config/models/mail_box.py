@@ -40,6 +40,7 @@ class MicrosoftMailBoxConfig(Base, ULIDPrimaryKeyMixin, TimeStampMixin, UserMixi
         company_emails: list[str] = [],
         subject_lines: list[str] = [],
     ):
+        """Create a new mail box configuration"""
         return cls(
             id=str(ULID()),
             tenant_id=tenant_id,

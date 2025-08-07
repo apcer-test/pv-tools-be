@@ -203,6 +203,7 @@ async def encryption(data: str) -> str:
 
 
 async def get_tenant_data(tenant_id: str):
+    """Get the tenant data from the database."""
     async with async_session() as session:
         async with session.begin():
             tenant_data = await session.scalar(

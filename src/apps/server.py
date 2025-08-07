@@ -23,8 +23,8 @@ from apps.master.controllers import master_router
 from apps.user.controllers import user_router
 from config import AppEnvironment, settings
 from constants.config import rate_limiter_config
-from core.task.lifespan import lifespan
 from core.middlewares.memory_usage import MemoryUsageMiddleware
+from core.task.lifespan import lifespan
 from core.utils.schema import BaseValidationResponse
 
 

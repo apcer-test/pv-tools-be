@@ -30,6 +30,7 @@ class CaseNumberConfiguration(Base, ULIDPrimaryKeyMixin, TimeStampMixin):
     )
 
     def __repr__(self) -> str:
+        """String representation of the case number configuration"""
         return f"<CaseNumberConfiguration(id={self.id}, name={self.name})>"
 
 
@@ -52,6 +53,7 @@ class CaseNumberComponent(Base, ULIDPrimaryKeyMixin, TimeStampMixin):
     )
 
     def __repr__(self) -> str:
+        """String representation of the case number component"""
         return f"<CaseNumberComponent(id={self.id}, type={ComponentType.get_display_name(self.component_type)}, ordering={self.ordering})>"
 
 
@@ -78,6 +80,7 @@ class CaseSequenceTracker(Base, ULIDPrimaryKeyMixin, TimeStampMixin):
     )
 
     def __repr__(self) -> str:
+        """String representation of the case sequence tracker"""
         return f"<CaseSequenceTracker(id={self.id}, year_month={self.year_month}, current={self.current_value})>"
 
 
@@ -97,4 +100,5 @@ class Case(Base, ULIDPrimaryKeyMixin, TimeStampMixin):
     )
 
     def __repr__(self) -> str:
+        """String representation of the case"""
         return f"<Case(id={self.id}, case_number={self.case_number})>"

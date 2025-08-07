@@ -1,6 +1,6 @@
 from typing import Annotated, List
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 
 from apps.case.schemas.request import CaseCreate, CaseNumberConfigurationCreate
 from apps.case.schemas.response import CaseNumberConfigurationResponse, CaseResponse
@@ -21,7 +21,15 @@ router = APIRouter(prefix="/api/cases", tags=["Cases"])
 async def create_configuration(
     config: CaseNumberConfigurationCreate, service: Annotated[CaseService, Depends()]
 ) -> BaseResponse[CaseNumberConfigurationResponse]:
-    """Create a new case number configuration"""
+    """Create a new case number configuration.
+
+    Args:
+        config: Configuration details
+        service: Case service instance
+
+    Returns:
+        BaseResponse containing the created configuration
+    """
     result = await service.create_configuration(config)
     return BaseResponse(data=result)
 
@@ -37,8 +45,15 @@ async def create_configuration(
 async def set_configuration_active(
     config_id: str, service: Annotated[CaseService, Depends()]
 ) -> BaseResponse[CaseNumberConfigurationResponse]:
-    """Set a configuration as active"""
+    """Set a configuration as active.
 
+    Args:
+        config_id: ID of the configuration to activate
+        service: Case service instance
+
+    Returns:
+        BaseResponse containing the activated configuration
+    """
     result = await service.set_configuration_active(config_id)
     return BaseResponse(data=result)
 
@@ -54,7 +69,15 @@ async def set_configuration_active(
 async def list_configurations(
     active_only: bool, service: Annotated[CaseService, Depends()]
 ) -> BaseResponse[List[CaseNumberConfigurationResponse]]:
-    """List all case number configurations"""
+    """List all case number configurations.
+
+    Args:
+        active_only: Whether to return only active configurations
+        service: Case service instance
+
+    Returns:
+        BaseResponse containing list of configurations
+    """
     result = await service.list_configurations(active_only)
     return BaseResponse(data=result)
 
@@ -70,13 +93,21 @@ async def list_configurations(
 async def create_case(
     case: CaseCreate, service: Annotated[CaseService, Depends()]
 ) -> BaseResponse[CaseResponse]:
-    """Create a new case with generated case number"""
+    """Create a new case.
+
+    Args:
+        case: Case creation details
+        service: Case service instance
+
+    Returns:
+        BaseResponse containing the created case
+    """
     result = await service.create_case(case)
     return BaseResponse(data=result)
 
 
 @router.get(
-    "/{case_id}",
+    "/{case_number}",
     status_code=status.HTTP_200_OK,
     response_model=BaseResponse[CaseResponse],
     name="Get Case",
@@ -86,6 +117,14 @@ async def create_case(
 async def get_case(
     case_number: str, service: Annotated[CaseService, Depends()]
 ) -> BaseResponse[CaseResponse]:
-    """Get a case by ID"""
+    """Get a case by ID.
+
+    Args:
+        case_number: ID of the case to retrieve
+        service: Case service instance
+
+    Returns:
+        BaseResponse containing the case details
+    """
     result = await service.get_case(case_number)
     return BaseResponse(data=result)

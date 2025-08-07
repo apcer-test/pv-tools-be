@@ -8,7 +8,7 @@ from core.utils import CamelCaseModel
 
 
 class CaseNumberComponentResponse(CamelCaseModel):
-    """Response schema for case number component"""
+    """Response schema for case number component."""
 
     id: str = Field(..., description="Component ID")
     component_type: ComponentType = Field(..., description="Type of the component")
@@ -18,8 +18,18 @@ class CaseNumberComponentResponse(CamelCaseModel):
     created_at: datetime = Field(..., description="Creation timestamp")
     updated_at: datetime = Field(..., description="Last update timestamp")
 
+    @property
+    def display_type(self) -> str:
+        """Get display name for component type.
+
+        Returns:
+            The human-readable display name for the component type
+        """
+        return ComponentType.get_display_name(self.component_type)
+
+
 class CaseNumberConfigurationResponse(CamelCaseModel):
-    """Response schema for case number configuration"""
+    """Response schema for case number configuration."""
 
     id: str = Field(..., description="Configuration ID")
     name: str = Field(..., description="Configuration name")
@@ -33,7 +43,7 @@ class CaseNumberConfigurationResponse(CamelCaseModel):
 
 
 class CaseResponse(CamelCaseModel):
-    """Response schema for case"""
+    """Response schema for case."""
 
     id: str = Field(..., description="Case ID")
     case_number: str = Field(..., description="Generated case number")

@@ -2,13 +2,15 @@ import psutil
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
+
 from core.utils import logger
+
 
 class MemoryUsageMiddleware(BaseHTTPMiddleware):
     """Middleware to log memory usage before and after each request"""
 
     async def dispatch(self, request: Request, call_next) -> Response:
-        # Get the request path
+        """Get the request path"""
         path = request.url.path
 
         # Log memory before processing the request

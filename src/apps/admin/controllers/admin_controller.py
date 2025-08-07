@@ -2,7 +2,6 @@ from typing import Annotated, Optional
 
 from fastapi import APIRouter, Body, Depends, Query, Request, status
 from fastapi.responses import JSONResponse
-from fastapi_pagination import Page, Params
 
 import constants
 from apps.admin.schemas.admin_user_response import AdminListUsersResponse

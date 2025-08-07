@@ -40,4 +40,5 @@ class DocTypeModel(Base, ULIDPrimaryKeyMixin, TimeStampMixin):
     )
 
     def __repr__(self) -> str:
+        """String representation of the document type"""
         return f"<DocTypeModel(id={self.id}, code={self.code})>"
