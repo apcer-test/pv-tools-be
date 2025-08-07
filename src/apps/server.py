@@ -12,6 +12,7 @@ from apps.ai_extraction.controllers import (
     llm_router,
     prompt_registry_router,
 )
+from apps.case.controllers import case_router
 from apps.document_intake.controllers import document_intake_router
 from apps.handlers import start_exception_handlers
 from apps.mail_box_config.controllers import (
@@ -53,6 +54,7 @@ def init_routers(_app: FastAPI) -> None:
     base_router.include_router(llm_router)
     base_router.include_router(configurations_router)
     base_router.include_router(mail_box_config_router)
+    base_router.include_router(case_router)
     _app.include_router(base_router, responses={422: {"model": BaseValidationResponse}})
 
 
