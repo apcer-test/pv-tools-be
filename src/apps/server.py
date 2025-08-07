@@ -24,6 +24,7 @@ from apps.user.controllers import user_router
 from config import AppEnvironment, settings
 from constants.config import rate_limiter_config
 from core.task.lifespan import lifespan
+from core.middlewares.memory_usage import MemoryUsageMiddleware
 from core.utils.schema import BaseValidationResponse
 
 
@@ -108,6 +109,9 @@ def init_middlewares(_app: FastAPI) -> None:
 
     # Add session middleware for OAuth
     _app.add_middleware(SessionMiddleware, secret_key=settings.SECRET_KEY)
+
+    # Add memory usage middleware
+    _app.add_middleware(MemoryUsageMiddleware)
 
 
 def create_app(debug: bool = False) -> FastAPI:
