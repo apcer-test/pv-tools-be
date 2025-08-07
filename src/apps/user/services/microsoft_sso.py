@@ -9,7 +9,7 @@ from apps.user.exceptions import EmailNotFoundError, UserNotFoundException
 from apps.user.models.user import UserModel
 from core.common_helpers import create_tokens
 from core.db import db_session
-from src.config import settings
+from config import settings
 
 
 class MicrosoftSSOService:

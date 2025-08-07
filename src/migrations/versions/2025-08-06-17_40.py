@@ -1,18 +1,18 @@
 """empty message
 
-Revision ID: 4f747892e9a0
+Revision ID: 773269fddbeb
 Revises: 
-Create Date: 2025-07-30 13:48:09.968668
+Create Date: 2025-08-06 17:40:39.640464
 
 """
 from alembic import op
 import sqlalchemy as sa
 
-from migrations.seeder import sql_for_create_admin, sql_for_doc_type, sql_for_fallback_chain
+from migrations.seeder import sql_for_create_admin, sql_for_doc_type, sql_for_fallback_chain, sql_for_tenant, sql_for_tenant_users
 
 
 # revision identifiers, used by Alembic.
-revision = '4f747892e9a0'
+revision = '773269fddbeb'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -75,6 +75,29 @@ def upgrade() -> None:
     op.create_index(op.f('ix_users_first_name'), 'users', ['first_name'], unique=False)
     op.create_index(op.f('ix_users_last_name'), 'users', ['last_name'], unique=False)
     op.create_index(op.f('ix_users_phone'), 'users', ['phone'], unique=True)
+    op.create_table('document_intake_history',
+    sa.Column('status', sa.Enum('PENDING', 'IN_PROGRESS', 'COMPLETED', 'FAILED', name='documentintakestatus'), nullable=False),
+    sa.Column('source', sa.Enum('USER_UPLOAD', 'SYSTEM_UPLOAD', name='documentintakesource'), nullable=False),
+    sa.Column('email_body', sa.Text(), nullable=True),
+    sa.Column('file_path', sa.Text(), nullable=False),
+    sa.Column('file_name', sa.String(length=255), nullable=False),
+    sa.Column('file_size', sa.Integer(), nullable=True),
+    sa.Column('doc_type_id', sa.String(), nullable=False),
+    sa.Column('request_id', sa.String(length=26), nullable=False),
+    sa.Column('processing_started_at', sa.String(length=50), nullable=True),
+    sa.Column('processing_completed_at', sa.String(length=50), nullable=True),
+    sa.Column('error_message', sa.Text(), nullable=True),
+    sa.Column('error_code', sa.String(length=100), nullable=True),
+    sa.Column('failed_at_step', sa.String(length=100), nullable=True),
+    sa.Column('meta_data', sa.JSON(), nullable=True),
+    sa.Column('id', sa.String(), nullable=False),
+    sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('deleted_at', sa.DateTime(), nullable=True),
+    sa.ForeignKeyConstraint(['doc_type_id'], ['doc_type.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_index(op.f('ix_document_intake_history_request_id'), 'document_intake_history', ['request_id'], unique=False)
     op.create_table('llm_credential',
     sa.Column('provider_id', sa.String(), nullable=False),
     sa.Column('alias', sa.String(length=255), nullable=True),
@@ -120,6 +143,21 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['doc_type_id'], ['doc_type.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
+    op.create_table('tenant',
+    sa.Column('secret_key', sa.String(), nullable=False),
+    sa.Column('is_active', sa.Boolean(), server_default='True', nullable=False),
+    sa.Column('id', sa.String(), nullable=False),
+    sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('deleted_at', sa.DateTime(), nullable=True),
+    sa.Column('created_by', sa.String(), nullable=True, comment='User ID who created this record'),
+    sa.Column('updated_by', sa.String(), nullable=True, comment='User ID who last updated this record'),
+    sa.Column('deleted_by', sa.String(), nullable=True, comment='User ID who soft deleted this record'),
+    sa.ForeignKeyConstraint(['created_by'], ['users.id'], ),
+    sa.ForeignKeyConstraint(['deleted_by'], ['users.id'], ),
+    sa.ForeignKeyConstraint(['updated_by'], ['users.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
     op.create_table('extraction_agent',
     sa.Column('doc_type_id', sa.String(), nullable=False),
     sa.Column('code', sa.String(length=255), nullable=False),
@@ -130,6 +168,7 @@ def upgrade() -> None:
     sa.Column('llm_credential_id', sa.String(), nullable=False),
     sa.Column('is_active', sa.Boolean(), nullable=False),
     sa.Column('sequence_no', sa.Integer(), nullable=False),
+    sa.Column('preferred_model', sa.String(length=255), nullable=True),
     sa.Column('id', sa.String(), nullable=False),
     sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
     sa.Column('updated_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
@@ -162,6 +201,64 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('chain_id', 'seq_no', name='uq_chain_seq_no')
     )
+    op.create_table('microsoft_credentials_config',
+    sa.Column('tenant_id', sa.String(), nullable=False),
+    sa.Column('config', sa.String(), nullable=True),
+    sa.Column('id', sa.String(), nullable=False),
+    sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('deleted_at', sa.DateTime(), nullable=True),
+    sa.Column('created_by', sa.String(), nullable=True, comment='User ID who created this record'),
+    sa.Column('updated_by', sa.String(), nullable=True, comment='User ID who last updated this record'),
+    sa.Column('deleted_by', sa.String(), nullable=True, comment='User ID who soft deleted this record'),
+    sa.ForeignKeyConstraint(['created_by'], ['users.id'], ),
+    sa.ForeignKeyConstraint(['deleted_by'], ['users.id'], ),
+    sa.ForeignKeyConstraint(['tenant_id'], ['tenant.id'], ondelete='cascade'),
+    sa.ForeignKeyConstraint(['updated_by'], ['users.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_table('microsoft_mail_box_config',
+    sa.Column('tenant_id', sa.String(), nullable=False),
+    sa.Column('recipient_email', sa.String(), nullable=False),
+    sa.Column('app_password', sa.String(), nullable=False),
+    sa.Column('provider', sa.String(), nullable=False),
+    sa.Column('start_date', sa.Date(), nullable=False),
+    sa.Column('end_date', sa.Date(), nullable=False),
+    sa.Column('frequency', sa.String(), nullable=False),
+    sa.Column('app_password_expired_at', sa.DateTime(), nullable=True),
+    sa.Column('company_emails', sa.ARRAY(sa.String()), nullable=False),
+    sa.Column('subject_lines', sa.ARRAY(sa.String()), nullable=False),
+    sa.Column('last_execution', sa.DateTime(), nullable=True),
+    sa.Column('id', sa.String(), nullable=False),
+    sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('deleted_at', sa.DateTime(), nullable=True),
+    sa.Column('created_by', sa.String(), nullable=True, comment='User ID who created this record'),
+    sa.Column('updated_by', sa.String(), nullable=True, comment='User ID who last updated this record'),
+    sa.Column('deleted_by', sa.String(), nullable=True, comment='User ID who soft deleted this record'),
+    sa.ForeignKeyConstraint(['created_by'], ['users.id'], ),
+    sa.ForeignKeyConstraint(['deleted_by'], ['users.id'], ),
+    sa.ForeignKeyConstraint(['tenant_id'], ['tenant.id'], ondelete='cascade'),
+    sa.ForeignKeyConstraint(['updated_by'], ['users.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_table('tenant_users',
+    sa.Column('tenant_id', sa.String(), nullable=False),
+    sa.Column('user_id', sa.String(), nullable=False),
+    sa.Column('role', sa.String(), nullable=False),
+    sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('deleted_at', sa.DateTime(), nullable=True),
+    sa.Column('created_by', sa.String(), nullable=True, comment='User ID who created this record'),
+    sa.Column('updated_by', sa.String(), nullable=True, comment='User ID who last updated this record'),
+    sa.Column('deleted_by', sa.String(), nullable=True, comment='User ID who soft deleted this record'),
+    sa.ForeignKeyConstraint(['created_by'], ['users.id'], ),
+    sa.ForeignKeyConstraint(['deleted_by'], ['users.id'], ),
+    sa.ForeignKeyConstraint(['tenant_id'], ['tenant.id'], ondelete='cascade'),
+    sa.ForeignKeyConstraint(['updated_by'], ['users.id'], ),
+    sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='cascade'),
+    sa.PrimaryKeyConstraint('tenant_id', 'user_id')
+    )
     op.create_table('extraction_audit',
     sa.Column('request_id', sa.String(length=36), nullable=False),
     sa.Column('external_id', sa.String(length=255), nullable=True),
@@ -180,6 +277,7 @@ def upgrade() -> None:
     sa.Column('error_message', sa.Text(), nullable=True),
     sa.Column('step_id', sa.String(), nullable=True),
     sa.Column('meta_data', sa.JSON(), nullable=True),
+    sa.Column('document_intake_id', sa.String(), nullable=True),
     sa.Column('id', sa.String(), nullable=False),
     sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
     sa.Column('updated_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
@@ -188,25 +286,34 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['chain_id'], ['fallback_chain.id'], ),
     sa.ForeignKeyConstraint(['credential_id'], ['llm_credential.id'], ),
     sa.ForeignKeyConstraint(['doc_type_id'], ['doc_type.id'], ),
+    sa.ForeignKeyConstraint(['document_intake_id'], ['document_intake_history.id'], ),
     sa.ForeignKeyConstraint(['model_id'], ['llm_model.id'], ),
     sa.ForeignKeyConstraint(['step_id'], ['fallback_step.id'], ),
     sa.ForeignKeyConstraint(['template_id'], ['prompt_template.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
+    # ### end Alembic commands ###
     op.execute(sql_for_create_admin)
     op.execute(sql_for_doc_type)
     op.execute(sql_for_fallback_chain)
-    # ### end Alembic commands ###
+    op.execute(sql_for_tenant)
+    op.execute(sql_for_tenant_users)
 
 
 def downgrade() -> None:
     # ### commands auto generated by Alembic - please adjust! ###
     op.drop_table('extraction_audit')
+    op.drop_table('tenant_users')
+    op.drop_table('microsoft_mail_box_config')
+    op.drop_table('microsoft_credentials_config')
     op.drop_table('fallback_step')
     op.drop_table('extraction_agent')
+    op.drop_table('tenant')
     op.drop_table('prompt_template')
     op.drop_table('llm_model')
     op.drop_table('llm_credential')
+    op.drop_index(op.f('ix_document_intake_history_request_id'), table_name='document_intake_history')
+    op.drop_table('document_intake_history')
     op.drop_index(op.f('ix_users_phone'), table_name='users')
     op.drop_index(op.f('ix_users_last_name'), table_name='users')
     op.drop_index(op.f('ix_users_first_name'), table_name='users')

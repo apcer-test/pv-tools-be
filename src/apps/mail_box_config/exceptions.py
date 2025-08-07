@@ -1,5 +1,5 @@
-from src import constants
-from src.core.exceptions import BadRequestError, CustomException, NotFoundError
+import constants
+from core.exceptions import BadRequestError, CustomException, NotFoundError
 
 
 class MailBoxAlreadyConfigured(BadRequestError):
