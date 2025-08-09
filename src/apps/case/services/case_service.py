@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Annotated, List, Optional, Union
 
 from fastapi import Depends
-from sqlalchemy import select, update
+from sqlalchemy import delete, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -332,3 +332,107 @@ class CaseService:
             .where(Case.case_number == case_number)
         )
         return response.scalar_one_or_none()
+
+    async def update_configuration(
+        self, config_id: str, config: CaseNumberConfigurationCreate
+    ) -> CaseNumberConfiguration:
+        """Update an existing case number configuration.
+
+        Args:
+            config_id: ID of the configuration to update
+            config: New configuration data
+
+        Returns:
+            Updated configuration
+
+        Raises:
+            ConfigurationNotFoundError: If configuration not found
+            DuplicateConfigComponentsError: If resulting config would be duplicate
+            CannotModifyActiveConfigError: If trying to modify active config
+        """
+        # Get existing configuration with components
+        existing_config = await self.get_configuration(config_id)
+        if not existing_config:
+            raise ConfigurationNotFoundError
+
+        # Active configurations can be modified
+
+        # Check for duplicate components (excluding current config)
+        configs = await self.session.scalars(
+            select(CaseNumberConfiguration)
+            .options(selectinload(CaseNumberConfiguration.components))
+            .where(CaseNumberConfiguration.id != config_id)
+        )
+
+        for other_config in configs:
+            if _components_match(config.components, other_config.components):
+                raise DuplicateConfigComponentsError
+
+        # Generate new name based on components
+        new_name = _generate_config_name(config.components, config.separator or "")
+
+        async with self.session.begin_nested():
+            # Update main configuration
+            existing_config.name = new_name
+            existing_config.separator = config.separator or ""
+
+            # Track existing component IDs
+            existing_ids = {c.id for c in existing_config.components}
+            updated_ids = set()
+
+            # Update/create components
+            for new_component in config.components:
+                if hasattr(new_component, "id") and new_component.id:
+                    # Update existing component
+                    component = await self.session.scalar(
+                        select(CaseNumberComponent).where(
+                            CaseNumberComponent.id == new_component.id,
+                            CaseNumberComponent.config_id == config_id,
+                        )
+                    )
+                    if component:
+                        component.component_type = new_component.component_type
+                        component.size = new_component.size
+                        component.prompt = new_component.prompt
+                        component.ordering = new_component.ordering
+                        updated_ids.add(component.id)
+                else:
+                    # Create new component
+                    component = CaseNumberComponent(
+                        config_id=config_id,
+                        component_type=new_component.component_type,
+                        size=new_component.size,
+                        prompt=new_component.prompt,
+                        ordering=new_component.ordering,
+                    )
+                    self.session.add(component)
+
+            # Delete removed components
+            for component_id in existing_ids - updated_ids:
+                await self.session.execute(
+                    delete(CaseNumberComponent).where(
+                        CaseNumberComponent.id == component_id
+                    )
+                )
+
+            # Handle sequence trackers if sequence type changed
+            old_sequence = await self._get_sequence_component(
+                existing_config.components
+            )
+            new_sequence = await self._get_sequence_component(
+                [c for c in config.components if isinstance(c, CaseNumberComponent)]
+            )
+
+            if old_sequence[1] != new_sequence[1]:
+                # Delete old sequence trackers
+                await self.session.execute(
+                    delete(CaseSequenceTracker).where(
+                        CaseSequenceTracker.config_id == config_id
+                    )
+                )
+
+            await self.session.flush()
+
+        # Refresh configuration with updated components
+        await self.session.refresh(existing_config)
+        return existing_config

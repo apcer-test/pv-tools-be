@@ -1,4 +1,4 @@
-from typing import Annotated, List
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, status
 
@@ -24,7 +24,7 @@ async def create_configuration(
     """Create a new case number configuration.
 
     Args:
-        config: Configuration details
+        config: Configuration to create
         service: Case service instance
 
     Returns:
@@ -34,13 +34,36 @@ async def create_configuration(
     return BaseResponse(data=result)
 
 
+@router.get(
+    "/configurations",
+    status_code=status.HTTP_200_OK,
+    response_model=BaseResponse[list[CaseNumberConfigurationResponse]],
+    name="List Case Number Configurations",
+    description="List all case number configurations",
+    operation_id="list_case_configurations",
+)
+async def list_configurations(
+    service: Annotated[CaseService, Depends()]
+) -> BaseResponse[list[CaseNumberConfigurationResponse]]:
+    """List all case number configurations.
+
+    Args:
+        service: Case service instance
+
+    Returns:
+        BaseResponse containing list of configurations
+    """
+    result = await service.list_configurations()
+    return BaseResponse(data=result)
+
+
 @router.put(
     "/configurations/{config_id}/active",
     status_code=status.HTTP_200_OK,
     response_model=BaseResponse[CaseNumberConfigurationResponse],
-    name="Set Configuration Active",
-    description="Set a configuration as active and deactivate others",
-    operation_id="set_configuration_active",
+    name="Set Active Configuration",
+    description="Set a configuration as active",
+    operation_id="set_active_configuration",
 )
 async def set_configuration_active(
     config_id: str, service: Annotated[CaseService, Depends()]
@@ -58,36 +81,12 @@ async def set_configuration_active(
     return BaseResponse(data=result)
 
 
-@router.get(
-    "/configurations",
-    status_code=status.HTTP_200_OK,
-    response_model=BaseResponse[List[CaseNumberConfigurationResponse]],
-    name="List Case Number Configurations",
-    description="List all case number configurations",
-    operation_id="list_case_configurations",
-)
-async def list_configurations(
-    active_only: bool, service: Annotated[CaseService, Depends()]
-) -> BaseResponse[List[CaseNumberConfigurationResponse]]:
-    """List all case number configurations.
-
-    Args:
-        active_only: Whether to return only active configurations
-        service: Case service instance
-
-    Returns:
-        BaseResponse containing list of configurations
-    """
-    result = await service.list_configurations(active_only)
-    return BaseResponse(data=result)
-
-
 @router.post(
     "",
     status_code=status.HTTP_201_CREATED,
     response_model=BaseResponse[CaseResponse],
     name="Create Case",
-    description="Create a new case with generated case number",
+    description="Create a new case",
     operation_id="create_case",
 )
 async def create_case(
@@ -96,7 +95,7 @@ async def create_case(
     """Create a new case.
 
     Args:
-        case: Case creation details
+        case: Case to create
         service: Case service instance
 
     Returns:
@@ -127,4 +126,35 @@ async def get_case(
         BaseResponse containing the case details
     """
     result = await service.get_case(case_number)
+    return BaseResponse(data=result)
+
+
+@router.patch(
+    "/configurations/{config_id}",
+    status_code=status.HTTP_200_OK,
+    response_model=BaseResponse[CaseNumberConfigurationResponse],
+    name="Update Case Number Configuration",
+    description="Update an existing case number configuration",
+    operation_id="update_case_configuration",
+)
+async def update_configuration(
+    config_id: str,
+    config: CaseNumberConfigurationCreate,
+    service: Annotated[CaseService, Depends()],
+) -> BaseResponse[CaseNumberConfigurationResponse]:
+    """Update a case number configuration.
+
+    Args:
+        config_id: Configuration ID to update
+        config: Updated configuration data
+        service: Case service instance
+
+    Returns:
+        Updated configuration
+
+    Raises:
+        HTTPException: If validation fails or configuration not found
+    """
+
+    result = await service.update_configuration(config_id, config)
     return BaseResponse(data=result)
