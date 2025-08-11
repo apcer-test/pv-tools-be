@@ -18,7 +18,6 @@ from apps.user.exceptions import (
     WeakPasswordException,
 )
 from apps.user.models.user import UserModel
-from apps.user.schemas.response import BaseUserResponse
 from config import settings
 from core.common_helpers import create_tokens, decrypt, validate_email
 from core.db import db_session

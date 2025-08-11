@@ -9,7 +9,12 @@ from apps.ai_extraction.models import (
     LLMProviderModel,
     PromptTemplateModel,
 )
-from apps.document_intake.models.document_intake import DocumentIntakeHistory
+from apps.case.models import (
+    Case,
+    CaseNumberComponent,
+    CaseNumberConfiguration,
+    CaseSequenceTracker,
+)
 from apps.mail_box_config.models import (
     MicrosoftCredentialsConfig,
     MicrosoftMailBoxConfig,
@@ -38,4 +43,8 @@ __all__ = [
     "MicrosoftMailBoxConfig",
     "LookupModel",
     "LookupValuesModel",
+    "Case",
+    "CaseNumberConfiguration",
+    "CaseNumberComponent",
+    "CaseSequenceTracker",
 ]

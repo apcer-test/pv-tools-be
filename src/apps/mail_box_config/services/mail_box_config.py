@@ -155,6 +155,7 @@ class MailBoxService:
     async def get_mail_box_config_list(
         self, tenant_id: UUID, page_params: Params
     ) -> list[MicrosoftMailBoxConfig]:
+        """Get the list of mail box configurations for the tenant"""
         query = (
             select(MicrosoftMailBoxConfig)
             .where(MicrosoftMailBoxConfig.tenant_id == tenant_id)
@@ -265,6 +266,7 @@ class MailBoxService:
         return mail_box_config
 
     async def delete_mail_box_config(self, tenant_id: UUID, mail_box_config_id: UUID):
+        """Delete the mail box configuration"""
         mail_box_config = await self.session.scalar(
             select(MicrosoftMailBoxConfig).where(
                 MicrosoftMailBoxConfig.tenant_id == tenant_id,
