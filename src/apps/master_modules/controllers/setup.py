@@ -18,8 +18,8 @@ router = APIRouter(prefix="/setup", tags=["Setup"])
 @router.post(
     "/upload-excel",
     status_code=status.HTTP_200_OK,
-    name="Upload Excel file for codelist data",
-    description="Upload an Excel file containing codelist data. The file should have a sheet named 'Codelist_data' with required columns.",
+    name="Upload Excel file for master setup data",
+    description="Upload an Excel file containing master setup data. The file should have a sheet named 'Lookup' and 'Lookup Values' with required columns.",
     operation_id="upload_excel_file",
 )
 async def upload_excel_file(
@@ -27,8 +27,8 @@ async def upload_excel_file(
     service: Annotated[SetupService, Depends()]
 ) -> BaseResponse[SuccessResponse]:
     """
-    Upload an Excel file containing codelist data.
-    The file should have a sheet named 'Codelist_data' with required columns.
+    Upload an Excel file containing master setup data.
+    The file should have a sheet named 'Lookup' and 'Lookup Values' with required columns.
     """
     return BaseResponse(data = await service.process_excel_file(file=file))
 
@@ -99,7 +99,7 @@ async def create_lookup_value(
     )
 
 @router.post(
-    "/lookup/{lookup_id}/values/nf",
+    "/lookup/{lookup_id}/nflist/values",
     status_code=status.HTTP_201_CREATED,
     name="Create nf-list lookup value",
     description="Create an nf-list lookup value for a given lookup id.",
@@ -115,7 +115,7 @@ async def create_nf_lookup_value(
         data=await service.create_nflist_lookup_value(lookup_id=lookup_id, **body.model_dump())
     )
 
-@router.patch(
+@router.put(
     "/lookup/values/{lookup_value_id}/status",
     status_code=status.HTTP_200_OK,
     name="Update lookup value status",
