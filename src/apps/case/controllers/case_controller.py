@@ -1,6 +1,8 @@
-from typing import Annotated
+"""Case management controller module."""
 
-from fastapi import APIRouter, Depends, status
+from typing import Annotated, Optional
+
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from apps.case.schemas.request import CaseCreate, CaseNumberConfigurationCreate
 from apps.case.schemas.response import CaseNumberConfigurationResponse, CaseResponse
@@ -28,7 +30,10 @@ async def create_configuration(
         service: Case service instance
 
     Returns:
-        BaseResponse containing the created configuration
+        Created configuration
+
+    Raises:
+        HTTPException: If validation fails
     """
     result = await service.create_configuration(config)
     return BaseResponse(data=result)
@@ -39,21 +44,25 @@ async def create_configuration(
     status_code=status.HTTP_200_OK,
     response_model=BaseResponse[list[CaseNumberConfigurationResponse]],
     name="List Case Number Configurations",
-    description="List all case number configurations",
+    description="List all case number configurations with optional active status filter",
     operation_id="list_case_configurations",
 )
 async def list_configurations(
-    service: Annotated[CaseService, Depends()]
+    service: Annotated[CaseService, Depends()],
+    is_active: Annotated[
+        Optional[bool], Query(description="Filter by active status (true/false)")
+    ] = None,
 ) -> BaseResponse[list[CaseNumberConfigurationResponse]]:
     """List all case number configurations.
 
     Args:
         service: Case service instance
+        is_active: Optional filter for active status (true/false)
 
     Returns:
-        BaseResponse containing list of configurations
+        List of configurations matching the filter
     """
-    result = await service.list_configurations()
+    result = await service.list_configurations(is_active=is_active)
     return BaseResponse(data=result)
 
 

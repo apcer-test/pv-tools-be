@@ -175,14 +175,24 @@ class CaseService:
         )
 
     async def list_configurations(
-        self, active_only: bool = True
+        self, is_active: Optional[bool] = None
     ) -> List[CaseNumberConfiguration]:
-        """List all case number configurations"""
+        """List configurations with optional active status filter.
+
+        Args:
+            is_active: If provided, filter configurations by active status
+
+        Returns:
+            List of configurations matching the filter
+        """
         query = select(CaseNumberConfiguration).options(
             selectinload(CaseNumberConfiguration.components)
         )
-        if active_only:
-            query = query.where(CaseNumberConfiguration.is_active == True)  # noqa: E712
+
+        if is_active is not None:
+            query = query.where(CaseNumberConfiguration.is_active == is_active)
+
+        query = query.order_by(CaseNumberConfiguration.created_at.desc())
         return (await self.session.scalars(query)).all()
 
     async def _get_sequence_component(
