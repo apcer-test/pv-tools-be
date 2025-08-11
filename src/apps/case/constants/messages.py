@@ -16,3 +16,5 @@ MULTIPLE_SEQUENCE_TYPES = "Configuration can only use one type of sequence: SEQU
 # Case related messages
 CASE_NOT_FOUND = "Case not found"
 DUPLICATE_CASE_NUMBER = "Case number already exists"
+MAX_PROMPT_LENGTH = 50
+MAX_SEPARATOR_LENGTH = 10

@@ -1,7 +1,7 @@
 services:
   postgresql:
     image: "postgres:alpine3.19"
-    container_name: "fastapi-starter-pack-postgresql"
+    container_name: "pv_tool_postgresql"
     env_file:
       - .env
     environment:
@@ -15,39 +15,17 @@ services:
     networks:
       - default
     healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "pg_isready -U ${DATABASE_USER} -d ${DATABASE_NAME} -h localhost -p 5432",
-        ]
+      test: [ "CMD-SHELL", "pg_isready -U ${DATABASE_USER} -d ${DATABASE_NAME} -h localhost -p 5432" ]
       start_period: 5s
       interval: 10s
       timeout: 5s
-
-  pgadmin:
-    container_name: "fastapi-starter-pack-pgadmin"
-    image: dpage/pgadmin4:8.5
-    restart: always
-    environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-admin@admin.com}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
-      PGADMIN_CONFIG_SERVER_MODE: "False"
-    env_file:
-      - .env
-    ports:
-      - "${PGADMIN_PORT:-5050}:80"
-    volumes:
-      - pgadmin:/var/lib/pgadmin
-    networks:
-      - default
-
   redis-cache:
     image: redis:alpine3.19
     hostname: redis-cache
-    container_name: redis-cache
+    container_name: pv_tool_redis
     restart: on-failure
     ports:
-      - "6380:6379"
+      - "6379:6379"
     command: redis-server
     volumes:
       - cache:/data
@@ -56,13 +34,11 @@ services:
 
 networks:
   default:
-    name: "fastapi-starter-pack"
+    name: "pv_tool"
     driver: bridge
 
 volumes:
   postgresql:
-    name: "fastapi-starter-pack-postgresql"
-  pgadmin:
-    name: "fastapi-starter-pack-pgadmin"
+    name: "pv_tool_postgresql"
   cache:
-    name: "fastapi-starter-pack-redis"
+    name: "pv_tool_redis"

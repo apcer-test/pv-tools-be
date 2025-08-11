@@ -28,6 +28,10 @@
       "8": "Never reset sequence",
       "9": "Company unit identifier",
       "10": "Owner unit identifier"
+    },
+    "lookup_types": {
+      "CODELIST": "code-list",
+      "NFLIST": "nf-list"
     }
   }
 }

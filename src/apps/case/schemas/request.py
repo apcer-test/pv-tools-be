@@ -2,6 +2,7 @@ from typing import List, Optional
 
 from pydantic import Field, field_validator
 
+from apps.case.constants import messages
 from apps.case.exceptions import (
     DuplicateOrderingError,
     InvalidOrderingSequenceError,
@@ -39,8 +40,15 @@ class CaseNumberComponentCreate(CamelCaseModel):
             ValueError: If prompt is required but not provided
         """
         component_type = info.data.get("component_type")
-        if component_type == ComponentType.PROMPT and not prompt:
+        if component_type == ComponentType.PROMPT and not prompt.strip():
             raise ValueError("Prompt is required for PROMPT type components")
+        if (
+            component_type == ComponentType.PROMPT
+            and len(prompt) > messages.MAX_PROMPT_LENGTH
+        ):
+            raise ValueError(
+                f"Prompt must be less than {messages.MAX_PROMPT_LENGTH} characters"
+            )
         return prompt
 
 
@@ -58,21 +66,14 @@ class CaseNumberConfigurationCreate(CamelCaseModel):
     @field_validator("separator")
     @classmethod
     def validate_separator(cls, separator: Optional[str], info) -> Optional[str]:
-        """Validate separator based on number of components.
-
-        Args:
-            separator: The separator character
-            info: Validation context containing other field values
-
-        Returns:
-            The validated separator
-
-        Raises:
-            ValueError: If separator is required but not provided
-        """
+        """Validate separator based on number of components and max length."""
         components = info.data.get("components", [])
-        if len(components) > 1 and not separator:
+        if len(components) > 1 and not separator.strip():
             raise ValueError("Separator is required when there are multiple components")
+        if separator and len(separator) > messages.MAX_SEPARATOR_LENGTH:
+            raise ValueError(
+                f"Separator must be at most {messages.MAX_SEPARATOR_LENGTH} characters"
+            )
         return separator or ""
 
     @field_validator("components")
