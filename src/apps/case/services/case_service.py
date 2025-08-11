@@ -214,34 +214,65 @@ class CaseService:
     async def _get_or_create_sequence_tracker(
         self, config_id: str, sequence_type: ComponentType
     ) -> CaseSequenceTracker:
-        """Get or create a sequence tracker based on sequence type"""
-        current_date = datetime.now()
-        year = current_date.strftime("%Y")
-        year_month = current_date.strftime("%Y%m")
+        """Get or create a sequence tracker based on sequence type.
 
-        # For running sequence, always use a fixed value for year/month
-        if sequence_type == ComponentType.SEQUENCE_RUNNING:
-            year = "0000"
-            year_month = "000000"
+        Each configuration maintains its own sequence counter:
+        - SEQUENCE_MONTH: Tracks by year_month (YYYYMM)
+        - SEQUENCE_YEAR: Tracks by year (YYYY)
+        - SEQUENCE_RUNNING: Tracks only by config_id
+        """
+        current_date = datetime.now()
 
         # Query existing tracker
         query = select(CaseSequenceTracker).where(
             CaseSequenceTracker.config_id == config_id
         )
 
-        if sequence_type == ComponentType.SEQUENCE_MONTH:
-            query = query.where(CaseSequenceTracker.year_month == year_month)
-        elif sequence_type == ComponentType.SEQUENCE_YEAR:
-            query = query.where(CaseSequenceTracker.year == year)
-        else:  # SEQUENCE_RUNNING
-            query = query.where(CaseSequenceTracker.year == "0000")
+        match sequence_type:
+            case ComponentType.SEQUENCE_MONTH:
+                # For monthly sequence, track by year and month
+                year_month = current_date.strftime("%Y%m")
+                year = current_date.strftime("%Y")
+                query = query.where(CaseSequenceTracker.year_month == year_month)
+                tracker = await self.session.scalar(query)
+                if not tracker:
+                    tracker = CaseSequenceTracker(
+                        config_id=config_id,
+                        year=year,
+                        year_month=year_month,
+                        current_value=1,
+                    )
 
-        tracker = await self.session.scalar(query)
+            case ComponentType.SEQUENCE_YEAR:
+                # For yearly sequence, track by year only
+                year = current_date.strftime("%Y")
+                query = query.where(CaseSequenceTracker.year == year)
+                tracker = await self.session.scalar(query)
+                if not tracker:
+                    tracker = CaseSequenceTracker(
+                        config_id=config_id,
+                        year=year,
+                        year_month=None,  # Not needed for yearly
+                        current_value=1,
+                    )
+
+            case ComponentType.SEQUENCE_RUNNING:
+                # For running sequence, track only by config_id
+                # Get the latest tracker for this config
+                query = query.where(
+                    CaseSequenceTracker.year.is_(None),
+                    CaseSequenceTracker.year_month.is_(None),
+                ).order_by(CaseSequenceTracker.current_value.desc())
+                tracker = await self.session.scalar(query)
+                if not tracker:
+                    tracker = CaseSequenceTracker(
+                        config_id=config_id,
+                        year=None,  # Not needed for running sequence
+                        year_month=None,  # Not needed for running sequence
+                        current_value=1,
+                    )
 
         if not tracker:
-            tracker = CaseSequenceTracker(
-                config_id=config_id, year_month=year_month, year=year, current_value=1
-            )
             self.session.add(tracker)
             await self.session.flush()
         else:
