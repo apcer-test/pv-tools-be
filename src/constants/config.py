@@ -12,3 +12,11 @@ MICROSOFT_GENERATE_CODE_SCOPE = "offline_access%20User.Read%20Mail.Read"
 OUTLOOK_PAGE_SIZE = 10
 
 ALLOWED_ATTACHMENT_EXTENSIONS = ["pdf"]
+
+ALLOWED_FILE_EXTENSIONS = ["xlsx", "xls"]
+
+REQUIRED_EXCEL_SHEET_NAMES = ["Lookup", "Lookup Values"]
+
+REQUIRED_LOOKUP_SHEET_COLUMNS = ["Name", "Slug", "Lookup Type"]
+
+REQUIRED_LOOKUP_VALUES_SHEET_COLUMNS = ["Slug", "Value", "E2B Code R2", "E2B Code R3"]

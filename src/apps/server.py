@@ -19,6 +19,7 @@ from apps.mail_box_config.controllers import (
     mail_box_config_router,
 )
 from apps.master.controllers import master_router
+from apps.master_modules.controllers import setup_router
 from apps.user.controllers import user_router
 from config import AppEnvironment, settings
 from constants.config import rate_limiter_config
@@ -54,6 +55,7 @@ def init_routers(_app: FastAPI) -> None:
     base_router.include_router(llm_router)
     base_router.include_router(configurations_router)
     base_router.include_router(mail_box_config_router)
+    base_router.include_router(setup_router)
     _app.include_router(base_router, responses={422: {"model": BaseValidationResponse}})
 
 

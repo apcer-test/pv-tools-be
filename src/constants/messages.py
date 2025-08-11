@@ -75,3 +75,17 @@ GRANT_TYPE = "authorization_code"
 ACCESS_TOKEN_SCOPE = "openid"
 
 ACCESS_TOKEN_GRANT_TYPE = "refresh_token"
+
+LOOKUP_VALUE_ALREADY_EXISTS = "Lookup value already exists"
+
+LOOKUP_NOT_FOUND = "Lookup not found"
+
+LOOKUP_VALUE_NOT_FOUND = "Lookup value not found"
+
+INVALID_FILE_FORMAT = "Invalid file format. Please upload an Excel file."
+
+INVALID_EXCEL_SHEET_DATA = "Invalid excel sheet data"
+
+EMPTY_EXCEL_FILE = "The Excel file is empty"
+
+MAX_LENGTH_EXCEEDED = "Maximum length of 50 characters exceeded"
