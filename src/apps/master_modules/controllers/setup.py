@@ -1,19 +1,21 @@
 from typing import Annotated
-from fastapi import APIRouter, Body, Depends, UploadFile, File, status, Query, Path
 
-from core.utils.schema import BaseResponse, SuccessResponse
+from fastapi import APIRouter, Body, Depends, File, Path, Query, UploadFile, status
+
+from apps.master_modules.schemas.request import (
+    CodeListLookupValueCreateRequest,
+    LookupValuesBySlugsRequest,
+    NFListLookupValueCreateRequest,
+    UpdateLookupValueStatusRequest,
+)
+from apps.master_modules.schemas.response import LookupResponse
 from apps.master_modules.services.setup import SetupService
 from core.types import LookupType
 from core.utils.pagination import PaginatedResponse, PaginationParams
-from apps.master_modules.schemas.response import LookupResponse
-from apps.master_modules.schemas.request import (
-    CodeListLookupValueCreateRequest,
-    NFListLookupValueCreateRequest,
-    UpdateLookupValueStatusRequest,
-    LookupValuesBySlugsRequest,
-)
+from core.utils.schema import BaseResponse, SuccessResponse
 
 router = APIRouter(prefix="/setup", tags=["Setup"])
+
 
 @router.post(
     "/upload-excel",
@@ -23,14 +25,14 @@ router = APIRouter(prefix="/setup", tags=["Setup"])
     operation_id="upload_excel_file",
 )
 async def upload_excel_file(
-    file: Annotated[UploadFile, File(...)],
-    service: Annotated[SetupService, Depends()]
+    file: Annotated[UploadFile, File(...)], service: Annotated[SetupService, Depends()]
 ) -> BaseResponse[SuccessResponse]:
     """
     Upload an Excel file containing master setup data.
     The file should have a sheet named 'Lookup' and 'Lookup Values' with required columns.
     """
-    return BaseResponse(data = await service.process_excel_file(file=file))
+    return BaseResponse(data=await service.process_excel_file(file=file))
+
 
 @router.get(
     "/lookup",
@@ -41,10 +43,29 @@ async def upload_excel_file(
 )
 async def get_lookup_list(
     service: Annotated[SetupService, Depends()],
-    lookup_type_filter: Annotated[LookupType, Query(default=None, description="Filter lookups by type ('code-list' or 'nf-list')")] | None = None,
+    lookup_type_filter: (
+        Annotated[
+            LookupType,
+            Query(
+                default=None,
+                description="Filter lookups by type ('code-list' or 'nf-list')",
+            ),
+        ]
+        | None
+    ) = None,
     page: Annotated[int, Query(1, ge=1, description="Page number")] | None = 1,
-    page_size: Annotated[int, Query(10, ge=1, le=100, description="Items per page")] | None = 10,
-    search: Annotated[str | None, Query(None, description="Search by lookup name (contains, case-insensitive)")] | None = None,
+    page_size: (
+        Annotated[int, Query(10, ge=1, le=100, description="Items per page")] | None
+    ) = 10,
+    search: (
+        Annotated[
+            str | None,
+            Query(
+                None, description="Search by lookup name (contains, case-insensitive)"
+            ),
+        ]
+        | None
+    ) = None,
 ) -> BaseResponse[PaginatedResponse[LookupResponse]]:
     """
     Get list of all active lookup entries.
@@ -57,6 +78,7 @@ async def get_lookup_list(
         )
     )
 
+
 @router.get(
     "/lookup/{lookup_id}/values",
     status_code=status.HTTP_200_OK,
@@ -68,8 +90,18 @@ async def get_lookup_values(
     lookup_id: Annotated[str, Path(..., description="Lookup id")],
     service: Annotated[SetupService, Depends()],
     page: Annotated[int, Query(1, ge=1, description="Page number")] | None = 1,
-    page_size: Annotated[int, Query(10, ge=1, le=100, description="Items per page")] | None = 10,
-    search: Annotated[str | None, Query(None, description="Search by value name (contains, case-insensitive)")] | None = None,
+    page_size: (
+        Annotated[int, Query(10, ge=1, le=100, description="Items per page")] | None
+    ) = 10,
+    search: (
+        Annotated[
+            str | None,
+            Query(
+                None, description="Search by value name (contains, case-insensitive)"
+            ),
+        ]
+        | None
+    ) = None,
 ) -> BaseResponse:
     """
     Return lookup values for a specific lookup. Response shape is inferred from the lookup type.
@@ -81,6 +113,7 @@ async def get_lookup_values(
         )
     )
 
+
 @router.post(
     "/lookup/{lookup_id}/codelist/values",
     status_code=status.HTTP_201_CREATED,
@@ -90,13 +123,18 @@ async def get_lookup_values(
 )
 async def create_lookup_value(
     lookup_id: Annotated[str, Path(..., description="Lookup id")],
-    body: Annotated[CodeListLookupValueCreateRequest, Body(..., description="Request body")],
+    body: Annotated[
+        CodeListLookupValueCreateRequest, Body(..., description="Request body")
+    ],
     service: Annotated[SetupService, Depends()],
 ) -> BaseResponse[SuccessResponse]:
     """Create lookup value with name, r2, r3; is_active=True by default."""
     return BaseResponse(
-        data=await service.create_codelist_lookup_value(lookup_id=lookup_id, **body.model_dump())
+        data=await service.create_codelist_lookup_value(
+            lookup_id=lookup_id, **body.model_dump()
+        )
     )
+
 
 @router.post(
     "/lookup/{lookup_id}/nflist/values",
@@ -107,13 +145,18 @@ async def create_lookup_value(
 )
 async def create_nf_lookup_value(
     lookup_id: Annotated[str, Path(..., description="Lookup id")],
-    body: Annotated[NFListLookupValueCreateRequest, Body(..., description="Request body")],
+    body: Annotated[
+        NFListLookupValueCreateRequest, Body(..., description="Request body")
+    ],
     service: Annotated[SetupService, Depends()],
 ) -> BaseResponse[SuccessResponse]:
     """Create nf-list lookup value with name; is_active=True by default."""
     return BaseResponse(
-        data=await service.create_nflist_lookup_value(lookup_id=lookup_id, **body.model_dump())
+        data=await service.create_nflist_lookup_value(
+            lookup_id=lookup_id, **body.model_dump()
+        )
     )
+
 
 @router.put(
     "/lookup/values/{lookup_value_id}/status",
@@ -124,11 +167,16 @@ async def create_nf_lookup_value(
 )
 async def update_lookup_value_status(
     lookup_value_id: Annotated[str, Path(..., description="Lookup value id")],
-    body: Annotated[UpdateLookupValueStatusRequest, Body(..., description="Request body")],
+    body: Annotated[
+        UpdateLookupValueStatusRequest, Body(..., description="Request body")
+    ],
     service: Annotated[SetupService, Depends()],
 ) -> BaseResponse[SuccessResponse]:
+    """Update lookup value status by its id."""
     return BaseResponse(
-        data=await service.update_lookup_value_status(lookup_value_id=lookup_value_id, **body.model_dump())
+        data=await service.update_lookup_value_status(
+            lookup_value_id=lookup_value_id, **body.model_dump()
+        )
     )
 
 
@@ -146,4 +194,7 @@ async def get_lookup_values_by_slugs(
     body: Annotated[LookupValuesBySlugsRequest, Body(..., description="Request body")],
     service: Annotated[SetupService, Depends()],
 ) -> BaseResponse[dict[str, list[dict]]]:
-    return BaseResponse(data=await service.get_lookup_values_by_slugs(**body.model_dump()))
+    """Get lookup values by slugs."""
+    return BaseResponse(
+        data=await service.get_lookup_values_by_slugs(**body.model_dump())
+    )

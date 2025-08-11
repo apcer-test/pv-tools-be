@@ -46,6 +46,7 @@ class FrequencyType(StrEnum):
     SECONDLY30 = "SECONDLY30"
     SECONDLY60 = "SECONDLY60"
 
+
 class LookupType(StrEnum):
     """Enum class of Lookup type for master lookups."""
 

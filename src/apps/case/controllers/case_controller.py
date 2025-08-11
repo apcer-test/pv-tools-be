@@ -21,7 +21,7 @@ router = APIRouter(prefix="/api/cases", tags=["Cases"])
     operation_id="create_case_configuration",
 )
 async def create_configuration(
-    config: Annotated[CaseNumberConfigurationCreate, Body(..., embed=True)],
+    config: Annotated[CaseNumberConfigurationCreate, Body()],
     service: Annotated[CaseService, Depends()],
 ) -> BaseResponse[CaseNumberConfigurationResponse]:
     """Create a new case number configuration.
@@ -98,8 +98,7 @@ async def set_configuration_active(
     operation_id="create_case",
 )
 async def create_case(
-    case: Annotated[CaseCreate, Body(..., embed=True)],
-    service: Annotated[CaseService, Depends()],
+    case: Annotated[CaseCreate, Body()], service: Annotated[CaseService, Depends()]
 ) -> BaseResponse[CaseResponse]:
     """Create a new case.
 
@@ -147,7 +146,7 @@ async def get_case(
 )
 async def update_configuration(
     config_id: Annotated[str, Path(..., description="Configuration ID")],
-    config: Annotated[CaseNumberConfigurationCreate, Body(..., embed=True)],
+    config: Annotated[CaseNumberConfigurationCreate, Body()],
     service: Annotated[CaseService, Depends()],
 ) -> BaseResponse[CaseNumberConfigurationResponse]:
     """Update a case number configuration.

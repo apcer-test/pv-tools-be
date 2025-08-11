@@ -89,3 +89,9 @@ INVALID_EXCEL_SHEET_DATA = "Invalid excel sheet data"
 EMPTY_EXCEL_FILE = "The Excel file is empty"
 
 MAX_LENGTH_EXCEEDED = "Maximum length of 50 characters exceeded"
+
+EXCEL_FILE_PROCESSED_SUCCESSFULLY = "Excel file processed successfully"
+
+LOOKUP_VALUE_CREATED_SUCCESSFULLY = "Lookup value created successfully"
+
+LOOKUP_VALUE_STATUS_UPDATED_SUCCESSFULLY = "Lookup value status updated successfully"

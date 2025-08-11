@@ -8,7 +8,6 @@ from uuid import UUID
 import sentry_sdk
 from cryptography.fernet import Fernet
 from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives import padding as crypto_padding
 from cryptography.hazmat.primitives.asymmetric import padding as asym_padding
 from cryptography.hazmat.primitives.asymmetric import rsa
@@ -277,3 +276,14 @@ async def fetch_mail_box_config(mail_box_config_id) -> MicrosoftMailBoxConfig:
                 )
             )
     return result
+
+
+def compute_batch_size(cols: int) -> int:
+    """
+    Compute the batch size for a given number of columns.
+    :param cols: The number of columns.
+    :return: The batch size.
+    """
+    MAX_PARAMS = constants.MAX_PARAMS
+    SAFETY = constants.SAFETY
+    return max(1, min(constants.MAX_BATCH_SIZE, (MAX_PARAMS - SAFETY) // max(1, cols)))

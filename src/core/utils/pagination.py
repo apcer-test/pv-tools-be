@@ -4,7 +4,7 @@ from typing import Any, Dict, Generic, List, Optional, TypeVar
 from fastapi import Query
 from fastapi_pagination import Params
 from pydantic import Field, conint
-from sqlalchemy import Select, asc, desc, func
+from sqlalchemy import Select, asc, desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .schema import CamelCaseModel
@@ -205,6 +205,20 @@ class PaginationQueryBuilder:
 
         return self
 
+    def apply_fixed_sort(
+        self, field_name: str, sort_order: str
+    ) -> "PaginationQueryBuilder":
+        """Apply a fixed sorting regardless of params.sort_by."""
+        # Get the model class from the query
+        model_class = self.base_query.column_descriptions[0]["type"]
+        if hasattr(model_class, field_name):
+            field = getattr(model_class, field_name)
+            if sort_order.lower() == "desc":
+                self._query = self._query.order_by(desc(field))
+            else:
+                self._query = self._query.order_by(asc(field))
+        return self
+
     def get_query(self) -> Select:
         """Get the final query."""
         return self._query
@@ -218,10 +232,13 @@ class PaginationQueryBuilder:
         result = await self.session.execute(paginated_query)
         items = result.scalars().all()
 
-        # Get total count
-        count_query = self._query.with_only_columns(func.count())
+        # Get total count using subquery without ORDER BY to satisfy PostgreSQL
+        # This avoids errors like: column X must appear in the GROUP BY clause or be used in an aggregate function
+        count_query = select(func.count()).select_from(
+            self._query.order_by(None).subquery()
+        )
         count_result = await self.session.execute(count_query)
-        total = count_result.scalar()
+        total = count_result.scalar() or 0
 
         return PaginatedResponse.create(items, total, params)
 
@@ -274,6 +291,8 @@ async def paginate_query(
     allowed_filters: Optional[List[str]] = None,
     allowed_sort_fields: Optional[List[str]] = None,
     date_field: Optional[str] = None,
+    default_sort_by: Optional[str] = None,
+    default_sort_order: str = "desc",
 ) -> PaginatedResponse[T]:
     """Utility function to paginate any SQLAlchemy query with advanced features."""
 
@@ -289,6 +308,11 @@ async def paginate_query(
         builder.apply_date_range(params.date_from, params.date_to, date_field)
 
     if allowed_sort_fields:
-        builder.apply_sorting(params.sort_by, params.sort_order, allowed_sort_fields)
+        if params.sort_by:
+            builder.apply_sorting(
+                params.sort_by, params.sort_order, allowed_sort_fields
+            )
+        elif default_sort_by:
+            builder.apply_fixed_sort(default_sort_by, default_sort_order)
 
     return await builder.paginate(params)

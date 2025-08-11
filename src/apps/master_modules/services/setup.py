@@ -1,11 +1,12 @@
 from typing import Annotated
 
-from fastapi import Depends, HTTPException, UploadFile
 import pandas as pd
-from sqlalchemy import func, or_, select
+from fastapi import Depends, UploadFile
+from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
+import constants
 from apps.master_modules.exception import (
     EmptyExcelFileException,
     ExistingLookupValueException,
@@ -20,24 +21,25 @@ from apps.master_modules.schemas.response import (
     LookupResponse,
     NFListLookupValueResponse,
 )
-import constants
+from core.common_helpers import compute_batch_size
 from core.db import db_session
 from core.types import LookupType
 from core.utils import logger
-from core.utils.pagination import PaginatedResponse, PaginationParams
+from core.utils.pagination import PaginatedResponse, PaginationParams, paginate_query
 from core.utils.schema import SuccessResponse
+
 
 class SetupService:
     """
     Service class for handling setup operations.
-    
+
     This service provides methods for processing Excel files to create and manage lookup entries.
     """
 
     def __init__(self, session: Annotated[AsyncSession, Depends(db_session)]) -> None:
         """
         Initialize SetupService with a database session.
-        
+
         Args:
             session (AsyncSession): An asynchronous database session.
         """
@@ -46,17 +48,17 @@ class SetupService:
     async def process_excel_file(self, file: UploadFile) -> SuccessResponse:
         """
         Process the uploaded Excel file and create lookup entries.
-        
+
         The Excel file must contain two sheets:
         1. 'Lookup' - Contains lookup model definitions with columns: Name, Slug, Type
         2. 'Lookup Values' - Contains lookup values with columns: Slug (reference to Lookup), Name, R2 Code, R3 Code
-        
+
         Args:
             file (UploadFile): The uploaded Excel file containing lookup data.
-            
+
         Returns:
             Dict: A dictionary containing processing results including counts of created entries.
-            
+
         Raises:
             HTTPException: If file format is invalid, required sheets/columns are missing, or processing fails.
         """
@@ -73,7 +75,9 @@ class SetupService:
                 raise InvalidExcelSheetDataException
 
             # Read Lookup sheet
-            lookup_df = pd.read_excel(excel_file, sheet_name='Lookup', keep_default_na=False)
+            lookup_df = pd.read_excel(
+                excel_file, sheet_name="Lookup", keep_default_na=False
+            )
             required_lookup_columns = constants.REQUIRED_LOOKUP_SHEET_COLUMNS
 
             if not set(required_lookup_columns).issubset(set(lookup_df.columns)):
@@ -81,7 +85,9 @@ class SetupService:
                 raise InvalidExcelSheetDataException
 
             # Read Lookup Values sheet
-            values_df = pd.read_excel(excel_file, sheet_name='Lookup Values', keep_default_na=False)
+            values_df = pd.read_excel(
+                excel_file, sheet_name="Lookup Values", keep_default_na=False
+            )
             required_values_columns = constants.REQUIRED_LOOKUP_VALUES_SHEET_COLUMNS
 
             if not set(required_values_columns).issubset(set(values_df.columns)):
@@ -90,6 +96,7 @@ class SetupService:
 
             # Validate mandatory fields in each row for both sheets
             def _is_blank(cell: object) -> bool:
+                """Check if a cell is blank."""
                 try:
                     if cell is None or pd.isna(cell):
                         return True
@@ -140,36 +147,34 @@ class SetupService:
             # Build rows for bulk upsert into LookupModel with de-duplication by slug
             lookup_rows_map: dict[str, dict] = {}
             for _, row in lookup_df.iterrows():
-                if pd.isna(row['Name']) or pd.isna(row['Slug']):
+                if pd.isna(row["Name"]) or pd.isna(row["Slug"]):
                     continue
-                slug_value = str(row['Slug']).strip()
+                slug_value = str(row["Slug"]).strip()
                 if not slug_value:
                     continue
                 lookup_rows_map[slug_value] = {
-                    "name": row['Name'],
+                    "name": row["Name"],
                     "slug": slug_value,
-                    "lookup_type": None if pd.isna(row['Lookup Type']) else row['Lookup Type'],
+                    "lookup_type": (
+                        None if pd.isna(row["Lookup Type"]) else row["Lookup Type"]
+                    ),
                     "is_active": True,
                 }
             lookup_rows: list[dict] = list(lookup_rows_map.values())
 
             if lookup_rows:
                 # Batch upsert to avoid asyncpg 32767 parameter limit
-                def compute_batch_size(cols: int) -> int:
-                    MAX_PARAMS = 32000
-                    SAFETY = 64
-                    return max(1, min(1000, (MAX_PARAMS - SAFETY) // max(1, cols)))
-
+                insert_lookup = pg_insert(LookupModel)
                 batch_size = compute_batch_size(len(lookup_rows[0]))
                 for i in range(0, len(lookup_rows), batch_size):
                     batch = lookup_rows[i : i + batch_size]
-                    lookup_insert_stmt = pg_insert(LookupModel).values(batch)
-                    stmt = lookup_insert_stmt.on_conflict_do_update(
-                        index_elements=['slug'],
+                    stmt = insert_lookup.values(batch)
+                    stmt = stmt.on_conflict_do_update(
+                        index_elements=["slug"],
                         set_={
-                            "name": lookup_insert_stmt.excluded.name,
-                            "slug": lookup_insert_stmt.excluded.slug,
-                            "lookup_type": lookup_insert_stmt.excluded.lookup_type,
+                            "name": stmt.excluded.name,
+                            "slug": stmt.excluded.slug,
+                            "lookup_type": stmt.excluded.lookup_type,
                             "is_active": True,
                         },
                     ).returning(LookupModel.id, LookupModel.slug)
@@ -178,11 +183,13 @@ class SetupService:
                     lookup_map.update({slug: _id for (_id, slug) in rows})
 
             # Ensure we have lookup ids for any slugs that only appear in Values sheet
-            slugs_in_values = set(values_df['Slug'].dropna().astype(str).tolist())
+            slugs_in_values = set(values_df["Slug"].dropna().astype(str).tolist())
             missing_slugs = slugs_in_values.difference(set(lookup_map.keys()))
             if missing_slugs:
                 result = await self.session.execute(
-                    select(LookupModel.slug, LookupModel.id).where(LookupModel.slug.in_(list(missing_slugs)))
+                    select(LookupModel.slug, LookupModel.id).where(
+                        LookupModel.slug.in_(list(missing_slugs))
+                    )
                 )
                 for slug, _id in result.all():
                     lookup_map[slug] = _id
@@ -190,53 +197,54 @@ class SetupService:
             # Build rows for bulk upsert into LookupValuesModel with de-duplication by (lookup_model_id, name)
             value_rows_map: dict[tuple[str, str], dict] = {}
             for _, row in values_df.iterrows():
-                if pd.isna(row['Value']) or pd.isna(row['Slug']):
+                if pd.isna(row["Value"]) or pd.isna(row["Slug"]):
                     continue
-                slug_value = str(row['Slug']).strip()
+                slug_value = str(row["Slug"]).strip()
                 if not slug_value:
                     continue
                 lookup_id = lookup_map.get(slug_value)
                 if not lookup_id:
                     continue
-                value_name = str(row['Value']).strip()
+                value_name = str(row["Value"]).strip()
                 key = (lookup_id, value_name)
                 value_rows_map[key] = {
                     "lookup_model_id": lookup_id,
                     "name": value_name,
-                    "e2b_code_r2": None if pd.isna(row['E2B Code R2']) else row['E2B Code R2'],
-                    "e2b_code_r3": None if pd.isna(row['E2B Code R3']) else row['E2B Code R3'],
+                    "e2b_code_r2": (
+                        None if pd.isna(row["E2B Code R2"]) else row["E2B Code R2"]
+                    ),
+                    "e2b_code_r3": (
+                        None if pd.isna(row["E2B Code R3"]) else row["E2B Code R3"]
+                    ),
                     "is_active": True,
                 }
             value_rows: list[dict] = list(value_rows_map.values())
 
             if value_rows:
                 # Batch upsert to avoid asyncpg 32767 parameter limit
-                def compute_batch_size(cols: int) -> int:
-                    MAX_PARAMS = 32000
-                    SAFETY = 64
-                    return max(1, min(2000, (MAX_PARAMS - SAFETY) // max(1, cols)))
 
+                insert_values = pg_insert(LookupValuesModel)
                 batch_size = compute_batch_size(len(value_rows[0]))
                 for i in range(0, len(value_rows), batch_size):
                     batch = value_rows[i : i + batch_size]
-                    values_insert_stmt = pg_insert(LookupValuesModel).values(batch)
-                    vals_stmt = values_insert_stmt.on_conflict_do_update(
-                        constraint='uq_lookup_model_name',
+                    stmt = insert_values.values(batch)
+                    stmt = stmt.on_conflict_do_update(
+                        constraint="uq_lookup_model_name",
                         set_={
-                            "e2b_code_r2": values_insert_stmt.excluded.e2b_code_r2,
-                            "e2b_code_r3": values_insert_stmt.excluded.e2b_code_r3,
+                            "e2b_code_r2": stmt.excluded.e2b_code_r2,
+                            "e2b_code_r3": stmt.excluded.e2b_code_r3,
                             "is_active": True,
                         },
                     )
-                    await self.session.execute(vals_stmt)
+                    await self.session.execute(stmt)
 
-            return SuccessResponse(message="Excel file processed successfully")
+            return SuccessResponse(message=constants.EXCEL_FILE_PROCESSED_SUCCESSFULLY)
 
         except pd.errors.EmptyDataError:
             raise EmptyExcelFileException
-        except Exception as e:
+        except Exception:
             await self.session.rollback()
-            raise HTTPException(status_code=500, detail=f"Error processing file: {str(e)}")
+            raise InvalidExcelSheetDataException
         finally:
             file.file.close()
 
@@ -252,45 +260,51 @@ class SetupService:
             LookupListResponse: List of lookup entries with id, name, slug and type.
         """
         # Query active lookup entries, optionally filtered by lookup_type
-        stmt = select(LookupModel).where(LookupModel.is_active == True)
+        stmt = (
+            select(LookupModel)
+            .where(LookupModel.is_active)
+            .order_by(LookupModel.updated_at.desc())
+        )
         if lookup_type_filter is not None:
             stmt = stmt.where(LookupModel.lookup_type == lookup_type_filter.value)
         assert params is not None, "Pagination params must be provided"
 
         # Apply search on name field if provided
         if params.search:
-            stmt = stmt.where(func.lower(LookupModel.name).contains(func.lower(params.search)))
-
-        # Order by latest updated and apply pagination
-        ordered_stmt = stmt.order_by(LookupModel.updated_at.desc())
-        paginated_query = ordered_stmt.offset(params.skip).limit(params.limit)
-        result = await self.session.execute(paginated_query)
-        page_items = result.scalars().all()
-
-        # Total count
-        count_query = stmt.with_only_columns(func.count())
-        count_result = await self.session.execute(count_query)
-        total = count_result.scalar() or 0
-
-        # Map to response models
-        lookup_responses: list[LookupResponse] = []
-        for lookup in page_items:
-            lookup_responses.append(
-                LookupResponse(
-                    id=str(lookup.id),
-                    name=lookup.name,
-                    slug=lookup.slug,
-                    is_active=lookup.is_active,
-                )
+            stmt = stmt.where(
+                func.lower(LookupModel.name).contains(func.lower(params.search))
             )
 
-        return PaginatedResponse.create(items=lookup_responses, total=total, params=params)
+        # Order by latest updated and paginate using helper to also compute total
+        page = await paginate_query(
+            stmt,
+            self.session,
+            params,
+            default_sort_by="updated_at",
+            default_sort_order="desc",
+        )
+
+        # Map to response models while reusing total from paginator
+        lookup_responses: list[LookupResponse] = [
+            LookupResponse(
+                id=str(lookup.id),
+                name=lookup.name,
+                slug=lookup.slug,
+                is_active=lookup.is_active,
+            )
+            for lookup in page.items
+        ]
+
+        return PaginatedResponse.create(
+            items=lookup_responses, total=page.total, params=params
+        )
 
     async def get_lookup_values(
-        self,
-        lookup_id: str,
-        params: PaginationParams,
-    ) -> PaginatedResponse[CodeListLookupValueResponse] | PaginatedResponse[NFListLookupValueResponse]:
+        self, lookup_id: str, params: PaginationParams
+    ) -> (
+        PaginatedResponse[CodeListLookupValueResponse]
+        | PaginatedResponse[NFListLookupValueResponse]
+    ):
         """
         Get paginated lookup values for a specific lookup id.
         Returns response shape inferred from the lookup type.
@@ -298,7 +312,7 @@ class SetupService:
         # Validate that lookup exists
         lookup = await self.session.scalar(
             select(LookupModel).where(
-                (LookupModel.id == lookup_id) & (LookupModel.is_active == True)
+                (LookupModel.id == lookup_id) & (LookupModel.is_active)
             )
         )
         if not lookup:
@@ -311,34 +325,22 @@ class SetupService:
             (LookupValuesModel.lookup_model_id == lookup_id)
         )
 
-        # Search
-        if params.search:
-            search_term = func.lower(params.search)
-            name_cond = func.lower(LookupValuesModel.name).contains(search_term)
-            # If NF list, search only by name; for code-list, also search r2/r3 (nullable-safe)
-            if lookup.lookup_type == LookupType.NFLIST.value:
-                stmt = stmt.where(name_cond)
-            else:
-                stmt = stmt.where(
-                    or_(
-                        name_cond,
-                        func.lower(func.coalesce(LookupValuesModel.e2b_code_r2, ""))
-                        .contains(search_term),
-                        func.lower(func.coalesce(LookupValuesModel.e2b_code_r3, ""))
-                        .contains(search_term),
-                    )
-                )
-
-        # Order by latest updated and paginate
+        # Determine search fields per lookup type and paginate via helper
+        search_fields = (
+            ["name"]
+            if lookup.lookup_type == LookupType.NFLIST.value
+            else ["name", "e2b_code_r2", "e2b_code_r3"]
+        )
         ordered_stmt = stmt.order_by(LookupValuesModel.updated_at.desc())
-        paginated_query = ordered_stmt.offset(params.skip).limit(params.limit)
-        result = await self.session.execute(paginated_query)
-        values = result.scalars().all()
-
-        # Count
-        count_query = stmt.with_only_columns(func.count())
-        count_result = await self.session.execute(count_query)
-        total = count_result.scalar() or 0
+        page = await paginate_query(
+            ordered_stmt,
+            self.session,
+            params,
+            search_fields=search_fields,
+            default_sort_by="updated_at",
+            default_sort_order="desc",
+        )
+        values = page.items
 
         # Map based on type
         if lookup.lookup_type == LookupType.NFLIST.value:
@@ -349,7 +351,9 @@ class SetupService:
                         id=str(v.id), name=v.name, is_active=v.is_active
                     )
                 )
-            return PaginatedResponse.create(items=items, total=total, params=params)
+            return PaginatedResponse.create(
+                items=items, total=page.total, params=params
+            )
         else:
             items2: list[CodeListLookupValueResponse] = []
             for v in values:
@@ -362,17 +366,16 @@ class SetupService:
                         is_active=v.is_active,
                     )
                 )
-            return PaginatedResponse.create(items=items2, total=total, params=params)
+            return PaginatedResponse.create(
+                items=items2, total=page.total, params=params
+            )
 
-    async def verify_lookup_value_exists(
-        self,
-        lookup_id: str,
-        name: str,
-    ) -> bool:
+    async def verify_lookup_value_exists(self, lookup_id: str, name: str) -> bool:
         """Verify if a lookup value exists for a given lookup id and name."""
         return await self.session.scalar(
             select(LookupValuesModel).where(
-                (LookupValuesModel.lookup_model_id == lookup_id) & (LookupValuesModel.name == name)
+                (LookupValuesModel.lookup_model_id == lookup_id)
+                & (LookupValuesModel.name == name)
             )
         )
 
@@ -387,7 +390,9 @@ class SetupService:
         # Validate lookup exists and is of code-list type if type is set
         lookup = await self.session.scalar(
             select(LookupModel).where(
-                (LookupModel.id == lookup_id) & (LookupModel.is_active == True) & (LookupModel.lookup_type == LookupType.CODELIST.value)
+                (LookupModel.id == lookup_id)
+                & (LookupModel.is_active)
+                & (LookupModel.lookup_type == LookupType.CODELIST.value)
             )
         )
         if not lookup:
@@ -407,17 +412,17 @@ class SetupService:
         )
         self.session.add(value)
 
-        return SuccessResponse(message="Lookup value created successfully")
+        return SuccessResponse(message=constants.LOOKUP_VALUE_CREATED_SUCCESSFULLY)
 
     async def create_nflist_lookup_value(
-        self,
-        lookup_id: str,
-        name: str,
+        self, lookup_id: str, name: str
     ) -> SuccessResponse:
         """Create a lookup value for an nf-list lookup. Sets is_active=True."""
         lookup = await self.session.scalar(
             select(LookupModel).where(
-                (LookupModel.id == lookup_id) & (LookupModel.is_active == True) & (LookupModel.lookup_type == LookupType.NFLIST.value)
+                (LookupModel.id == lookup_id)
+                & (LookupModel.is_active)
+                & (LookupModel.lookup_type == LookupType.NFLIST.value)
             )
         )
         if not lookup:
@@ -428,36 +433,29 @@ class SetupService:
         if existing_lookup_value:
             raise ExistingLookupValueException
 
-        value = LookupValuesModel(
-            lookup_model_id=lookup_id,
-            name=name,
-            is_active=True,
-        )
+        value = LookupValuesModel(lookup_model_id=lookup_id, name=name, is_active=True)
         self.session.add(value)
 
-        return SuccessResponse(message="Lookup value created successfully")
+        return SuccessResponse(message=constants.LOOKUP_VALUE_CREATED_SUCCESSFULLY)
 
     async def update_lookup_value_status(
-        self,
-        lookup_value_id: str,
-        is_active: bool,
+        self, lookup_value_id: str, is_active: bool
     ) -> SuccessResponse:
         """Update is_active for a lookup value using only the lookup value id."""
         value = await self.session.scalar(
-            select(LookupValuesModel).where(
-                LookupValuesModel.id == lookup_value_id
-            )
+            select(LookupValuesModel).where(LookupValuesModel.id == lookup_value_id)
         )
         if not value:
             raise LookupValueNotFoundException
 
         value.is_active = is_active
 
-        return SuccessResponse(message="Lookup value status updated successfully")
+        return SuccessResponse(
+            message=constants.LOOKUP_VALUE_STATUS_UPDATED_SUCCESSFULLY
+        )
 
     async def get_lookup_values_by_slugs(
-        self,
-        slugs: list[str],
+        self, slugs: list[str]
     ) -> dict[str, list[dict]]:
         """
         Fetch lookup values grouped by slug.
@@ -470,7 +468,7 @@ class SetupService:
         # Preserve order while de-duplicating and trimming
         unique_slugs: list[str] = []
         seen: set[str] = set()
-        for raw in (slugs or []):
+        for raw in slugs or []:
             if not isinstance(raw, str):
                 continue
             s = raw.strip()
@@ -488,7 +486,7 @@ class SetupService:
         # Fetch active lookups for slugs
         lookups_result = await self.session.execute(
             select(LookupModel.id, LookupModel.slug).where(
-                (LookupModel.slug.in_(unique_slugs)) & (LookupModel.is_active == True)
+                (LookupModel.slug.in_(unique_slugs)) & (LookupModel.is_active)
             )
         )
         lookup_rows = lookups_result.all()
@@ -506,14 +504,17 @@ class SetupService:
                 LookupValuesModel.e2b_code_r2,
                 LookupValuesModel.e2b_code_r3,
                 LookupValuesModel.is_active,
-            ).where(LookupValuesModel.lookup_model_id.in_(lookup_ids))
+            )
+            .where(LookupValuesModel.lookup_model_id.in_(lookup_ids))
             .order_by(LookupValuesModel.updated_at.desc())
         )
 
         # Build reverse map from lookup_id to slug
-        slug_by_lookup_id: dict[str, str] = {lookup_id: slug for slug, lookup_id in lookup_id_by_slug.items()}
+        slug_by_lookup_id: dict[str, str] = {
+            lookup_id: slug for slug, lookup_id in lookup_id_by_slug.items()
+        }
 
-        for (lookup_model_id, name, r2, r3, is_active) in values_result.all():
+        for lookup_model_id, name, r2, r3, is_active in values_result.all():
             slug = slug_by_lookup_id.get(lookup_model_id)
             if not slug:
                 continue

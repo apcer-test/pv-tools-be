@@ -2,12 +2,12 @@ from typing import List, Optional
 
 from pydantic import Field, field_validator
 
+from apps.case.constants import messages
 from apps.case.exceptions import (
     DuplicateOrderingError,
     InvalidOrderingSequenceError,
     MultipleSequenceTypesError,
 )
-from apps.case.constants import messages
 from apps.case.types.component_types import ComponentType
 from core.utils import CamelCaseModel
 
@@ -42,8 +42,13 @@ class CaseNumberComponentCreate(CamelCaseModel):
         component_type = info.data.get("component_type")
         if component_type == ComponentType.PROMPT and not prompt.strip():
             raise ValueError("Prompt is required for PROMPT type components")
-        if component_type == ComponentType.PROMPT and len(prompt) > messages.MAX_PROMPT_LENGTH:
-            raise ValueError(f"Prompt must be less than {messages.MAX_PROMPT_LENGTH} characters")
+        if (
+            component_type == ComponentType.PROMPT
+            and len(prompt) > messages.MAX_PROMPT_LENGTH
+        ):
+            raise ValueError(
+                f"Prompt must be less than {messages.MAX_PROMPT_LENGTH} characters"
+            )
         return prompt
 
 
@@ -66,7 +71,9 @@ class CaseNumberConfigurationCreate(CamelCaseModel):
         if len(components) > 1 and not separator.strip():
             raise ValueError("Separator is required when there are multiple components")
         if separator and len(separator) > messages.MAX_SEPARATOR_LENGTH:
-            raise ValueError(f"Separator must be at most {messages.MAX_SEPARATOR_LENGTH} characters")
+            raise ValueError(
+                f"Separator must be at most {messages.MAX_SEPARATOR_LENGTH} characters"
+            )
         return separator or ""
 
     @field_validator("components")
