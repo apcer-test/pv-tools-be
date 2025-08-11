@@ -4,7 +4,7 @@ from typing import Annotated, List, Optional, Union
 from fastapi import Depends
 from sqlalchemy import delete, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import load_only, selectinload
 
 from apps.case.exceptions import (
     ConfigurationNotFoundError,
@@ -79,19 +79,30 @@ class CaseService:
         self.session = session
 
     async def _check_components_exist(
-        self, components: List[CaseNumberComponentCreate]
+        self, components: List[CaseNumberComponentCreate], separator: str | None
     ) -> bool:
-        """Check if a configuration with the same components already exists"""
+        """Check if a configuration with the same components and separator already exists"""
         # Get all configurations with their components
         configs = await self.session.scalars(
             select(CaseNumberConfiguration).options(
-                selectinload(CaseNumberConfiguration.components)
+                selectinload(CaseNumberConfiguration.components).options(
+                    load_only(
+                        CaseNumberComponent.id,
+                        CaseNumberComponent.component_type,
+                        CaseNumberComponent.size,
+                        CaseNumberComponent.prompt,
+                        CaseNumberComponent.ordering,
+                    )
+                )
             )
         )
 
         # Check each configuration's components
+        normalized_sep = separator or ""
         for config in configs:
-            if _components_match(components, config.components):
+            if _components_match(components, config.components) and (
+                (config.separator or "") == normalized_sep
+            ):
                 return True
 
         return False
@@ -124,8 +135,8 @@ class CaseService:
         self, config: CaseNumberConfigurationCreate
     ) -> CaseNumberConfiguration:
         """Create a new case number configuration"""
-        # Check for duplicate components
-        if await self._check_components_exist(config.components):
+        # Check for duplicate components along with separator
+        if await self._check_components_exist(config.components, config.separator):
             raise DuplicateConfigComponentsError
 
         # Generate configuration name
@@ -160,7 +171,17 @@ class CaseService:
         """Get the currently active configuration"""
         return await self.session.scalar(
             select(CaseNumberConfiguration)
-            .options(selectinload(CaseNumberConfiguration.components))
+            .options(
+                selectinload(CaseNumberConfiguration.components).options(
+                    load_only(
+                        CaseNumberComponent.id,
+                        CaseNumberComponent.component_type,
+                        CaseNumberComponent.size,
+                        CaseNumberComponent.prompt,
+                        CaseNumberComponent.ordering,
+                    )
+                )
+            )
             .where(CaseNumberConfiguration.is_active == True)  # noqa: E712
         )
 
@@ -170,7 +191,17 @@ class CaseService:
         """Get a case number configuration by ID"""
         return await self.session.scalar(
             select(CaseNumberConfiguration)
-            .options(selectinload(CaseNumberConfiguration.components))
+            .options(
+                selectinload(CaseNumberConfiguration.components).options(
+                    load_only(
+                        CaseNumberComponent.id,
+                        CaseNumberComponent.component_type,
+                        CaseNumberComponent.size,
+                        CaseNumberComponent.prompt,
+                        CaseNumberComponent.ordering,
+                    )
+                )
+            )
             .where(CaseNumberConfiguration.id == config_id)
         )
 
@@ -186,7 +217,15 @@ class CaseService:
             List of configurations matching the filter
         """
         query = select(CaseNumberConfiguration).options(
-            selectinload(CaseNumberConfiguration.components)
+            selectinload(CaseNumberConfiguration.components).options(
+                load_only(
+                    CaseNumberComponent.id,
+                    CaseNumberComponent.component_type,
+                    CaseNumberComponent.size,
+                    CaseNumberComponent.prompt,
+                    CaseNumberComponent.ordering,
+                )
+            )
         )
 
         if is_active is not None:
@@ -407,12 +446,24 @@ class CaseService:
         # Check for duplicate components (excluding current config)
         configs = await self.session.scalars(
             select(CaseNumberConfiguration)
-            .options(selectinload(CaseNumberConfiguration.components))
+            .options(
+                selectinload(CaseNumberConfiguration.components).options(
+                    load_only(
+                        CaseNumberComponent.id,
+                        CaseNumberComponent.component_type,
+                        CaseNumberComponent.size,
+                        CaseNumberComponent.prompt,
+                        CaseNumberComponent.ordering,
+                    )
+                )
+            )
             .where(CaseNumberConfiguration.id != config_id)
         )
 
         for other_config in configs:
-            if _components_match(config.components, other_config.components):
+            if _components_match(config.components, other_config.components) and (
+                (config.separator or "") == (other_config.separator or "")
+            ):
                 raise DuplicateConfigComponentsError
 
         # Generate new name based on components
