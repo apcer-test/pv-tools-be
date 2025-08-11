@@ -25,8 +25,8 @@ from apps.ai_extraction.schemas.response import LLMCallResult
 from apps.ai_extraction.services.audit_logger import AuditLogger
 from apps.ai_extraction.services.llm_gateway import LLMGateway
 from apps.ai_extraction.services.schema_validator import SchemaValidator
-from core.db import db_session
 from config import settings
+from core.db import db_session
 
 
 class FallbackManager:

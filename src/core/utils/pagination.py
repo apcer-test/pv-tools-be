@@ -241,6 +241,7 @@ def get_advanced_pagination_params(
     """Dependency factory for advanced pagination with field validation."""
 
     def _get_params() -> PaginationParams:
+        """Get pagination parameters."""
         params = PaginationParams()
 
         # Validate sort_by if provided

@@ -9,12 +9,17 @@ from apps.ai_extraction.models import (
     LLMProviderModel,
     PromptTemplateModel,
 )
-from apps.document_intake.models.document_intake import DocumentIntakeHistory
+from apps.case.models import (
+    Case,
+    CaseNumberComponent,
+    CaseNumberConfiguration,
+    CaseSequenceTracker,
+)
 from apps.mail_box_config.models import (
     MicrosoftCredentialsConfig,
     MicrosoftMailBoxConfig,
 )
-from apps.tenant.models import Tenant, TenantUsers
+from apps.tenant.models import TenantUsers
 from apps.user.models.user import UserModel
 from core.db import Base
 
@@ -34,4 +39,8 @@ __all__ = [
     "TenantUsers",
     "MicrosoftCredentialsConfig",
     "MicrosoftMailBoxConfig",
+    "Case",
+    "CaseNumberConfiguration",
+    "CaseNumberComponent",
+    "CaseSequenceTracker",
 ]
