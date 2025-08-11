@@ -240,8 +240,10 @@ class CaseService:
                         config_id=config_id,
                         year=year,
                         year_month=year_month,
-                        current_value=1,
+                        current_value=0,
                     )
+                    self.session.add(tracker)
+                    await self.session.flush()
 
             case ComponentType.SEQUENCE_YEAR:
                 # For yearly sequence, track by year only
@@ -253,8 +255,10 @@ class CaseService:
                         config_id=config_id,
                         year=year,
                         year_month=None,  # Not needed for yearly
-                        current_value=1,
+                        current_value=0,
                     )
+                    self.session.add(tracker)
+                    await self.session.flush()
 
             case ComponentType.SEQUENCE_RUNNING:
                 # For running sequence, track only by config_id
@@ -269,8 +273,10 @@ class CaseService:
                         config_id=config_id,
                         year=None,  # Not needed for running sequence
                         year_month=None,  # Not needed for running sequence
-                        current_value=1,
+                        current_value=0,
                     )
+                    self.session.add(tracker)
+                    await self.session.flush()
 
         if not tracker:
             self.session.add(tracker)
