@@ -1,18 +1,18 @@
 """empty message
 
-Revision ID: 773269fddbeb
+Revision ID: da9f75be36c9
 Revises: 
-Create Date: 2025-08-06 17:40:39.640464
+Create Date: 2025-08-08 18:34:28.621498
 
 """
 from alembic import op
 import sqlalchemy as sa
 
-from migrations.seeder import sql_for_create_admin, sql_for_doc_type, sql_for_fallback_chain, sql_for_tenant, sql_for_tenant_users
+from migrations.seeder import *
 
 
 # revision identifiers, used by Alembic.
-revision = '773269fddbeb'
+revision = 'da9f75be36c9'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -53,12 +53,16 @@ def upgrade() -> None:
     sa.UniqueConstraint('name')
     )
     op.create_table('users',
-    sa.Column('first_name', sa.String(), nullable=False),
-    sa.Column('last_name', sa.String(), nullable=False),
-    sa.Column('email', sa.String(), nullable=False),
-    sa.Column('phone', sa.String(), nullable=False),
-    sa.Column('password', sa.String(), nullable=False),
-    sa.Column('role', sa.Enum('ADMIN', 'STAFF', 'USER', 'ANY', 'OPTIONAL', name='roletype'), nullable=False),
+    sa.Column('username', sa.String(length=64), nullable=False),
+    sa.Column('first_name', sa.String(length=64), nullable=False),
+    sa.Column('last_name', sa.String(length=64), nullable=False),
+    sa.Column('email', sa.String(length=64), nullable=False),
+    sa.Column('phone', sa.String(length=16), nullable=True),
+    sa.Column('user_type_id', sa.String(), nullable=False),
+    sa.Column('reporting_manager_id', sa.String(), nullable=True),
+    sa.Column('description', sa.String(length=255), nullable=True),
+    sa.Column('meta_data', sa.JSON(), nullable=True),
+    sa.Column('is_active', sa.Boolean(), server_default='True', nullable=False),
     sa.Column('id', sa.String(), nullable=False),
     sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
     sa.Column('updated_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
@@ -68,13 +72,37 @@ def upgrade() -> None:
     sa.Column('deleted_by', sa.String(), nullable=True, comment='User ID who soft deleted this record'),
     sa.ForeignKeyConstraint(['created_by'], ['users.id'], ),
     sa.ForeignKeyConstraint(['deleted_by'], ['users.id'], ),
+    sa.ForeignKeyConstraint(['reporting_manager_id'], ['users.id'], ondelete='SET NULL', use_alter=True),
     sa.ForeignKeyConstraint(['updated_by'], ['users.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.ForeignKeyConstraint(['user_type_id'], ['user_type.id'], ondelete='CASCADE', use_alter=True),
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('username')
     )
     op.create_index(op.f('ix_users_email'), 'users', ['email'], unique=True)
-    op.create_index(op.f('ix_users_first_name'), 'users', ['first_name'], unique=False)
-    op.create_index(op.f('ix_users_last_name'), 'users', ['last_name'], unique=False)
-    op.create_index(op.f('ix_users_phone'), 'users', ['phone'], unique=True)
+    op.create_table('clients',
+    sa.Column('name', sa.String(length=128), nullable=False),
+    sa.Column('code', sa.String(length=16), nullable=False),
+    sa.Column('slug', sa.String(length=128), nullable=False),
+    sa.Column('description', sa.String(length=255), nullable=True),
+    sa.Column('meta_data', sa.JSON(), nullable=True),
+    sa.Column('media_id', sa.String(), nullable=True),
+    sa.Column('is_active', sa.Boolean(), nullable=False),
+    sa.Column('id', sa.String(), nullable=False),
+    sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('deleted_at', sa.DateTime(), nullable=True),
+    sa.Column('created_by', sa.String(), nullable=True, comment='User ID who created this record'),
+    sa.Column('updated_by', sa.String(), nullable=True, comment='User ID who last updated this record'),
+    sa.Column('deleted_by', sa.String(), nullable=True, comment='User ID who soft deleted this record'),
+    sa.ForeignKeyConstraint(['created_by'], ['users.id'], ),
+    sa.ForeignKeyConstraint(['deleted_by'], ['users.id'], ),
+    sa.ForeignKeyConstraint(['media_id'], ['media.id'], use_alter=True),
+    sa.ForeignKeyConstraint(['updated_by'], ['users.id'], ),
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('code'),
+    sa.UniqueConstraint('name'),
+    sa.UniqueConstraint('slug')
+    )
     op.create_table('document_intake_history',
     sa.Column('status', sa.Enum('PENDING', 'IN_PROGRESS', 'COMPLETED', 'FAILED', name='documentintakestatus'), nullable=False),
     sa.Column('source', sa.Enum('USER_UPLOAD', 'SYSTEM_UPLOAD', name='documentintakesource'), nullable=False),
@@ -128,6 +156,23 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('provider_id', 'name', name='uq_provider_model_name')
     )
+    op.create_table('media',
+    sa.Column('file_name', sa.String(length=128), nullable=False),
+    sa.Column('file_path', sa.String(length=255), nullable=False),
+    sa.Column('file_type', sa.String(length=16), nullable=False),
+    sa.Column('id', sa.String(), nullable=False),
+    sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('deleted_at', sa.DateTime(), nullable=True),
+    sa.Column('created_by', sa.String(), nullable=True, comment='User ID who created this record'),
+    sa.Column('updated_by', sa.String(), nullable=True, comment='User ID who last updated this record'),
+    sa.Column('deleted_by', sa.String(), nullable=True, comment='User ID who soft deleted this record'),
+    sa.ForeignKeyConstraint(['created_by'], ['users.id'], ),
+    sa.ForeignKeyConstraint(['deleted_by'], ['users.id'], ),
+    sa.ForeignKeyConstraint(['updated_by'], ['users.id'], ),
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('file_path')
+    )
     op.create_table('prompt_template',
     sa.Column('doc_type_id', sa.String(), nullable=False),
     sa.Column('version', sa.Integer(), nullable=False),
@@ -157,6 +202,46 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['deleted_by'], ['users.id'], ),
     sa.ForeignKeyConstraint(['updated_by'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id')
+    )
+    op.create_table('user_role_link',
+    sa.Column('client_id', sa.String(), nullable=False),
+    sa.Column('user_id', sa.String(), nullable=False),
+    sa.Column('role_id', sa.String(), nullable=False),
+    sa.Column('id', sa.String(), nullable=False),
+    sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('deleted_at', sa.DateTime(), nullable=True),
+    sa.Column('created_by', sa.String(), nullable=True, comment='User ID who created this record'),
+    sa.Column('updated_by', sa.String(), nullable=True, comment='User ID who last updated this record'),
+    sa.Column('deleted_by', sa.String(), nullable=True, comment='User ID who soft deleted this record'),
+    sa.ForeignKeyConstraint(['client_id'], ['clients.id'], ondelete='CASCADE', use_alter=True),
+    sa.ForeignKeyConstraint(['created_by'], ['users.id'], ),
+    sa.ForeignKeyConstraint(['deleted_by'], ['users.id'], ),
+    sa.ForeignKeyConstraint(['role_id'], ['roles.id'], ondelete='CASCADE', use_alter=True),
+    sa.ForeignKeyConstraint(['updated_by'], ['users.id'], ),
+    sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE', use_alter=True),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_table('user_type',
+    sa.Column('name', sa.String(length=64), nullable=False),
+    sa.Column('slug', sa.String(length=64), nullable=False),
+    sa.Column('description', sa.String(length=255), nullable=True),
+    sa.Column('meta_data', sa.JSON(), nullable=True),
+    sa.Column('client_id', sa.String(), nullable=False),
+    sa.Column('id', sa.String(), nullable=False),
+    sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('deleted_at', sa.DateTime(), nullable=True),
+    sa.Column('created_by', sa.String(), nullable=True, comment='User ID who created this record'),
+    sa.Column('updated_by', sa.String(), nullable=True, comment='User ID who last updated this record'),
+    sa.Column('deleted_by', sa.String(), nullable=True, comment='User ID who soft deleted this record'),
+    sa.ForeignKeyConstraint(['client_id'], ['clients.id'], ondelete='CASCADE', use_alter=True),
+    sa.ForeignKeyConstraint(['created_by'], ['users.id'], ),
+    sa.ForeignKeyConstraint(['deleted_by'], ['users.id'], ),
+    sa.ForeignKeyConstraint(['updated_by'], ['users.id'], ),
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('name', 'client_id', name='uq_name_client_id'),
+    sa.UniqueConstraint('slug')
     )
     op.create_table('extraction_agent',
     sa.Column('doc_type_id', sa.String(), nullable=False),
@@ -242,6 +327,68 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['updated_by'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
+    op.create_table('modules',
+    sa.Column('name', sa.String(length=64), nullable=False),
+    sa.Column('slug', sa.String(length=64), nullable=False),
+    sa.Column('description', sa.String(length=255), nullable=True),
+    sa.Column('meta_data', sa.JSON(), nullable=True),
+    sa.Column('client_id', sa.String(), nullable=False),
+    sa.Column('parent_module_id', sa.String(), nullable=True),
+    sa.Column('id', sa.String(), nullable=False),
+    sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('deleted_at', sa.DateTime(), nullable=True),
+    sa.Column('created_by', sa.String(), nullable=True, comment='User ID who created this record'),
+    sa.Column('updated_by', sa.String(), nullable=True, comment='User ID who last updated this record'),
+    sa.Column('deleted_by', sa.String(), nullable=True, comment='User ID who soft deleted this record'),
+    sa.ForeignKeyConstraint(['client_id'], ['clients.id'], ),
+    sa.ForeignKeyConstraint(['created_by'], ['users.id'], ),
+    sa.ForeignKeyConstraint(['deleted_by'], ['users.id'], ),
+    sa.ForeignKeyConstraint(['parent_module_id'], ['modules.id'], ),
+    sa.ForeignKeyConstraint(['updated_by'], ['users.id'], ),
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('slug')
+    )
+    op.create_table('permissions',
+    sa.Column('name', sa.String(length=64), nullable=False),
+    sa.Column('slug', sa.String(length=64), nullable=False),
+    sa.Column('description', sa.String(length=255), nullable=True),
+    sa.Column('meta_data', sa.JSON(), nullable=True),
+    sa.Column('client_id', sa.String(), nullable=False),
+    sa.Column('id', sa.String(), nullable=False),
+    sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('deleted_at', sa.DateTime(), nullable=True),
+    sa.Column('created_by', sa.String(), nullable=True, comment='User ID who created this record'),
+    sa.Column('updated_by', sa.String(), nullable=True, comment='User ID who last updated this record'),
+    sa.Column('deleted_by', sa.String(), nullable=True, comment='User ID who soft deleted this record'),
+    sa.ForeignKeyConstraint(['client_id'], ['clients.id'], ),
+    sa.ForeignKeyConstraint(['created_by'], ['users.id'], ),
+    sa.ForeignKeyConstraint(['deleted_by'], ['users.id'], ),
+    sa.ForeignKeyConstraint(['updated_by'], ['users.id'], ),
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('slug')
+    )
+    op.create_table('roles',
+    sa.Column('name', sa.String(length=64), nullable=False),
+    sa.Column('slug', sa.String(length=64), nullable=False),
+    sa.Column('description', sa.String(length=255), nullable=True),
+    sa.Column('meta_data', sa.JSON(), nullable=True),
+    sa.Column('client_id', sa.String(), nullable=False),
+    sa.Column('id', sa.String(), nullable=False),
+    sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('deleted_at', sa.DateTime(), nullable=True),
+    sa.Column('created_by', sa.String(), nullable=True, comment='User ID who created this record'),
+    sa.Column('updated_by', sa.String(), nullable=True, comment='User ID who last updated this record'),
+    sa.Column('deleted_by', sa.String(), nullable=True, comment='User ID who soft deleted this record'),
+    sa.ForeignKeyConstraint(['client_id'], ['clients.id'], ),
+    sa.ForeignKeyConstraint(['created_by'], ['users.id'], ),
+    sa.ForeignKeyConstraint(['deleted_by'], ['users.id'], ),
+    sa.ForeignKeyConstraint(['updated_by'], ['users.id'], ),
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('slug')
+    )
     op.create_table('tenant_users',
     sa.Column('tenant_id', sa.String(), nullable=False),
     sa.Column('user_id', sa.String(), nullable=False),
@@ -292,31 +439,78 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['template_id'], ['prompt_template.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
+    op.create_table('module_permission_link',
+    sa.Column('client_id', sa.String(), nullable=False),
+    sa.Column('module_id', sa.String(), nullable=False),
+    sa.Column('permission_id', sa.String(), nullable=False),
+    sa.Column('id', sa.String(), nullable=False),
+    sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('deleted_at', sa.DateTime(), nullable=True),
+    sa.Column('created_by', sa.String(), nullable=True, comment='User ID who created this record'),
+    sa.Column('updated_by', sa.String(), nullable=True, comment='User ID who last updated this record'),
+    sa.Column('deleted_by', sa.String(), nullable=True, comment='User ID who soft deleted this record'),
+    sa.ForeignKeyConstraint(['client_id'], ['clients.id'], ),
+    sa.ForeignKeyConstraint(['created_by'], ['users.id'], ),
+    sa.ForeignKeyConstraint(['deleted_by'], ['users.id'], ),
+    sa.ForeignKeyConstraint(['module_id'], ['modules.id'], ),
+    sa.ForeignKeyConstraint(['permission_id'], ['permissions.id'], ),
+    sa.ForeignKeyConstraint(['updated_by'], ['users.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_table('role_module_permission_link',
+    sa.Column('client_id', sa.String(), nullable=False),
+    sa.Column('role_id', sa.String(), nullable=False),
+    sa.Column('module_id', sa.String(), nullable=False),
+    sa.Column('permission_id', sa.String(), nullable=False),
+    sa.Column('id', sa.String(), nullable=False),
+    sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('deleted_at', sa.DateTime(), nullable=True),
+    sa.Column('created_by', sa.String(), nullable=True, comment='User ID who created this record'),
+    sa.Column('updated_by', sa.String(), nullable=True, comment='User ID who last updated this record'),
+    sa.Column('deleted_by', sa.String(), nullable=True, comment='User ID who soft deleted this record'),
+    sa.ForeignKeyConstraint(['client_id'], ['clients.id'], ),
+    sa.ForeignKeyConstraint(['created_by'], ['users.id'], ),
+    sa.ForeignKeyConstraint(['deleted_by'], ['users.id'], ),
+    sa.ForeignKeyConstraint(['module_id'], ['modules.id'], ),
+    sa.ForeignKeyConstraint(['permission_id'], ['permissions.id'], ),
+    sa.ForeignKeyConstraint(['role_id'], ['roles.id'], ),
+    sa.ForeignKeyConstraint(['updated_by'], ['users.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
     # ### end Alembic commands ###
-    op.execute(sql_for_create_admin)
-    op.execute(sql_for_doc_type)
-    op.execute(sql_for_fallback_chain)
+
+    for sql in user_management_sql.split(';'):
+        op.execute(sql)
     op.execute(sql_for_tenant)
     op.execute(sql_for_tenant_users)
-
+    op.execute(sql_for_doc_type)
+    op.execute(sql_for_fallback_chain)
 
 def downgrade() -> None:
     # ### commands auto generated by Alembic - please adjust! ###
+    op.drop_table('role_module_permission_link')
+    op.drop_table('module_permission_link')
     op.drop_table('extraction_audit')
     op.drop_table('tenant_users')
+    op.drop_table('roles')
+    op.drop_table('permissions')
+    op.drop_table('modules')
     op.drop_table('microsoft_mail_box_config')
     op.drop_table('microsoft_credentials_config')
     op.drop_table('fallback_step')
     op.drop_table('extraction_agent')
+    op.drop_table('user_type')
+    op.drop_table('user_role_link')
     op.drop_table('tenant')
     op.drop_table('prompt_template')
+    op.drop_table('media')
     op.drop_table('llm_model')
     op.drop_table('llm_credential')
     op.drop_index(op.f('ix_document_intake_history_request_id'), table_name='document_intake_history')
     op.drop_table('document_intake_history')
-    op.drop_index(op.f('ix_users_phone'), table_name='users')
-    op.drop_index(op.f('ix_users_last_name'), table_name='users')
-    op.drop_index(op.f('ix_users_first_name'), table_name='users')
+    op.drop_table('clients')
     op.drop_index(op.f('ix_users_email'), table_name='users')
     op.drop_table('users')
     op.drop_table('llm_provider')

@@ -9,7 +9,7 @@ from core.types import RoleType
 from core.utils.mixins import TimeStampMixin, ULIDPrimaryKeyMixin, UserMixin
 
 if TYPE_CHECKING:
-    from apps.user.models import UserModel
+    from apps.users.models.user import Users
 
 
 class Tenant(Base, ULIDPrimaryKeyMixin, TimeStampMixin, UserMixin):
@@ -20,12 +20,12 @@ class Tenant(Base, ULIDPrimaryKeyMixin, TimeStampMixin, UserMixin):
     secret_key: Mapped[str] = mapped_column()
     is_active: Mapped[bool] = mapped_column(default=True, server_default="True")
 
-    users: Mapped[list["UserModel"]] = relationship(
-        "UserModel",
+    users: Mapped[list["Users"]] = relationship(
+        "Users",
         secondary="tenant_users",
         back_populates="tenants",
         primaryjoin="Tenant.id == TenantUsers.tenant_id",
-        secondaryjoin="TenantUsers.user_id == UserModel.id",
+        secondaryjoin="TenantUsers.user_id == Users.id",
         viewonly=True,
     )
 
@@ -68,8 +68,8 @@ class TenantUsers(Base, TimeStampMixin, UserMixin):
     tenant: Mapped["Tenant"] = relationship(
         "Tenant", back_populates="tenant_users", foreign_keys="[TenantUsers.tenant_id]"
     )
-    user: Mapped["UserModel"] = relationship(
-        "UserModel", back_populates="tenant_users", foreign_keys="[TenantUsers.user_id]"
+    user: Mapped["Users"] = relationship(
+        "Users", back_populates="tenant_users", foreign_keys="[TenantUsers.user_id]"
     )
 
     def __str__(self) -> str:

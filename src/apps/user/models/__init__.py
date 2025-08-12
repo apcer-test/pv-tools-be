@@ -1,3 +1,3 @@
-from apps.user.models.user import UserModel
+# UserModel removed - using Users from apps.users.models.user instead
 
-__all__ = ["UserModel"]
+__all__ = []

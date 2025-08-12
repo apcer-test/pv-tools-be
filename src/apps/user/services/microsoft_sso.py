@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.responses import RedirectResponse
 
 from apps.user.exceptions import EmailNotFoundError, UserNotFoundException
-from apps.user.models.user import UserModel
+from apps.users.models.user import Users
 from core.common_helpers import create_tokens
 from core.db import db_session
 from config import settings
@@ -45,7 +45,7 @@ class MicrosoftSSOService:
                 raise EmailNotFoundError
 
             user = await self.session.scalar(
-                select(UserModel).where(UserModel.email == email)
+                select(Users).where(Users.email == email)
             )
 
             if not user:

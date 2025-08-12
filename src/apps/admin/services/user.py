@@ -17,7 +17,8 @@ from apps.user.exceptions import (
     UserNotFoundException,
     WeakPasswordException,
 )
-from apps.user.models.user import UserModel
+from apps.users.models.user import Users, UserRoleLink
+from apps.roles.models.roles import Roles
 from apps.user.schemas.response import BaseUserResponse
 from config import settings
 from core.common_helpers import create_tokens, decrypt, validate_email
@@ -83,9 +84,7 @@ class AdminUserService:
         validate_email(email=email)
 
         user = await self.session.scalar(
-            select(UserModel).where(
-                and_(UserModel.email == email, UserModel.role == RoleType.ADMIN)
-            )
+            select(Users).where(Users.email == email)
         )
         if not user:
             raise InvalidCredentialsException
@@ -95,9 +94,39 @@ class AdminUserService:
         if not verify:
             raise InvalidCredentialsException
 
-        return await create_tokens(user_id=user.id, role=user.role)
+        # Check if user has admin role through role relationships
+        admin_role = await self._check_admin_role(user.id)
+        if not admin_role:
+            raise InvalidCredentialsException
 
-    async def get_users(self, params: Params) -> Page[UserModel]:
+        return await create_tokens(user_id=user.id, role=RoleType.ADMIN)
+
+    async def _check_admin_role(self, user_id: str) -> bool:
+        """
+        Check if a user has admin role through role relationships.
+        
+        Args:
+            user_id: The ID of the user to check
+            
+        Returns:
+            bool: True if user has admin role, False otherwise
+        """
+        # Check if user has any role with 'admin' in the slug
+        admin_role_query = select(Users).join(
+            Users.role_links
+        ).join(
+            UserRoleLink.role
+        ).where(
+            and_(
+                Users.id == user_id,
+                Roles.slug.like('%admin%')
+            )
+        )
+        
+        admin_user = await self.session.scalar(admin_role_query)
+        return admin_user is not None
+
+    async def get_users(self, params: Params) -> Page[Users]:
         """
         Retrieve a paginated list of users.
 
@@ -105,26 +134,26 @@ class AdminUserService:
             params (Params): Pagination parameters to control the page size and number.
 
         Returns:
-            Page[UserModel]: A paginated list of UserModel instances.
+            Page[Users]: A paginated list of Users instances.
 
         Raises:
             UserNotFoundException: If the user with the given UUID is not found.
         """
-        query = select(UserModel).options(
+        query = select(Users).options(
             load_only(
-                UserModel.first_name,
-                UserModel.last_name,
-                UserModel.email,
-                UserModel.phone,
-                UserModel.created_by,
-                UserModel.updated_by,
-                UserModel.deleted_by,
+                Users.first_name,
+                Users.last_name,
+                Users.email,
+                Users.phone,
+                Users.created_by,
+                Users.updated_by,
+                Users.deleted_by,
             )
         )
 
         return await paginate(self.session, query, params)
 
-    async def get_self_admin(self, user_id: UUID) -> UserModel:
+    async def get_self_admin(self, user_id: UUID) -> Users:
         """
         Retrieve user information by user ID.
 
@@ -132,19 +161,19 @@ class AdminUserService:
             user_id (UUID): The ID of the user.
 
         Returns:
-            UserModel: The user model with the user's information.
+            Users: The user model with the user's information.
         """
         return await self.session.scalar(
-            select(UserModel)
+            select(Users)
             .options(
                 load_only(
-                    UserModel.id,
-                    UserModel.email,
-                    UserModel.first_name,
-                    UserModel.last_name,
+                    Users.id,
+                    Users.email,
+                    Users.first_name,
+                    Users.last_name,
                 )
             )
-            .where(UserModel.id == user_id)
+            .where(Users.id == user_id)
         )
 
     async def change_password(
@@ -165,7 +194,7 @@ class AdminUserService:
             iv (str): The initialization vector used to encrypt the data.
 
         Returns:
-            UserModel: The updated user model with the new password.
+            Users: The updated user model with the new password.
 
         Raises:
             UserNotFoundException: If the user with the given UUID is not found.
@@ -190,7 +219,7 @@ class AdminUserService:
             raise WeakPasswordException
 
         current_user = await self.session.scalar(
-            select(UserModel).where(UserModel.id == user)
+            select(Users).where(Users.id == user)
         )
 
         if not current_user:
@@ -223,20 +252,19 @@ class AdminUserService:
             PaginatedResponse[AdminListUsersResponse]: Enhanced paginated response with metadata.
         """
         # Base query with all necessary fields
-        base_query = select(UserModel).options(
+        base_query = select(Users).options(
             load_only(
-                UserModel.id,
-                UserModel.first_name,
-                UserModel.last_name,
-                UserModel.email,
-                UserModel.phone,
-                UserModel.role,
-                UserModel.created_at,
-                UserModel.updated_at,
-                UserModel.created_by,
-                UserModel.updated_by,
-                UserModel.deleted_by,
-                UserModel.deleted_at,
+                Users.id,
+                Users.first_name,
+                Users.last_name,
+                Users.email,
+                Users.phone,
+                Users.created_at,
+                Users.updated_at,
+                Users.created_by,
+                Users.updated_by,
+                Users.deleted_by,
+                Users.deleted_at,
             )
         )
 
@@ -246,7 +274,7 @@ class AdminUserService:
             session=self.session,
             params=params,
             search_fields=["first_name", "last_name", "email", "phone"],
-            allowed_filters=["role", "created_by", "updated_by"],
+            allowed_filters=["created_by", "updated_by"],
             allowed_sort_fields=[
                 "first_name",
                 "last_name",
@@ -257,7 +285,7 @@ class AdminUserService:
             date_field="created_at",
         )
 
-        # Convert UserModel instances to AdminListUsersResponse
+        # Convert Users instances to AdminListUsersResponse
         admin_users = []
         for user in paginated_result.items:
             # Get user names for created_by, updated_by, deleted_by
@@ -271,9 +299,9 @@ class AdminUserService:
 
             if user.created_by:
                 created_by_user = await self.session.scalar(
-                    select(UserModel)
-                    .options(load_only(UserModel.first_name, UserModel.last_name))
-                    .where(UserModel.id == user.created_by)
+                                select(Users)
+            .options(load_only(Users.first_name, Users.last_name))
+            .where(Users.id == user.created_by)
                 )
                 if created_by_user:
                     created_by_user_name = (
@@ -282,9 +310,9 @@ class AdminUserService:
 
             if user.updated_by:
                 updated_by_user = await self.session.scalar(
-                    select(UserModel)
-                    .options(load_only(UserModel.first_name, UserModel.last_name))
-                    .where(UserModel.id == user.updated_by)
+                                select(Users)
+            .options(load_only(Users.first_name, Users.last_name))
+            .where(Users.id == user.updated_by)
                 )
                 if updated_by_user:
                     updated_by_user_name = (
@@ -293,9 +321,9 @@ class AdminUserService:
 
             if user.deleted_by:
                 deleted_by_user = await self.session.scalar(
-                    select(UserModel)
-                    .options(load_only(UserModel.first_name, UserModel.last_name))
-                    .where(UserModel.id == user.deleted_by)
+                                select(Users)
+            .options(load_only(Users.first_name, Users.last_name))
+            .where(Users.id == user.deleted_by)
                 )
                 if deleted_by_user:
                     deleted_by_user_name = (

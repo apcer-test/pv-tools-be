@@ -8,7 +8,7 @@ from fastapi import APIRouter, Body, Depends, Path, Query, Request, status
 from fastapi.responses import JSONResponse, RedirectResponse
 
 import constants
-from apps.user.models.user import UserModel
+from apps.users.models.user import Users
 from apps.user.schemas.request import EncryptedRequest
 from apps.user.schemas.response import BaseUserResponse
 from apps.user.services import UserService

@@ -5,7 +5,6 @@ from fastapi_limiter.depends import RateLimiter
 from starlette.middleware.sessions import SessionMiddleware
 
 import constants
-from apps.admin.controllers import admin_router
 from apps.ai_extraction.controllers import (
     doctype_router,
     extraction_agent_router,
@@ -19,7 +18,8 @@ from apps.mail_box_config.controllers import (
     mail_box_config_router,
 )
 from apps.master.controllers import master_router
-from apps.user.controllers import user_router
+from apps.clients.controllers import clients_router
+#from apps.users.controllers import user_router
 from config import AppEnvironment, settings
 from constants.config import rate_limiter_config
 from core.task.lifespan import lifespan
@@ -45,8 +45,7 @@ def init_routers(_app: FastAPI) -> None:
         ]
     )
     base_router.include_router(master_router)
-    base_router.include_router(user_router)
-    base_router.include_router(admin_router)
+    #base_router.include_router(user_router)
     base_router.include_router(document_intake_router)
     base_router.include_router(extraction_agent_router)
     base_router.include_router(doctype_router)
@@ -54,6 +53,7 @@ def init_routers(_app: FastAPI) -> None:
     base_router.include_router(llm_router)
     base_router.include_router(configurations_router)
     base_router.include_router(mail_box_config_router)
+    base_router.include_router(clients_router)
     _app.include_router(base_router, responses={422: {"model": BaseValidationResponse}})
 
 

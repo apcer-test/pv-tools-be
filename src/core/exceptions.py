@@ -109,3 +109,10 @@ class UnexpectedResponse(Exception):
             response (Response): The unexpected HTTP response.
         """
         self.response = response
+
+class ConflictError(CustomException):
+    """
+    Custom exception for representing a Conflict (HTTP 409) error.
+    """
+
+    status_code = status.HTTP_409_CONFLICT

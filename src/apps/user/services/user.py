@@ -13,7 +13,7 @@ from apps.user.exceptions import (
     InvalidCredentialsException,
     UserNotFoundException,
 )
-from apps.user.models.user import UserModel
+from apps.users.models.user import Users
 from config import settings
 from core.common_helpers import create_tokens, decrypt, validate_input_fields
 from core.db import db_session
@@ -39,7 +39,7 @@ class UserService:
         """
         self.session = session
 
-    async def get_self(self, user_id: UUID) -> UserModel:
+    async def get_self(self, user_id: UUID) -> Users:
         """
         Retrieve user information by user ID.
 
@@ -50,16 +50,16 @@ class UserService:
             UserModel: The user model with the user's information.
         """
         return await self.session.scalar(
-            select(UserModel)
+            select(Users)
             .options(
                 load_only(
-                    UserModel.id,
-                    UserModel.email,
-                    UserModel.first_name,
-                    UserModel.last_name,
+                    Users.id,
+                    Users.email,
+                    Users.first_name,
+                    Users.last_name,
                 )
             )
-            .where(UserModel.id == user_id)
+            .where(Users.id == user_id)
         )
 
     async def login_user(
@@ -100,8 +100,8 @@ class UserService:
             raise BadRequestError(message=constants.PASSWORD_FIELD_REQUIRED)
 
         user = await self.session.scalar(
-            select(UserModel).where(
-                and_(UserModel.email == email, UserModel.role == RoleType.USER)
+            select(Users).where(
+                and_(Users.email == email, Users.role == RoleType.USER)
             )
         )
         if not user:
@@ -121,7 +121,7 @@ class UserService:
         encrypted_key: str,
         iv: str,
         current_user_id: UUID = None,
-    ) -> UserModel:
+    ) -> Users:
         """
         Create a new user.
 
@@ -157,14 +157,14 @@ class UserService:
         )
 
         user = await self.session.scalar(
-            select(UserModel)
-            .options(load_only(UserModel.email))
-            .where(or_(UserModel.email == email, UserModel.phone == phone))
+            select(Users)
+            .options(load_only(Users.email))
+            .where(or_(Users.email == email, Users.phone == phone))
         )
         if user:
             raise DuplicateEmailException
 
-        user = UserModel.create(
+        user = Users.create(
             first_name=first_name,
             last_name=last_name,
             phone=phone,
@@ -192,16 +192,16 @@ class UserService:
         """
 
         searched_user = await self.session.scalar(
-            select(UserModel)
+            select(Users)
             .options(
                 load_only(
-                    UserModel.id,
-                    UserModel.email,
-                    UserModel.first_name,
-                    UserModel.last_name,
+                    Users.id,
+                    Users.email,
+                    Users.first_name,
+                    Users.last_name,
                 )
             )
-            .where(UserModel.id == user_id)
+            .where(Users.id == user_id)
         )
 
         if not searched_user:

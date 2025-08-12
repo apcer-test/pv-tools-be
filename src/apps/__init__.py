@@ -15,12 +15,23 @@ from apps.mail_box_config.models import (
     MicrosoftMailBoxConfig,
 )
 from apps.tenant.models import Tenant, TenantUsers
-from apps.user.models.user import UserModel
+from apps.users.models.user import Users
 from core.db import Base
+from apps.user_type.models.user_type import UserType
+from apps.roles.models.roles import Roles
+from apps.modules.models.modules import Modules
+from apps.permissions.models.permissions import Permissions
+from apps.clients.models.clients import Clients
+from apps.media.models.media import Media
 
 __all__ = [
     "Base",
-    "UserModel",
+    "Users",
+    "UserType",
+    "Roles",
+    "Modules",
+    "Permissions",
+    "Clients",
     "LLMProviderModel",
     "LLMModel",
     "LLMCredentialModel",
@@ -30,8 +41,10 @@ __all__ = [
     "FallbackStepModel",
     "ExtractionAuditModel",
     "ExtractionAgentModel",
-    "DocumentIntakeHistory" "Tenant",
+    "DocumentIntakeHistory",
+    "Tenant",
     "TenantUsers",
     "MicrosoftCredentialsConfig",
     "MicrosoftMailBoxConfig",
+    "Media",
 ]

@@ -8,7 +8,7 @@ import constants
 from apps.admin.schemas.admin_user_response import AdminListUsersResponse
 from apps.admin.schemas.request import EncryptedRequest
 from apps.admin.services.user import AdminUserService
-from apps.user.models.user import UserModel
+from apps.users.models.user import Users
 from apps.user.schemas.response import BaseUserResponse
 from core.auth import AdminHasPermission
 from core.exceptions import UnauthorizedError
@@ -129,7 +129,7 @@ async def get_users(
     operation_id="get_self_admin",
 )
 async def get_self_handler(
-    user: Annotated[UserModel, Depends(AdminHasPermission())],
+    user: Annotated[Users, Depends(AdminHasPermission())],
     service: Annotated[AdminUserService, Depends()],
 ) -> BaseResponse[BaseUserResponse]:
     """
@@ -160,7 +160,7 @@ async def get_self_handler(
 )
 async def change_password(
     request: Request,
-    user: Annotated[UserModel, Depends(AdminHasPermission())],
+    user: Annotated[Users, Depends(AdminHasPermission())],
     body: Annotated[EncryptedRequest, Body()],
     service: Annotated[AdminUserService, Depends()],
 ) -> BaseResponse[BaseUserResponse]:

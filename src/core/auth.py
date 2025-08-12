@@ -7,12 +7,13 @@ from fastapi.security import HTTPAuthorizationCredentials
 from fastapi.security import HTTPBearer as HTTPBearerSecurity
 from fastapi.security.base import SecurityBase
 from jwt import DecodeError, ExpiredSignatureError, decode, encode
-from sqlalchemy import select
+from sqlalchemy import select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import load_only
 
 import constants.messages as constants
-from apps.user.models.user import UserModel
+from apps.users.models.user import Users, UserRoleLink
+from apps.roles.models.roles import Roles
 from config import settings
 from core.db import db_session
 from core.exceptions import InvalidJWTTokenException, UnauthorizedError
@@ -197,7 +198,7 @@ class HasPermission:
                 raise UnauthorizedError(message=constants.UNAUTHORIZED)
 
         user = await session.scalar(
-            select(UserModel).where(UserModel.id == payload.get("id"))
+            select(Users).where(Users.id == payload.get("id"))
         )
 
         if not user:
@@ -244,11 +245,28 @@ class AdminHasPermission:
             raise UnauthorizedError(message=constants.UNAUTHORIZED)
 
         user = await session.scalar(
-            select(UserModel)
-            .options(load_only(UserModel.id, UserModel.role))
-            .where(UserModel.id == payload.get("id"))
+            select(Users)
+            .options(load_only(Users.id))
+            .where(Users.id == payload.get("id"))
         )
 
-        if not user or user.role != RoleType.ADMIN:
+        if not user:
             raise UnauthorizedError(message=constants.UNAUTHORIZED)
+            
+        # Check if user has admin role through role relationships
+        admin_role_query = select(Users).join(
+            Users.role_links
+        ).join(
+            UserRoleLink.role
+        ).where(
+            and_(
+                Users.id == payload.get("id"),
+                Roles.slug.like('%admin%')
+            )
+        )
+        
+        admin_user = await session.scalar(admin_role_query)
+        if not admin_user:
+            raise UnauthorizedError(message=constants.UNAUTHORIZED)
+            
         return user
