@@ -435,6 +435,26 @@ class SetupService:
 
         return SuccessResponse(message=constants.LOOKUP_VALUE_CREATED_SUCCESSFULLY)
 
+    def _apply_lookup_value_updates(
+        self,
+        value: LookupValuesModel,
+        name: str | None = None,
+        is_active: bool | None = None,
+        is_nflist: bool = False,
+        e2b_code_r2: str | None = None,
+        e2b_code_r3: str | None = None,
+    ):
+        """Apply updates to a lookup value."""
+        if name is not None:
+            value.name = name
+        if is_active is not None:
+            value.is_active = is_active
+        if not is_nflist:
+            if e2b_code_r2 is not None:
+                value.e2b_code_r2 = e2b_code_r2
+            if e2b_code_r3 is not None:
+                value.e2b_code_r3 = e2b_code_r3
+
     async def update_lookup_value(
         self,
         lookup_value_id: str,
@@ -495,15 +515,9 @@ class SetupService:
                 raise ExistingLookupValueException
 
         # Apply updates for provided fields only
-        if name is not None:
-            value.name = name
-        if is_active is not None:
-            value.is_active = is_active
-        if not is_nflist:
-            if e2b_code_r2 is not None:
-                value.e2b_code_r2 = e2b_code_r2
-            if e2b_code_r3 is not None:
-                value.e2b_code_r3 = e2b_code_r3
+        self._apply_lookup_value_updates(
+            value, name, is_active, is_nflist, e2b_code_r2, e2b_code_r3
+        )
 
         return SuccessResponse(message=constants.LOOKUP_VALUE_UPDATED_SUCCESSFULLY)
 
