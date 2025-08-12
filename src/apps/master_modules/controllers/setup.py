@@ -180,6 +180,28 @@ async def update_lookup_value_status(
     )
 
 
+@router.put(
+    "/lookup/{lookup_id}/status",
+    status_code=status.HTTP_200_OK,
+    name="Update lookup status",
+    description="Update is_active for a lookup by its id.",
+    operation_id="update_lookup_status",
+)
+async def update_lookup_status(
+    lookup_id: Annotated[str, Path(..., description="Lookup id")],
+    body: Annotated[
+        UpdateLookupValueStatusRequest, Body(..., description="Request body")
+    ],
+    service: Annotated[SetupService, Depends()],
+) -> BaseResponse[SuccessResponse]:
+    """Update lookup status by its id."""
+    return BaseResponse(
+        data=await service.update_lookup_status(
+            lookup_id=lookup_id, **body.model_dump()
+        )
+    )
+
+
 @router.post(
     "/lookup/values-by-slugs",
     status_code=status.HTTP_200_OK,
