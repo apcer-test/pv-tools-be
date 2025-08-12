@@ -5,6 +5,7 @@ from fastapi import Depends, UploadFile
 from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import load_only
 
 import constants
 from apps.master_modules.exception import (
@@ -260,11 +261,7 @@ class SetupService:
             LookupListResponse: List of lookup entries with id, name, slug and type.
         """
         # Query active lookup entries, optionally filtered by lookup_type
-        stmt = (
-            select(LookupModel)
-            .where(LookupModel.is_active)
-            .order_by(LookupModel.updated_at.desc())
-        )
+        stmt = select(LookupModel).order_by(LookupModel.updated_at.desc())
         if lookup_type_filter is not None:
             stmt = stmt.where(LookupModel.lookup_type == lookup_type_filter.value)
         assert params is not None, "Pagination params must be provided"
@@ -311,9 +308,7 @@ class SetupService:
         """
         # Validate that lookup exists
         lookup = await self.session.scalar(
-            select(LookupModel).where(
-                (LookupModel.id == lookup_id) & (LookupModel.is_active)
-            )
+            select(LookupModel).where((LookupModel.id == lookup_id))
         )
         if not lookup:
             # Hide details, return empty list
@@ -391,7 +386,6 @@ class SetupService:
         lookup = await self.session.scalar(
             select(LookupModel).where(
                 (LookupModel.id == lookup_id)
-                & (LookupModel.is_active)
                 & (LookupModel.lookup_type == LookupType.CODELIST.value)
             )
         )
@@ -421,7 +415,6 @@ class SetupService:
         lookup = await self.session.scalar(
             select(LookupModel).where(
                 (LookupModel.id == lookup_id)
-                & (LookupModel.is_active)
                 & (LookupModel.lookup_type == LookupType.NFLIST.value)
             )
         )
@@ -443,7 +436,9 @@ class SetupService:
     ) -> SuccessResponse:
         """Update is_active for a lookup value using only the lookup value id."""
         value = await self.session.scalar(
-            select(LookupValuesModel).where(LookupValuesModel.id == lookup_value_id)
+            select(LookupValuesModel)
+            .options(load_only(LookupValuesModel.id, LookupValuesModel.is_active))
+            .where(LookupValuesModel.id == lookup_value_id)
         )
         if not value:
             raise LookupValueNotFoundException
@@ -453,6 +448,22 @@ class SetupService:
         return SuccessResponse(
             message=constants.LOOKUP_VALUE_STATUS_UPDATED_SUCCESSFULLY
         )
+
+    async def update_lookup_status(
+        self, lookup_id: str, is_active: bool
+    ) -> SuccessResponse:
+        """Update is_active for a lookup using the lookup id."""
+        lookup = await self.session.scalar(
+            select(LookupModel)
+            .options(load_only(LookupModel.id, LookupModel.is_active))
+            .where(LookupModel.id == lookup_id)
+        )
+        if not lookup:
+            raise LookupNotFoundException
+
+        lookup.is_active = is_active
+
+        return SuccessResponse(message=constants.LOOKUP_STATUS_UPDATED_SUCCESSFULLY)
 
     async def get_lookup_values_by_slugs(
         self, slugs: list[str]
@@ -486,7 +497,7 @@ class SetupService:
         # Fetch active lookups for slugs
         lookups_result = await self.session.execute(
             select(LookupModel.id, LookupModel.slug).where(
-                (LookupModel.slug.in_(unique_slugs)) & (LookupModel.is_active)
+                (LookupModel.slug.in_(unique_slugs))
             )
         )
         lookup_rows = lookups_result.all()

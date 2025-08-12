@@ -95,3 +95,4 @@ EXCEL_FILE_PROCESSED_SUCCESSFULLY = "Excel file processed successfully"
 LOOKUP_VALUE_CREATED_SUCCESSFULLY = "Lookup value created successfully"
 
 LOOKUP_VALUE_STATUS_UPDATED_SUCCESSFULLY = "Lookup value status updated successfully"
+LOOKUP_STATUS_UPDATED_SUCCESSFULLY = "Lookup status updated successfully"
