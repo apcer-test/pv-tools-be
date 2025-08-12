@@ -6,6 +6,7 @@ from apps.master_modules.schemas.request import (
     CodeListLookupValueCreateRequest,
     LookupValuesBySlugsRequest,
     NFListLookupValueCreateRequest,
+    UpdateLookupValueRequest,
     UpdateLookupValueStatusRequest,
 )
 from apps.master_modules.schemas.response import LookupResponse
@@ -53,6 +54,16 @@ async def get_lookup_list(
         ]
         | None
     ) = None,
+    is_active: (
+        Annotated[
+            bool,
+            Query(
+                default=None,
+                description="Filter by active status (true/false). Omit for all",
+            ),
+        ]
+        | None
+    ) = None,
     page: Annotated[int, Query(1, ge=1, description="Page number")] | None = 1,
     page_size: (
         Annotated[int, Query(10, ge=1, le=100, description="Items per page")] | None
@@ -74,7 +85,9 @@ async def get_lookup_list(
     pagination_params = PaginationParams(page=page, page_size=page_size, search=search)
     return BaseResponse(
         data=await service.get_lookup_list(
-            lookup_type_filter=lookup_type_filter, params=pagination_params
+            lookup_type_filter=lookup_type_filter,
+            is_active=is_active,
+            params=pagination_params,
         )
     )
 
@@ -89,6 +102,16 @@ async def get_lookup_list(
 async def get_lookup_values(
     lookup_id: Annotated[str, Path(..., description="Lookup id")],
     service: Annotated[SetupService, Depends()],
+    is_active: (
+        Annotated[
+            bool,
+            Query(
+                default=None,
+                description="Filter by active status (true/false). Omit for all",
+            ),
+        ]
+        | None
+    ) = None,
     page: Annotated[int, Query(1, ge=1, description="Page number")] | None = 1,
     page_size: (
         Annotated[int, Query(10, ge=1, le=100, description="Items per page")] | None
@@ -109,7 +132,7 @@ async def get_lookup_values(
     pagination_params = PaginationParams(page=page, page_size=page_size, search=search)
     return BaseResponse(
         data=await service.get_lookup_values(
-            lookup_id=lookup_id, params=pagination_params
+            lookup_id=lookup_id, is_active=is_active, params=pagination_params
         )
     )
 
@@ -158,23 +181,24 @@ async def create_nf_lookup_value(
     )
 
 
-@router.put(
-    "/lookup/values/{lookup_value_id}/status",
+@router.patch(
+    "/lookup/values/{lookup_value_id}",
     status_code=status.HTTP_200_OK,
-    name="Update lookup value status",
-    description="Update is_active for a lookup value by its id.",
-    operation_id="update_lookup_value_status",
+    name="Update lookup value",
+    description=(
+        "Partially update a lookup value. For nf-list, only name/status allowed; "
+        "for code-list, name/status/e2b_code_r2/e2b_code_r3 allowed."
+    ),
+    operation_id="update_lookup_value",
 )
-async def update_lookup_value_status(
+async def update_lookup_value(
     lookup_value_id: Annotated[str, Path(..., description="Lookup value id")],
-    body: Annotated[
-        UpdateLookupValueStatusRequest, Body(..., description="Request body")
-    ],
+    body: Annotated[UpdateLookupValueRequest, Body(..., description="Request body")],
     service: Annotated[SetupService, Depends()],
 ) -> BaseResponse[SuccessResponse]:
-    """Update lookup value status by its id."""
+    """Partially update a lookup value by its id."""
     return BaseResponse(
-        data=await service.update_lookup_value_status(
+        data=await service.update_lookup_value(
             lookup_value_id=lookup_value_id, **body.model_dump()
         )
     )
