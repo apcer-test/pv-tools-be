@@ -96,3 +96,5 @@ LOOKUP_VALUE_CREATED_SUCCESSFULLY = "Lookup value created successfully"
 
 LOOKUP_VALUE_STATUS_UPDATED_SUCCESSFULLY = "Lookup value status updated successfully"
 LOOKUP_STATUS_UPDATED_SUCCESSFULLY = "Lookup status updated successfully"
+LOOKUP_VALUE_UPDATED_SUCCESSFULLY = "Lookup value updated successfully"
+INVALID_NF_UPDATE_REQUEST = "Invalid nf-list update request"
