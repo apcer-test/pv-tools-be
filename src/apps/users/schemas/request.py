@@ -5,9 +5,6 @@ from typing import Any
 from pydantic import BaseModel, EmailStr, field_validator, model_validator
 
 from apps.users.exceptions import (
-    PasswordEmptyError,
-    PasswordNotMatchError,
-    PasswordOrOTPRequiredError,
     PhoneOrEmailRequiredError,
     PhoneRequiredError,
     UserMfaCodeRequiredError,
@@ -21,7 +18,6 @@ class LoginRequest(BaseModel):
     username: str | None = None
     phone: str | None = None
     email: str | None = None
-    password: str | None = None
     otp: str | None = None
 
     @field_validator("email", mode="before")
@@ -29,25 +25,14 @@ class LoginRequest(BaseModel):
     def normalize_email(cls, v: str | None) -> str | None:
         return v.lower() if v else v
 
-    @field_validator("password")
-    @classmethod
-    def password_validator(cls, value: str) -> str:
-        """Validate that password is not empty."""
-        if value == "":
-            raise PasswordEmptyError
-        return value
-
     @model_validator(mode="after")
     def check_login_fields(self) -> "LoginRequest":
         # If OTP is present, phone is required
         if self.otp is not None and not self.phone:
             raise PhoneRequiredError
-        # If password is present, at least one of phone or email is required
-        if self.password is not None and not (self.phone or self.email):
+        # If both OTP and email/phone are not present, raise error
+        if self.otp is None and not (self.phone or self.email):
             raise PhoneOrEmailRequiredError
-        # If both OTP and password are not present, raise error
-        if self.otp is None and self.password is None:
-            raise PasswordOrOTPRequiredError
         return self
 
 
@@ -57,11 +42,11 @@ class BaseUserRequest(BaseModel):
     username: str | None = None
     phone: str | None = None
     email: EmailStr | None = None
-    role_ids: list[int] | None = None
-    type_id: int | None = None
-    subtype_id: int | None = None
+    role_ids: list[str] | None = None
+    user_type_id: str | None = None
     description: str | None = None
     user_metadata: dict[str, Any] | None = None
+    reason: str | None = None  # Required for update operations
 
     @field_validator("email", mode="before")
     @classmethod
@@ -80,8 +65,6 @@ class BaseUserRequest(BaseModel):
 class CreateUserRequest(BaseUserRequest):
     """Schema for creating user."""
 
-    password: str | None = None
-
     @field_validator("email", mode="before")
     @classmethod
     def normalize_email(cls, v: str | None) -> str | None:
@@ -93,47 +76,6 @@ class CreateUserRequest(BaseUserRequest):
         if not self.email and not self.phone:
             raise PhoneOrEmailRequiredError
         return self
-
-
-class ResetPasswordRequest(BaseModel):
-    """Schema for updating a user."""
-
-    phone: str | None = None
-    email: str | None = None
-    password: str
-    confirm_password: str
-
-    @field_validator("email", mode="before")
-    @classmethod
-    def normalize_email(cls, v: str | None) -> str | None:
-        return v.lower() if v else v
-
-    @model_validator(mode="after")
-    def check_passwords_match(self) -> "ResetPasswordRequest":
-        if self.password != self.confirm_password:
-            raise PasswordNotMatchError
-        return self
-
-    @model_validator(mode="after")
-    def check_login_fields(self) -> "LoginRequest":
-        if not self.phone and not self.email:
-            raise PhoneOrEmailRequiredError
-        return self
-
-
-class ChangePasswordRequest(BaseModel):
-    """Schema for change password request."""
-
-    current_password: str
-    new_password: str
-
-    @field_validator("current_password", "new_password")
-    @classmethod
-    def password_validator(cls, value: str) -> str:
-        """Validate that password is not empty."""
-        if value == "":
-            raise PasswordEmptyError
-        return value
 
 
 class GenerateOTPRequest(BaseModel):

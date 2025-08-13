@@ -1,3 +1,3 @@
-from .user import UserService
+from .user import UserService, MicrosoftSSOService
 
-__all__ = ["UserService"]
+__all__ = ["UserService", "MicrosoftSSOService"]

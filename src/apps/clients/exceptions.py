@@ -1,4 +1,4 @@
-from apps.tenants.constants import TenantMessage
+from apps.clients.constants import ClientMessage
 from core.exceptions import (
     AlreadyExistsError,
     BadRequestError,
@@ -7,25 +7,25 @@ from core.exceptions import (
 )
 
 
-class TenantAlreadyExistsError(AlreadyExistsError):
-    """Exception raised when attempting to create a tenant that already exists."""
+class ClientAlreadyExistsError(AlreadyExistsError):
+    """Exception raised when attempting to create a client that already exists."""
 
-    message = TenantMessage.TENANT_ALREADY_EXISTS
+    message = ClientMessage.CLIENT_ALREADY_EXISTS
 
 
-class TenantNotFoundError(NotFoundError):
-    """Exception raised when a tenant is not found."""
+class ClientNotFoundError(NotFoundError):
+    """Exception raised when a client is not found."""
 
-    message = TenantMessage.TENANT_NOT_EXISTS
+    message = ClientMessage.CLIENT_NOT_EXISTS
 
 
 class EmptyDescriptionError(UnprocessableEntityError):
     """Custom exception for issue with the notes create empty description."""
 
-    message = TenantMessage.DESCRIPTION
+    message = ClientMessage.DESCRIPTION
 
 
 class InvalidEncryptedDataError(BadRequestError):
     """Custom exception for User already assigned error."""
 
-    message = TenantMessage.INVALID_ENCRYPTED_DATA
+    message = ClientMessage.INVALID_ENCRYPTED_DATA

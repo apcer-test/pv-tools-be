@@ -6,17 +6,18 @@ from fastapi import APIRouter, Body, Depends, Path, Query, status
 from fastapi_pagination import Page, Params
 
 from apps.permissions.constants import PermissionSortBy
-from apps.permissions.schemas.request import CreatePermissionRequest
+from apps.permissions.schemas.request import CreatePermissionRequest, UpdatePermissionRequest
 from apps.permissions.schemas.response import BasePermissionResponse
 from apps.permissions.services.permissions import PermissionService
+from apps.users.models.user import Users
+from apps.users.utils import current_user
 from core.constants import SortType
-from core.dependencies import verify_api_keys
+from core.dependencies import verify_access_token
 from core.utils.schema import BaseResponse, SuccessResponse
 
 router = APIRouter(
-    prefix="/{tenant_key}/{app_key}/permissions",
+    prefix="/permissions",
     tags=["Permissions"],
-    dependencies=[Depends(verify_api_keys)],
 )
 
 
@@ -24,15 +25,13 @@ router = APIRouter(
 async def create_permission(
     body: Annotated[CreatePermissionRequest, Body()],
     service: Annotated[PermissionService, Depends()],
+    user: Annotated[tuple[Users, str], Depends(current_user)],
 ) -> BaseResponse[BasePermissionResponse]:
     """
     Create a new permission.
 
     Args:
-      - tenant_key (int/str): The tenant key means tenant_id or name. This is required.
-      - app_key (int/str): The app key means app_id or name. This is required.
       - name (str): The name of the permission. This is required.
-      - slug (str): The slug of the permission. This is optional.
 
     Returns:
       - BaseResponse[BasePermissionResponse]: The newly created permission wrapped in a base response.
@@ -41,13 +40,14 @@ async def create_permission(
       - PermissionAlreadyExistsError: If a permission with the same name already exists.
     """
 
-    return BaseResponse(data=await service.create_permission(**body.model_dump()))
+    return BaseResponse(data=await service.create_permission(**body.model_dump(), client_id=user.get("client_id"), user_id=user.get("user").id))
 
 
 @router.get("", status_code=status.HTTP_200_OK, name="Get all permissions")
 async def get_all_permissions(
-    service: Annotated[PermissionService, Depends()],
     params: Annotated[Params, Depends()],
+    service: Annotated[PermissionService, Depends()],
+    user: Annotated[tuple[Users, str], Depends(current_user)],
     sort_by: Annotated[PermissionSortBy | None, Query()] = None,
     sort_type: Annotated[SortType | None, Query()] = None,
     search: Annotated[str | None, Query()] = None,
@@ -56,8 +56,6 @@ async def get_all_permissions(
     Retrieve a paginated list of all permissions.
 
     Args:
-      - tenant_key (int/str): The tenant key means tenant_id or name. This is required.
-      - app_key (int/str): The app key means app_id or name. This is required.
       - params (Params): Pagination parameters including page number and size.
       - sort_by (PermissionSortBy | None): Field to sort the results by. Optional.
       - sort_type (SortType | None): Sorting order (asc or desc). Optional.
@@ -70,38 +68,11 @@ async def get_all_permissions(
       - PermissionNotFoundError: If a permission with the same name not exists.
 
     """
-
+    
     return BaseResponse(
         data=await service.get_all_permissions(
-            params=params, sort_by=sort_by, sort_type=sort_type, search=search
+            params=params, sort_by=sort_by, sort_type=sort_type, search=search, client_id=user.get("client_id")
         )
-    )
-
-
-@router.get(
-    "/{permission_key}", status_code=status.HTTP_200_OK, name="Get permission by key"
-)
-async def get_permission_by_id(
-    permission_key: Annotated[int | str, Path()],
-    service: Annotated[PermissionService, Depends()],
-) -> BaseResponse[BasePermissionResponse]:
-    """
-    Retrieve a permission by its unique permission_key(ID/Name).
-
-    Args:
-      - tenant_key (int/str): The tenant key means tenant_id or name. This is required.
-      - app_key (int/str): The app key means app_id or name. This is required.
-      - permission_key (int | str): The unique identifier (ID/Name) of the permission.
-
-    Returns:
-      - BaseResponse[BasePermissionResponse]: The permission details wrapped in a base response.
-
-    Raises:
-      - PermissionNotFoundError: If no permission is found with the given key.
-    """
-
-    return BaseResponse(
-        data=await service.get_permission_by_id(permission_key=permission_key)
     )
 
 
@@ -110,18 +81,19 @@ async def get_permission_by_id(
 )
 async def update_permission(
     permission_key: Annotated[int | str, Path()],
-    body: Annotated[CreatePermissionRequest, Body()],
+    body: Annotated[UpdatePermissionRequest, Body()],
     service: Annotated[PermissionService, Depends()],
+    user: Annotated[tuple[Users, str], Depends(current_user)],
 ) -> BaseResponse[BasePermissionResponse]:
     """
     Update an existing permission.
 
     Args:
-      - tenant_key (int/str): The tenant key means tenant_id or name. This is required.
-      - app_key (int/str): The app key means app_id or name. This is required.
       - permission_key (int | str): The unique identifier (ID or key) of the permission to update.
       - name (str): The name of the permission. This is required.
-      - slug (str): The slug of the permission. This is optional.
+      - slug (str | None): Optional slug for the permission.
+      - description (str | None): Optional description for the permission.
+      - permission_metadata (dict | None): Optional metadata for the permission.
 
     Returns:
       - BaseResponse[BasePermissionResponse]: The updated permission wrapped in a base response.
@@ -132,7 +104,7 @@ async def update_permission(
 
     return BaseResponse(
         data=await service.update_permission(
-            permission_key=permission_key, **body.model_dump()
+            permission_key=permission_key, **body.model_dump(), client_id=user.get("client_id"), user_id=user.get("user").id
         )
     )
 
@@ -145,13 +117,12 @@ async def update_permission(
 async def delete_permission(
     permission_key: Annotated[int | str, Path()],
     service: Annotated[PermissionService, Depends()],
+    user: Annotated[tuple[Users, str], Depends(current_user)],
 ) -> BaseResponse[SuccessResponse]:
     """
     Delete a permission by its unique permission_key.
 
     Args:
-      - tenant_key (int/str): The tenant key means tenant_id or name. This is required.
-      - app_key (int/str): The app key means app_id or name. This is required.
       - permission_key (int | str): The unique identifier (ID or key) of the permission to delete.
 
     Returns:
@@ -163,5 +134,5 @@ async def delete_permission(
     """
 
     return BaseResponse(
-        data=await service.delete_permission(permission_key=permission_key)
+        data=await service.delete_permission(permission_key=permission_key, client_id=user.get("client_id"), user_id=user.get("user").id)
     )

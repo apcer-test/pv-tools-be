@@ -1,6 +1,6 @@
 """Request schema for user type."""
 
-from apps.user_types.constants import UserTypeMessage
+from apps.user_type.constants import UserTypeMessage
 from core.exceptions import AlreadyExistsError, BadRequestError, NotFoundError
 
 

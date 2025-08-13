@@ -1,6 +1,6 @@
 from typing import Any
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class ModulePermissionAssignment(BaseModel):
@@ -14,8 +14,6 @@ class CreateRoleRequest(BaseModel):
     name: str
     module_permissions: list[ModulePermissionAssignment] | None = None
     slug: str | None = None
-    description: str | None = None
-    role_metadata: dict[str, Any] | None = None
 
 
 class UpdateRoleRequest(BaseModel):
@@ -26,3 +24,4 @@ class UpdateRoleRequest(BaseModel):
     slug: str | None = None
     description: str | None = None
     role_metadata: dict[str, Any] | None = None
+    reason: str = Field(..., description="Reason for updating the role")

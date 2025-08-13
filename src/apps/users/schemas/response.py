@@ -12,7 +12,7 @@ from apps.users.constants import UserAuthAction
 class RoleResponse(BaseModel):
     """Response model for role information."""
 
-    id: int | None
+    id: str | None
     name: str | None
 
 
@@ -22,7 +22,7 @@ class LoginResponse(BaseModel):
     access_token: str | None
     refresh_token: str | None
     mfa_token: str | None
-    user_id: int
+    user_id: str
     username: str | None
     session_id: str | None
     roles: list[str] | None = []
@@ -47,7 +47,7 @@ class RefreshTokenResponse(BaseModel):
 class CreateUserResponse(BaseModel):
     """Response model containing information about a created user."""
 
-    id: int
+    id: str
     name: str
     username: str | None
 
@@ -60,49 +60,43 @@ class CreateUserResponse(BaseModel):
 class BaseUserResponse(BaseModel):
     """Response model for user information."""
 
-    id: int
+    id: str
     username: str | None
     email: str | None = None
     phone: str | None = None
-    role_ids: list[int] | None = None
-    type_id: int | None = None
-    subtype_id: int | None = None
+    role_ids: list[str] | None = None
+    user_type_id: str | None = None
     description: str | None = None
     user_metadata: dict[str, Any] | None = None
-    app_id: int
-    tenant_id: int
 
 
 class UserStatusResponse(BaseModel):
     """Response model for user with status information."""
 
-    id: int
+    id: str
     username: str | None
     email: str | None = None
     phone: str | None = None
-    app_id: int
     is_active: bool
 
 
 class UpdateUserResponse(BaseModel):
     """Response model for updated user's information."""
 
-    id: int
+    id: str
     username: str | None
     email: EmailStr | None = None
     phone: str | None = None
     roles: list[RoleResponse]
-    user_type_id: int | None = None
-    user_subtype_id: int | None = None
+    user_type_id: str | None = None
     description: str | None = None
     user_metadata: dict[str, Any] | None = None
-    app_id: int | None
 
 
 class PermissionResponse(BaseModel):
     """Response model for permission information."""
 
-    id: int
+    id: str
     name: str
     key: str
 
@@ -110,35 +104,34 @@ class PermissionResponse(BaseModel):
 class UserTypeResponse(BaseModel):
     """Response model for type information."""
 
-    id: int | None
+    id: str | None
     name: str | None
 
 
 class UserSubTypeResponse(BaseModel):
     """Response model for subtype information."""
 
-    id: int | None
+    id: str | None
     name: str | None
 
 
 class TenantAppResponse(BaseModel):
     """Response model for tenant_app information."""
 
-    id: int | None
+    id: str | None
     app_name: str
-    tenant_id: int | None
+    tenant_id: str | None
 
 
 class UserResponse(BaseModel):
     """response model for getting information of self."""
 
-    id: int
+    id: str
     username: str | None
     email: str | None = None
     phone: str | None = None
     roles: list[AliasedRoleResponse] | None
     type: UserTypeResponse | None
-    subtype: UserSubTypeResponse | None
     description: str | None = None
     user_metadata: dict[str, Any] | None = None
     created_at: datetime
@@ -152,7 +145,6 @@ class ListUserResponse(UserStatusResponse):
 
     roles: list[RoleResponse]
     type: UserTypeResponse
-    subtype: UserSubTypeResponse
     description: str | None = None
     user_metadata: dict[str, Any] | None = None
 
@@ -176,7 +168,7 @@ class MFAVerifiedResponse(BaseModel):
 
     access_token: str
     refresh_token: str
-    user_id: int
+    user_id: str
     username: str | None
     session_id: str | None
     roles: list[str] | None = []

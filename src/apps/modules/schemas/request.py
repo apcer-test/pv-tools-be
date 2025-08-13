@@ -2,7 +2,7 @@
 
 from typing import Any
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class CreateModuleRequest(BaseModel):
@@ -10,8 +10,6 @@ class CreateModuleRequest(BaseModel):
 
     name: str
     slug: str | None = None
-    description: str | None = None
-    module_metadata: dict[str, Any] | None = None
     parent_module_id: int | None = None
     permissions: list[int] | None = None
 
@@ -25,3 +23,4 @@ class UpdateModuleRequest(BaseModel):
     slug: str | None = None
     description: str | None = None
     module_metadata: dict[str, Any] | None = None
+    reason: str = Field(..., description="Reason for updating the module")

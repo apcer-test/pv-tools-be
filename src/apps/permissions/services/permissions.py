@@ -3,7 +3,7 @@
 from datetime import UTC, datetime
 from typing import Annotated
 
-from fastapi import Depends, Path
+from fastapi import Depends
 from fastapi_pagination import Page, Params
 from fastapi_pagination.ext.sqlalchemy import paginate
 from sqlalchemy import and_, select
@@ -21,13 +21,13 @@ from apps.permissions.schemas.response import BasePermissionResponse
 from apps.roles.models import RoleModulePermissionLink
 from core.constants import SortType
 from core.db import db_session
-from core.utils.resolve_context_ids import get_context_ids_from_keys
 from core.utils.schema import SuccessResponse
 from core.utils.slug_utils import (
     generate_unique_slug,
     validate_and_generate_slug,
     validate_unique_slug,
 )
+from apps.clients.models.clients import Clients
 
 
 class PermissionService:
@@ -36,8 +36,6 @@ class PermissionService:
     def __init__(
         self,
         session: Annotated[AsyncSession, Depends(db_session)],
-        tenant_key: Annotated[int | str, Path()],
-        app_key: Annotated[int | str, Path()],
     ) -> None:
         """Call method to inject db_session as a dependency.
 
@@ -45,23 +43,30 @@ class PermissionService:
 
         Args:
             session (AsyncSession): An asynchronous database connection.
-            tenant_id (int): The tenant ID.
-            app_id (int): The app ID.
         """
         self.session = session
-        self.tenant_key = tenant_key
-        self.app_key = app_key
-        self.tenant_id = None
-        self.app_id = None
+        self.client_slug = None
+        self.client_id = None
 
     async def _resolve_context_ids(self) -> None:
-        if self.tenant_id and self.app_id:
+        if self.client_id:
             return
-        tenant_id, app_id = await get_context_ids_from_keys(
-            session=self.session, tenant_key=self.tenant_key, app_key=self.app_key
+        if not self.client_slug:
+            raise ValueError("client_slug is required")
+        
+        # Get client ID from client slug
+        from apps.clients.models.clients import Clients
+        client = await self.session.scalar(
+            select(Clients.id).where(
+                and_(
+                    Clients.slug == self.client_slug,
+                    Clients.deleted_at.is_(None)
+                )
+            )
         )
-        self.tenant_id = tenant_id
-        self.app_id = app_id
+        if not client:
+            raise ValueError("Client not found")
+        self.client_id = client.id
 
     async def _resolve_permission_id(self, permission_key: str | int) -> int:
         try:
@@ -73,8 +78,7 @@ class PermissionService:
             select(Permissions.id).where(
                 and_(
                     query,
-                    Permissions.tenant_id == self.tenant_id,
-                    Permissions.app_id == self.app_id,
+                    Permissions.client_id == self.client_id,
                     Permissions.deleted_at.is_(None),
                 )
             )
@@ -90,33 +94,30 @@ class PermissionService:
         slug: str,
         description: str | None = None,
         permission_metadata: dict | None = None,
+        client_id: str | None = None,
+        user_id: str | None = None,
     ) -> Permissions:
-        """
-        Create a new permission.
+        """Create a new permission.
 
         Args:
-            - name (str): The name of the permission. This is required.
-            - slug (str): The slug of the permission. This is optional.
-            - description (str | None): Optional description of the permission.
-            - permission_metadata (dict | None): Optional metadata for the permission.
-
+            name (str): The name of the permission.
+            slug (str): The slug of the permission.
+            description (str | None): Optional description of the permission.
+            permission_metadata (dict | None): Optional metadata for the permission.
+            client_id (str | None): Optional client ID.
+            user_id (str | None): Optional user ID.
         Returns:
-            Permissions: The Permission Model with the created permission.
+            Permissions: The newly created permission.
 
         Raises:
             PermissionAlreadyExistsError: If a permission with the same name already exists.
         """
-        await self._resolve_context_ids()
-
         async with self.session.begin_nested():
             if await self.session.scalar(
-                select(Permissions)
-                .options(load_only(Permissions.name))
-                .where(
+                select(Permissions).where(
                     and_(
-                        Permissions.tenant_id == self.tenant_id,
-                        Permissions.app_id == self.app_id,
                         Permissions.name.ilike(name),
+                        Permissions.client_id == client_id,
                         Permissions.deleted_at.is_(None),
                     )
                 )
@@ -128,18 +129,18 @@ class PermissionService:
             name=name,
             db=self.session,
             model=Permissions,
-            tenant_id=self.tenant_id,
-            app_id=self.app_id,
+            client_id=client_id,
         )
 
         async with self.session.begin_nested():
             permission = Permissions(
                 name=name,
                 slug=slug,
-                tenant_id=self.tenant_id,
-                app_id=self.app_id,
-                description=description,
-                permission_metadata=permission_metadata,
+                client_id=client_id,
+                description=None,
+                meta_data=None,
+                created_by=user_id,
+                updated_by=user_id,
             )
             self.session.add(permission)
 
@@ -154,6 +155,7 @@ class PermissionService:
         sort_by: PermissionSortBy | None = None,
         sort_type: SortType | None = None,
         search: str | None = None,
+        client_id: str | None = None,
     ) -> Page[BasePermissionResponse]:
         """
         Retrieve a paginated list of all permissions.
@@ -170,14 +172,7 @@ class PermissionService:
         Raises:
             - PermissionNotFoundError: If a permission with the same name not exists.
         """
-
-        await self._resolve_context_ids()
-
-        query = select(Permissions).where(
-            Permissions.tenant_id == self.tenant_id,
-            Permissions.app_id == self.app_id,
-            Permissions.deleted_at.is_(None),
-        )
+        query = select(Permissions).where(Clients.id == client_id, Permissions.deleted_at.is_(None))
 
         if search:
             query = query.where(Permissions.name.ilike(f"%{search.strip()}%"))
@@ -202,180 +197,114 @@ class PermissionService:
 
         return result
 
-    async def get_permission_by_id(self, permission_key: int | str) -> Permissions:
-        """
-        Retrieve a permission by its unique permission_key(ID/Name).
-
-        Args:
-          - permission_key (int | str): The unique identifier (ID/Name) of the permission.
-
-        Returns:
-          - Permissions: The Permission Model with the specified permission_key.
-
-        Raises:
-          - PermissionNotFoundError: If no permission is found with the given key.
-        """
-
-        await self._resolve_context_ids()
-        permission_id = await self._resolve_permission_id(permission_key=permission_key)
-
-        permission = await self.session.scalar(
-            select(Permissions).where(
-                Permissions.id == permission_id,
-                Permissions.tenant_id == self.tenant_id,
-                Permissions.app_id == self.app_id,
-                Permissions.deleted_at.is_(None),
-            )
-        )
-
-        if not permission:
-            raise PermissionNotFoundError
-
-        return permission
-
-    async def delete_permission(self, permission_key: int | str) -> SuccessResponse:
-        """
-        Delete a permission by its unique permission_key.
-
-        Args:
-          - permission_key (int | str): The unique identifier (ID or key) of the permission to delete.
-
-        Returns:
-          - SuccessResponse: A success message upon successful deletion.
-
-        Raises:
-          - PermissionNotFoundError: If no permission is found with the given key.
-          - PermissionAssignedFoundError: If a permission assigned to user found.
-        """
-        await self._resolve_context_ids()
-        permission_id = await self._resolve_permission_id(permission_key=permission_key)
-
-        existing_permission = await self.session.scalar(
-            select(Permissions)
-            .options(load_only(Permissions.id, Permissions.name))
-            .where(
-                and_(
-                    Permissions.tenant_id == self.tenant_id,
-                    Permissions.app_id == self.app_id,
-                    Permissions.id == permission_id,
-                    Permissions.deleted_at.is_(None),
-                )
-            )
-        )
-        if not existing_permission:
-            raise PermissionNotFoundError
-
-        all_users_with_permission = await self.session.scalars(
-            select(RoleModulePermissionLink)
-            .options(load_only(RoleModulePermissionLink.id))
-            .where(
-                and_(
-                    RoleModulePermissionLink.permission_id == permission_id,
-                    RoleModulePermissionLink.deleted_at.is_(None),
-                )
-            )
-        )
-        user_list_with_permission = [per.id for per in all_users_with_permission]
-        if user_list_with_permission:
-            raise PermissionAssignedFoundError
-
-        existing_permission.deleted_at = datetime.now(UTC).replace(tzinfo=None)
-
-        return SuccessResponse(message=PermissionMessage.PERMISSION_DELETED)
-
     async def update_permission(
         self,
         permission_key: int | str,
         name: str,
-        slug: str,
+        slug: str | None = None,
         description: str | None = None,
         permission_metadata: dict | None = None,
+        client_id: str | None = None,
+        user_id: str | None = None,
     ) -> Permissions:
-        """
-        Update an existing permission.
+        """Update an existing permission.
 
         Args:
-          - permission_key (int | str): The unique identifier (ID or key) of the permission to update.
-          - name (str): The name of the permission. This is required.
-          - slug (str): The slug of the permission. This is optional.
-          - description (str | None): Optional description of the permission.
-          - permission_metadata (dict | None): Optional metadata for the permission.
-
+            permission_key (int | str): The permission ID or slug.
+            name (str): The new name for the permission.
+            slug (str | None): Optional new slug for the permission.
+            description (str | None): Optional new description for the permission.
+            permission_metadata (dict | None): Optional new metadata for the permission.
+            client_id (str | None): Optional client ID.
+            user_id (str | None): Optional user ID.
         Returns:
-          - Permissions: Permission Model with updated details
+            Permissions: The updated permission object.
 
         Raises:
-          - PermissionNotFoundError: If no permission is found with the given key.
+            PermissionNotFoundError: If the permission is not found.
+            PermissionAlreadyExistsError: If a permission with the same name already exists.
         """
+        permission_id = await self._resolve_permission_id(permission_key)
 
-        await self._resolve_context_ids()
-        permission_id = await self._resolve_permission_id(permission_key=permission_key)
+        async with self.session.begin_nested():
+            permission = await self.session.get(Permissions, permission_id)
+            if not permission:
+                raise PermissionNotFoundError
 
-        existing_permission = await self.session.scalar(
-            select(Permissions)
-            .options(
-                load_only(
-                    Permissions.id,
-                    Permissions.name,
-                    Permissions.slug,
-                    Permissions.description,
-                    Permissions.permission_metadata,
-                )
-            )
-            .where(
-                and_(
-                    Permissions.tenant_id == self.tenant_id,
-                    Permissions.app_id == self.app_id,
-                    Permissions.id == permission_id,
-                    Permissions.deleted_at.is_(None),
-                )
-            )
-        )
-        if not existing_permission:
-            raise PermissionNotFoundError
-
-        if name and name != existing_permission.name:
-            async with self.session.begin_nested():
+            if name != permission.name:
                 if await self.session.scalar(
                     select(Permissions).where(
                         and_(
-                            Permissions.id != permission_id,
                             Permissions.name.ilike(name),
-                            Permissions.tenant_id == self.tenant_id,
-                            Permissions.app_id == self.app_id,
+                            Permissions.client_id == client_id,
+                            Permissions.id != permission_id,
                             Permissions.deleted_at.is_(None),
                         )
                     )
                 ):
                     raise PermissionAlreadyExistsError
+                permission.name = name
 
-        if slug and existing_permission.slug != slug:
-            await validate_unique_slug(
-                slug,
-                db=self.session,
-                model=Permissions,
-                tenant_id=self.tenant_id,
-                app_id=self.app_id,
+            if slug and slug != permission.slug:
+                await validate_unique_slug(
+                    slug,
+                    db=self.session,
+                    model=Permissions,
+                    client_id=client_id,
+                )
+                permission.slug = slug
+            elif name != permission.name:
+                permission.slug = await generate_unique_slug(
+                    text=name,
+                    db=self.session,
+                    model=Permissions,
+                    client_id=client_id,
+                    existing_id=permission_id,
+                )
+
+            if description is not None:
+                permission.description = description
+
+            if permission_metadata is not None:
+                permission.meta_data = permission_metadata
+
+            permission.updated_by = user_id
+            permission.updated_at = datetime.now(UTC).replace(tzinfo=None)
+
+        async with self.session.begin_nested():
+            await self.session.refresh(permission)
+
+        return permission
+
+    async def delete_permission(self, permission_key: int | str, client_id: str | None = None, user_id: str | None = None) -> SuccessResponse:
+        """Delete a permission by its ID or slug.
+
+        Args:
+            permission_key (int | str): The permission ID or slug.
+            client_id (str | None): Optional client ID.
+            user_id (str | None): Optional user ID.
+        Returns:
+            SuccessResponse: Success message.
+
+        Raises:
+            PermissionNotFoundError: If the permission is not found.
+            PermissionAssignedFoundError: If the permission is assigned to a role.
+        """ 
+        permission_id = await self._resolve_permission_id(permission_key)
+
+        # Check if permission is assigned to any role
+        if await self.session.scalar(
+            select(RoleModulePermissionLink).where(
+                RoleModulePermissionLink.permission_id == permission_id
             )
-            existing_permission.slug = slug
-        elif existing_permission.name != name:
-            existing_permission.slug = await generate_unique_slug(
-                text=name,
-                db=self.session,
-                model=Permissions,
-                tenant_id=self.tenant_id,
-                app_id=self.app_id,
-                existing_id=existing_permission.id,
-            )
+        ):
+            raise PermissionAssignedFoundError
 
-        existing_permission.name = name
+        async with self.session.begin_nested():
+            permission = await self.session.get(Permissions, permission_id)
+            if not permission:
+                raise PermissionNotFoundError
 
-        if description is not None:
-            existing_permission.description = description
-
-        if permission_metadata is not None:
-            existing_permission.permission_metadata = permission_metadata
-
-        existing_permission.updated_at = datetime.now(UTC).replace(tzinfo=None)
-
-        return existing_permission
+            permission.deleted_at = datetime.now(UTC).replace(tzinfo=None)
+            permission.deleted_by = user_id
+        return SuccessResponse(message=PermissionMessage.PERMISSION_DELETED)

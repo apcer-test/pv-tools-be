@@ -3,7 +3,6 @@ import json
 import re
 import secrets
 from datetime import datetime, timedelta, timezone
-from uuid import UUID
 
 import sentry_sdk
 from cryptography.fernet import Fernet
@@ -29,9 +28,8 @@ from apps.user.exceptions import (
 )
 from config import settings
 from constants.regex import EMAIL_REGEX, FIRST_NAME_REGEX, PHONE_REGEX
-from core.auth import access, admin_access, admin_refresh, refresh
+from core.auth import access, refresh
 from core.db import async_session
-from core.exceptions import InvalidRoleException
 from core.types import RoleType
 from core.utils import strong_password
 
@@ -45,31 +43,21 @@ async def create_password():
     return secrets.token_urlsafe(15)
 
 
-async def create_tokens(user_id: UUID, role: RoleType) -> dict[str, str]:
+async def create_tokens(user_id: str, client_slug: str) -> dict[str, str]:
     """
     Create access-token and refresh-token for a user.
 
     Args:
-        role:
         user_id:
+        client_slug:
     :return: A dictionary containing access-token and refresh-token.
     """
-    if role == RoleType.USER:
-        access_token = access.encode(
-            payload={"id": str(user_id)}, expire_period=int(settings.ACCESS_TOKEN_EXP)
-        )
-        refresh_token = refresh.encode(
-            payload={"id": str(user_id)}, expire_period=int(settings.REFRESH_TOKEN_EXP)
-        )
-    elif role == RoleType.ADMIN:
-        access_token = admin_access.encode(
-            payload={"id": str(user_id)}, expire_period=int(settings.ACCESS_TOKEN_EXP)
-        )
-        refresh_token = admin_refresh.encode(
-            payload={"id": str(user_id)}, expire_period=int(settings.REFRESH_TOKEN_EXP)
-        )
-    else:
-        raise InvalidRoleException
+    access_token = access.encode(
+        payload={"id": str(user_id), "client_id": client_slug}, expire_period=int(settings.ACCESS_TOKEN_EXP)
+    )
+    refresh_token = refresh.encode(
+        payload={"id": str(user_id), "client_id": client_slug}, expire_period=int(settings.REFRESH_TOKEN_EXP)
+    )
 
     return {"access_token": access_token, "refresh_token": refresh_token}
 

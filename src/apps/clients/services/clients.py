@@ -3,8 +3,11 @@ from sqlalchemy import select, and_, or_, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from fastapi import Depends
+import os
+from pathlib import Path
 
 from apps.media.schemas.response import MediaResponse
+from apps.media.constants import MediaType
 from core.db import db_session
 from core.exceptions import NotFoundError, ConflictError
 from apps.clients.models.clients import Clients
@@ -13,6 +16,7 @@ from apps.clients.schemas.request import CreateClientRequest, UpdateClientReques
 from apps.clients.schemas.response import ClientResponse, ClientListResponse
 from fastapi_pagination.ext.sqlalchemy import paginate
 from fastapi_pagination import Params
+from core.utils.slug_utils import generate_unique_slug
 
 
 class ClientService:
@@ -21,6 +25,22 @@ class ClientService:
     def __init__(self, session: Annotated[AsyncSession, Depends(db_session)]) -> None:
         """Initialize the service with database session."""
         self.session = session
+
+    def _determine_file_type(self, file_path: str) -> str:
+        """Determine file type based on file extension."""
+        file_extension = Path(file_path).suffix.lower()
+        
+        # Image extensions
+        image_extensions = {'.jpg', '.jpeg', '.png', '.gif', '.bmp', '.svg', '.webp'}
+        # Document extensions
+        document_extensions = {'.pdf', '.doc', '.docx', '.txt', '.rtf', '.odt'}
+        
+        if file_extension in image_extensions:
+            return MediaType.IMAGE
+        elif file_extension in document_extensions:
+            return MediaType.DOCUMENT
+        else:
+            return MediaType.UNKNOWN
 
     async def create_client(self, client_data: CreateClientRequest, user_id: str) -> Clients:
         """
@@ -36,13 +56,19 @@ class ClientService:
         Raises:
             ConflictError: If client with same name, code, or slug already exists
         """
-        # Check for existing client with same name, code, or slug
+        # Generate slug from name
+        slug = await generate_unique_slug(
+            text=client_data.name,
+            db=self.session,
+            model=Clients
+        )
+        
+        # Check for existing client with same name or code
         existing_client = await self.session.scalar(
             select(Clients).where(
                 or_(
                     Clients.name == client_data.name,
-                    Clients.code == client_data.code,
-                    Clients.slug == client_data.slug
+                    Clients.code == client_data.code
                 )
             )
         )
@@ -50,29 +76,31 @@ class ClientService:
         if existing_client:
             if existing_client.name == client_data.name:
                 raise ConflictError(message=f"Client with name '{client_data.name}' already exists")
-            elif existing_client.code == client_data.code:
-                raise ConflictError(message=f"Client with code '{client_data.code}' already exists")
             else:
-                raise ConflictError(message=f"Client with slug '{client_data.slug}' already exists")
+                raise ConflictError(message=f"Client with code '{client_data.code}' already exists")
 
         # Create media if provided
         media_id = None
         if client_data.media:
+            # Determine file type automatically
+            file_type = self._determine_file_type(client_data.media.file_path)
+            
             media = Media(
                 file_name=client_data.media.file_name,
                 file_path=client_data.media.file_path,
-                file_type=client_data.media.file_type
+                file_type=file_type
             )
             self.session.add(media)
+            await self.session.flush()  # Get the media ID
             media_id = media.id
 
         # Create client
         client = Clients(
             name=client_data.name,
             code=client_data.code,
-            slug=client_data.slug,
-            description=client_data.description,
-            meta_data=client_data.meta_data,
+            slug=slug,
+            description=None,
+            meta_data=None,
             media_id=media_id,
             is_active=client_data.is_active,
             created_by=user_id,
@@ -143,15 +171,6 @@ class ClientService:
             )
             if existing:
                 raise ConflictError(message=f"Client with code '{client_data.code}' already exists")
-        
-        if client_data.slug and client_data.slug != client.slug:
-            existing = await self.session.scalar(
-                select(Clients).where(
-                    and_(Clients.slug == client_data.slug, Clients.id != client_id)
-                )
-            )
-            if existing:
-                raise ConflictError(message=f"Client with slug '{client_data.slug}' already exists")
 
         # Update media if provided
         if client_data.media:
@@ -159,15 +178,20 @@ class ClientService:
                 # Update existing media
                 media = await self.session.get(Media, client.media_id)
                 if media:
+                    # Determine file type automatically
+                    file_type = self._determine_file_type(client_data.media.file_path)
+                    
                     media.file_name = client_data.media.file_name
                     media.file_path = client_data.media.file_path
-                    media.file_type = client_data.media.file_type
+                    media.file_type = file_type
             else:
                 # Create new media
+                file_type = self._determine_file_type(client_data.media.file_path)
+                
                 media = Media(
                     file_name=client_data.media.file_name,
                     file_path=client_data.media.file_path,
-                    file_type=client_data.media.file_type
+                    file_type=file_type
                 )
                 self.session.add(media)
                 client.media_id = media.id
@@ -175,10 +199,16 @@ class ClientService:
         # Update client fields
         if client_data.name is not None:
             client.name = client_data.name
+            # Regenerate slug if name changed
+            if client_data.name != client.name:
+                client.slug = await generate_unique_slug(
+                    text=client_data.name,
+                    db=self.session,
+                    model=Clients,
+                    existing_id=client_id
+                )
         if client_data.code is not None:
             client.code = client_data.code
-        if client_data.slug is not None:
-            client.slug = client_data.slug
         if client_data.description is not None:
             client.description = client_data.description
         if client_data.meta_data is not None:
@@ -222,7 +252,8 @@ class ClientService:
         Returns:
             Paginated list of clients
         """
-        query = select(Clients).options(selectinload(Clients.media))
+        # For list clients, only return id, name, and code
+        query = select(Clients.id, Clients.name, Clients.code).where(Clients.deleted_at.is_(None))
         
         # Apply filters
         if params.is_active is not None:
@@ -254,12 +285,20 @@ class ClientService:
         result = await paginate(self.session, query, pagination_params)
         
         return ClientListResponse(
-            items=[self._to_response(client) for client in result.items],
+            items=[self._to_list_response(client) for client in result.items],
             total=result.total,
             page=result.page,
             page_size=result.size,
             pages=result.pages
         )
+
+    def _to_list_response(self, client) -> dict:
+        """Convert client model to list response schema (only id, name, code)."""
+        return {
+            "id": client.id,
+            "name": client.name,
+            "code": client.code
+        }
 
     def _to_response(self, client: Clients) -> ClientResponse:
         """Convert client model to response schema."""

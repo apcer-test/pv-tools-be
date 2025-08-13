@@ -25,7 +25,7 @@ class ClientResponse(CamelCaseModel):
 class ClientListResponse(CamelCaseModel):
     """Schema for paginated list of clients."""
     
-    items: List[ClientResponse] = Field(..., description="List of clients")
+    items: List[dict] = Field(..., description="List of clients with id, name, and code only")
     total: int = Field(..., description="Total number of clients")
     page: int = Field(..., description="Current page number")
     page_size: int = Field(..., description="Number of items per page")
@@ -33,21 +33,21 @@ class ClientListResponse(CamelCaseModel):
 
 
 class CreateClientResponse(CamelCaseModel):
-    """Schema for response after creating a client."""
+    """Schema for client creation response."""
     
-    id: str = Field(..., description="Unique identifier for the created client")
+    id: str = Field(..., description="ID of the created client")
     message: str = Field(..., description="Success message")
 
 
 class UpdateClientResponse(CamelCaseModel):
-    """Schema for response after updating a client."""
+    """Schema for client update response."""
     
-    id: str = Field(..., description="Unique identifier for the updated client")
+    id: str = Field(..., description="ID of the updated client")
     message: str = Field(..., description="Success message")
 
 
 class DeleteClientResponse(CamelCaseModel):
-    """Schema for response after deleting a client."""
+    """Schema for client deletion response."""
     
-    id: str = Field(..., description="Unique identifier for the deleted client")
+    id: str = Field(..., description="ID of the deleted client")
     message: str = Field(..., description="Success message")

@@ -169,14 +169,14 @@ class HasPermission:
 
     """
 
-    def __init__(self, type_: RoleType) -> None:
+    def __init__(self) -> None:
         """
         Initialize the HasPermission object with the specified permission type.
 
         Args:
             type_ (RoleType): The type of permission to check.
         """
-        self.type = type_
+       
 
     async def __call__(
         self,

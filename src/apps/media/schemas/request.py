@@ -8,4 +8,3 @@ class MediaRequest(CamelCaseModel):
     
     file_name: str = Field(..., min_length=1, max_length=128, description="Name of the media file")
     file_path: str = Field(..., min_length=1, max_length=255, description="Path/URL of the media file")
-    file_type: str = Field(..., min_length=1, max_length=16, description="Type of media (e.g., image, document)")

@@ -2,11 +2,18 @@
 
 from typing import Any
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class CreatePermissionRequest(BaseModel):
-    """Request model for creating,updating a permission."""
+    """Request model for creating a permission."""
+
+    name: str
+    slug: str | None = None
+
+
+class UpdatePermissionRequest(BaseModel):
+    """Request model for updating a permission."""
 
     name: str
     slug: str | None = None

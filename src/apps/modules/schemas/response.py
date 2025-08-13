@@ -8,7 +8,7 @@ from apps.permissions.schemas import BasePermissionResponse
 class BaseModuleResponse(BaseModel):
     """Base module response model."""
 
-    id: int
+    id: str
     name: str
     slug: str
     description: str | None = None
@@ -20,7 +20,7 @@ class BaseModuleResponse(BaseModel):
 class ModuleResponse(BaseModel):
     """Model for representing module response."""
 
-    id: int
+    id: str
     name: str
     slug: str
     description: str | None = None

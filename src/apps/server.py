@@ -19,7 +19,10 @@ from apps.mail_box_config.controllers import (
 )
 from apps.master.controllers import master_router
 from apps.clients.controllers import clients_router
-#from apps.users.controllers import user_router
+from apps.roles.controllers import roles_router
+from apps.permissions.controllers import permissions_router
+from apps.user_type.controllers import user_type_router
+from apps.users.controllers import user_router
 from config import AppEnvironment, settings
 from constants.config import rate_limiter_config
 from core.task.lifespan import lifespan
@@ -45,7 +48,7 @@ def init_routers(_app: FastAPI) -> None:
         ]
     )
     base_router.include_router(master_router)
-    #base_router.include_router(user_router)
+    base_router.include_router(user_router)
     base_router.include_router(document_intake_router)
     base_router.include_router(extraction_agent_router)
     base_router.include_router(doctype_router)
@@ -54,6 +57,9 @@ def init_routers(_app: FastAPI) -> None:
     base_router.include_router(configurations_router)
     base_router.include_router(mail_box_config_router)
     base_router.include_router(clients_router)
+    base_router.include_router(roles_router)
+    base_router.include_router(permissions_router)
+    base_router.include_router(user_type_router)
     _app.include_router(base_router, responses={422: {"model": BaseValidationResponse}})
 
 

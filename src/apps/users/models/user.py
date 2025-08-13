@@ -51,7 +51,7 @@ class Users(Base, ULIDPrimaryKeyMixin, TimeStampMixin, UserMixin):
     description: Mapped[str | None] = mapped_column(String(255), nullable=True)
     meta_data: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     is_active: Mapped[bool] = mapped_column(default=True, server_default="True")
-    password: Mapped[str] = mapped_column(String(255), nullable=False)
+
 
     clients: Mapped[List["Clients"]] = relationship(
         secondary="user_role_link",

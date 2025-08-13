@@ -12,10 +12,13 @@ from apps.roles.constants import RolesSortBy
 from apps.roles.schemas import BaseRoleResponse, CreateRoleRequest, UpdateRoleRequest
 from apps.roles.schemas.response import RoleResponse
 from apps.roles.services import RoleService
+from apps.users.models.user import Users
+from apps.users.utils import current_user
+from core.auth import HasPermission
 from core.utils.schema import BaseResponse, SuccessResponse
 
 router = APIRouter(
-    prefix="/{tenant_key}/{app_key}/roles",
+    prefix="/roles",
     tags=["Roles"],
 )
 
@@ -29,13 +32,12 @@ router = APIRouter(
 async def create_role(
     body: Annotated[CreateRoleRequest, Body()],
     service: Annotated[RoleService, Depends()],
+    user: Annotated[tuple[Users, str], Depends(current_user)],
 ) -> BaseResponse[BaseRoleResponse]:
     """
     Create a new role.
 
     Args:
-      - tenant_key (int/str): The Tenant id or name. This is required.
-      - app_key (int/str): The app key means app_id or name. This is required.
       - name (str): The name of the role (e.g., "Manager", "Editor").
       - module_permissions (list[ModulePermissionAssignment] | None):
             Optional list of module-permission assignments specifying what actions this role can perform.
@@ -48,7 +50,7 @@ async def create_role(
       - RoleAlreadyExistsError: If a role with the same name already exists.
     """
 
-    return BaseResponse(data=await service.create_role(**body.model_dump()))
+    return BaseResponse(data=await service.create_role(**body.model_dump(), client_id=user.get("client_id"), user_id=user.get("user").id))
 
 
 @router.get(
@@ -60,6 +62,7 @@ async def create_role(
 async def get_all_roles(
     service: Annotated[RoleService, Depends()],
     page_params: Annotated[Params, Depends()],
+    user: Annotated[tuple[Users, str], Depends(current_user)],
     sortby: Annotated[RolesSortBy | None, Query()] = None,
     name: Annotated[str | None, Query()] = None,
 ) -> BaseResponse[Page[BaseRoleResponse]]:
@@ -67,8 +70,6 @@ async def get_all_roles(
     Retrieve a paginated list of all roles with optional filtering and sorting.
 
     Args:
-      - tenant_key (int/str): The Tenant id or name. This is required.
-      - app_key (int/str): The app key means app_id or name. This is required.
       - page_params (Params): Pagination parameters, including page number and size.
       - sortby (RolesSortBy | None): Optional sorting criteria (e.g., by name or created date).
       - name (str | None): Optional filter to return roles that match the given name or partial name.
@@ -76,31 +77,26 @@ async def get_all_roles(
     Returns:
       - BaseResponse[Page[BaseRoleResponse]]: A paginated response containing the list of roles.
 
+    Raises:
+      - RoleNotFoundError: If the role with the given key is not found.
     """
-
-    return BaseResponse(
-        data=await service.get_all_roles(
-            page_params=page_params, sortby=sortby, name=name
-        )
-    )
+    return BaseResponse(data=await service.get_all_roles(page_params, sortby, name, client_id=user.get("client_id")))
 
 
 @router.get(
-    "/{role_key}",
+    "/{role_id}",
     status_code=status.HTTP_200_OK,
     name="Get role by id",
     operation_id="get-role-by-key",
 )
 async def get_role_by_id(
-    role_key: Annotated[int | str, Path()], service: Annotated[RoleService, Depends()]
+    role_id: Annotated[str, Path()], service: Annotated[RoleService, Depends()], user: Annotated[tuple[Users, str], Depends(current_user)]
 ) -> BaseResponse[RoleResponse]:
     """
     Retrieve a role by its key.
 
     Args:
-      - tenant_key (int/str): The Tenant id or name. This is required.
-      - app_key (int/str): The app key means app_id or name. This is required.
-      - role_key (int | str): The unique identifier of the role (can be a numeric ID or a string slug).
+      - role_id (str): The unique identifier of the role (can be a numeric ID or a string slug).
 
     Returns:
       - BaseResponse[RoleResponse]: The role's details wrapped in a base response format.
@@ -109,27 +105,26 @@ async def get_role_by_id(
       - RoleNotFoundError: If the role with the given key is not found.
     """
 
-    return BaseResponse(data=await service.get_role_by_id(role_key=role_key))
+    return BaseResponse(data=await service.get_role_by_id(role_id=role_id, client_id=user.get("client_id")))
 
 
 @router.patch(
-    "/{role_key}",
+    "/{role_id}",
     status_code=status.HTTP_200_OK,
     name="Update role",
     operation_id="update-role",
 )
 async def update_role(
-    role_key: Annotated[int | str, Path()],
+    role_id: Annotated[str, Path()],
     body: Annotated[UpdateRoleRequest, Body()],
     service: Annotated[RoleService, Depends()],
+    user: Annotated[tuple[Users, str], Depends(current_user)],
 ) -> BaseResponse[RoleResponse]:
     """
     Update a role by its key.
 
     Args:
-      - tenant_key (int/str): The Tenant id or name. This is required.
-      - app_key (int/str): The app key means app_id or name. This is required.
-      - role_key (int | str): The unique identifier of the role (can be a numeric ID or a string slug).
+      - role_id (str): The unique identifier of the role (can be a numeric ID or a string slug).
       - name (str): Optional  The name of the role (e.g., "Manager", "Editor").
       - module_permissions (list[ModulePermissionAssignment] | None):
             Optional list of module-permission assignments specifying what actions this role can perform.
@@ -144,32 +139,31 @@ async def update_role(
 
     """
     return BaseResponse(
-        data=await service.update_role(role_key=role_key, **body.model_dump())
+        data=await service.update_role(role_id=role_id, **body.model_dump(), client_id=user.get("client_id"), user_id=user.get("user").id)
     )
 
 
 @router.delete(
-    "/{role_key}",
+    "/{role_id}",
     status_code=status.HTTP_200_OK,
     name="delete role using role_id",
     operation_id="delete-role",
 )
 async def delete_role(
-    role_key: Annotated[int | str, Path()], service: Annotated[RoleService, Depends()]
+    role_id: Annotated[str, Path()], service: Annotated[RoleService, Depends()], user: Annotated[tuple[Users, str], Depends(current_user)]
 ) -> BaseResponse[SuccessResponse]:
     """
     Delete a role by its key.
 
     Args:
-      - tenant_key (int/str): The Tenant id or name. This is required.
-      - app_key (int/str): The app key means app_id or name. This is required.
-      - role_key (int | str): The unique identifier of the role to be deleted (ID or slug).
+      - role_slug (str): The unique identifier of the role (can be a numeric ID or a string slug).
 
     Returns:
       - BaseResponse[SuccessResponse]: A standardized success response indicating that the role was deleted.
 
     Raises:
+      - RoleNotFoundError: If the role with the given key is not found.
       - RoleAssignedFoundError: If the role is assigned to any users.
-    """
 
-    return BaseResponse(data=await service.delete_role(role_key=role_key))
+    """
+    return BaseResponse(data=await service.delete_role(role_id=role_id, client_id=user.get("client_id"), user_id=user.get("user").id))
