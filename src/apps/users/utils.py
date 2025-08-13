@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from apps.clients.models.clients import Clients
 from apps.users.models import Users
+from apps.users.models.user import UserRoleLink
 from core.auth import access
 from core.constants import ErrorMessage
 from core.db import db_session
@@ -36,21 +37,25 @@ async def get_user_id_from_access_token(
 async def current_user(
     token_claims: Annotated[dict[str, Any], Depends(access)],
     session: Annotated[AsyncSession, Depends(db_session)],
-) -> Users:
+) -> dict[str, Any]:
     """Fetch the client user and return it.
 
     :param token_claims: The token payload.
     :param session: The database session.
-    :param client_id (int): the client's id
 
-    :return: The user object.
+    :return: Dictionary containing user object and client_id.
     """
 
+    # First, verify the user exists and has access to the specified client
     user = await session.scalar(
-        select(Users).where(
-             Users.id == token_claims.get("id"), Users.clients.any(Clients.id == token_claims.get("client_id"))
+        select(Users)
+        .join(UserRoleLink, Users.id == UserRoleLink.user_id)
+        .where(
+            Users.id == token_claims.get("id"),
+            UserRoleLink.client_id == token_claims.get("client_id")
         )
     )
+    
     if not user:
         raise UnauthorizedError(message=ErrorMessage.UNAUTHORIZED)
 

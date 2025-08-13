@@ -3086,6 +3086,17 @@ files = [
 ]
 
 [[package]]
+name = "slugify"
+version = "0.0.1"
+description = "A generic slugifier."
+optional = false
+python-versions = "*"
+groups = ["main"]
+files = [
+    {file = "slugify-0.0.1.tar.gz", hash = "sha256:c5703cc11c1a6947536f3ce8bb306766b8bb5a84a53717f5a703ce0f18235e4c"},
+]
+
+[[package]]
 name = "sniffio"
 version = "1.3.1"
 description = "Sniff out which async library your code is running under"
@@ -3872,4 +3883,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.12"
-content-hash = "ac8239d6fa6e5865e7c47677c6d167fa1f185dc51058ea538ae835c00ed11af6"
+content-hash = "6526565a780bc7e75b26bb02a30f42b248b97cfce98f24d8533f131a7bf779a3"

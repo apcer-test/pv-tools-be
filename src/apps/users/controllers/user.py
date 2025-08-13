@@ -9,11 +9,13 @@ import logging
 from authlib.integrations.base_client.errors import OAuthError
 from fastapi import APIRouter, Body, Depends, Path, Query, Request, status
 
+from apps.clients.models.clients import Clients
 from apps.users.models.user import Users
 from apps.users.schemas.response import BaseUserResponse
 from apps.users.services import UserService, MicrosoftSSOService
 from core.types import Providers
 from core.utils.schema import BaseResponse
+from core.db import db_session
 from config import AppEnvironment, settings
 from constants.config import MICROSOFT_GENERATE_CODE_SCOPE
 from core.utils.sso_client import SSOOAuthClient
@@ -33,6 +35,9 @@ from apps.users.schemas.response import (
 from apps.users.utils import current_user
 from core.utils.schema import BaseResponse, SuccessResponse
 from fastapi.responses import RedirectResponse
+from sqlalchemy import select, and_
+from core.db import db_session
+
 
 router = APIRouter(
     prefix="/users", tags=["User"]
@@ -190,9 +195,9 @@ async def generate_code_callback(request: Request) -> RedirectResponse:
     operation_id="create-user",
 )
 async def create_user(
-    client_slug: Annotated[str, Path()],
     body: Annotated[CreateUserRequest, Body()],
     service: Annotated[UserService, Depends()],
+    user: Annotated[tuple[Users, str], Depends(current_user)]
 ) -> BaseResponse[BaseUserResponse]:
     """
     Creates a new user with the provided information.
@@ -221,8 +226,9 @@ async def create_user(
 
     return BaseResponse(
         data=await service.create_user(
-            client_slug=client_slug,
-            **body.model_dump()
+            client_id=user.get("client_id"),
+            **body.model_dump(),
+            user_id=user.get("user").id
         )
     )
 
@@ -231,8 +237,7 @@ async def create_user(
     "/self", status_code=status.HTTP_200_OK, name="Get Self", operation_id="get-Self"
 )
 async def get_self(
-    client_slug: Annotated[str, Path()],
-    user: Annotated[Users, Depends(current_user)],
+    user: Annotated[tuple[Users, str], Depends(current_user)],
     service: Annotated[UserService, Depends()],
 ) -> BaseResponse[UserResponse]:
     """
@@ -250,7 +255,7 @@ async def get_self(
 
     """
 
-    return BaseResponse(data=await service.get_self(client_slug=client_slug, user_id=user.id))
+    return BaseResponse(data=await service.get_self(client_id=user.get("client_id"), user_id=user.get("user").id))
 
 
 @router.get(
@@ -260,10 +265,9 @@ async def get_self(
     operation_id="get-all-users",
 )
 async def get_all_users(
-    client_slug: Annotated[str, Path()],
     param: Annotated[Params, Depends()],
     service: Annotated[UserService, Depends()],
-    user: Annotated[Users, Depends()],
+    user: Annotated[tuple[Users, str], Depends(current_user)],
     user_ids: Annotated[list[str] | None, Query()] = None,
     username: Annotated[str | None, Query()] = None,
     email: Annotated[str | None, Query()] = None,
@@ -300,7 +304,7 @@ async def get_all_users(
 
     return BaseResponse(
         data=await service.get_all_users(
-            client_slug=client_slug,
+            client_id=user.get("client_id"),
             page_param=param,
             user=user,
             user_ids=user_ids,
@@ -322,7 +326,7 @@ async def get_all_users(
     operation_id="get-user-by-id",
 )
 async def get_user_by_id(
-    client_slug: Annotated[str, Path()],
+    user: Annotated[tuple[Users, str], Depends(current_user)],
     user_id: Annotated[str, Path()], 
     service: Annotated[UserService, Depends()]
 ) -> BaseResponse[ListUserResponse]:
@@ -341,7 +345,7 @@ async def get_user_by_id(
 
     """
 
-    return BaseResponse(data=await service.get_user_by_id(client_slug=client_slug, user_id=user_id))
+    return BaseResponse(data=await service.get_user_by_id(client_id=user.get("client_id"), user_id=user_id))
 
 
 @router.put(
@@ -351,7 +355,7 @@ async def get_user_by_id(
     operation_id="update-user",
 )
 async def update_user(
-    client_slug: Annotated[str, Path()],
+    user: Annotated[tuple[Users, str], Depends(current_user)],
     body: Annotated[BaseUserRequest, Body()],
     user_id: Annotated[str, Path()],
     service: Annotated[UserService, Depends()],
@@ -382,7 +386,7 @@ async def update_user(
 
     """
 
-    return BaseResponse(data=await service.update(client_slug=client_slug, user_id=user_id, **body.model_dump()))
+    return BaseResponse(data=await service.update(client_id=user.get("client_id"), user_id=user_id, **body.model_dump()))
 
 
 @router.patch(
@@ -392,7 +396,7 @@ async def update_user(
     status_code=status.HTTP_200_OK,
 )
 async def change_user_status(
-    client_slug: Annotated[str, Path()],
+    user: Annotated[tuple[Users, str], Depends(current_user)],
     user_id: Annotated[str, Path()], 
     service: Annotated[UserService, Depends()]
 ) -> BaseResponse[UserStatusResponse]:
@@ -412,7 +416,7 @@ async def change_user_status(
 
     """
 
-    return BaseResponse(data=await service.change_user_status(client_slug=client_slug, user_id=user_id))
+    return BaseResponse(data=await service.change_user_status(client_id=user.get("client_id"), user_id=user_id))
 
 
 @router.delete(
@@ -422,7 +426,7 @@ async def change_user_status(
     operation_id="delete-user",
 )
 async def delete_user(
-    client_slug: Annotated[str, Path()],
+    user: Annotated[tuple[Users, str], Depends(current_user)],
     user_id: Annotated[str, Path()], 
     service: Annotated[UserService, Depends()]
 ) -> BaseResponse[SuccessResponse]:
@@ -440,4 +444,4 @@ async def delete_user(
     Raises:
         - UserNotFoundError: If no user with the provided username is found.
     """
-    return BaseResponse(data=await service.delete(client_slug=client_slug, user_id=user_id))
+    return BaseResponse(data=await service.delete(client_id=user.get("client_id"), user_id=user_id))

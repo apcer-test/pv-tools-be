@@ -11,6 +11,7 @@ from sqlalchemy import and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import load_only, selectinload
 
+from apps.clients.models.clients import Clients
 from apps.modules.schemas.response import ModuleResponse
 from apps.roles.execeptions import RoleNotFoundError
 from apps.roles.models import Roles
@@ -90,7 +91,19 @@ class MicrosoftSSOService:
                 raise EmailNotFoundError
 
             user = await self.session.scalar(
-                select(Users).where(Users.email == email)
+                select(Users)
+                .options(
+                    selectinload(Users.roles),
+                    selectinload(Users.user_type)
+                )
+                .join(UserRoleLink, Users.id == UserRoleLink.user_id)
+                .where(
+                    and_(
+                        Users.email == email,
+                        Users.deleted_at.is_(None),
+                        UserRoleLink.client_id == client_slug
+                    )
+                )
             )
 
             if not user:
@@ -99,7 +112,7 @@ class MicrosoftSSOService:
             res = await create_tokens(user_id=user.id, client_slug=client_slug)
 
             redirect_link = (
-                f"{settings.LOGIN_REDIRECT_URL}?access-token={res.get('access_token')}&refresh-token="
+                f"{settings.LOGIN_REDIRECT_URL}?accessToken={res.get('access_token')}&refreshToken="
                 f"{res.get('refresh_token')}"
             )
 
@@ -115,84 +128,13 @@ class UserService:
         self,
         session: Annotated[AsyncSession, Depends(db_session)],
         role_service: Annotated[RoleService, Depends()],
-        client_slug: str = None,
     ) -> None:
         self.session = session
         self.role_service = role_service
-        self.client_id = None
-        self.client_slug = client_slug
-        self.redis = redis
-
-    async def _resolve_context_ids(self) -> None:
-        if self.client_id:
-            return
-        if not self.client_slug:
-            raise ValueError("client_slug is required")
-        client_id = await get_context_ids_from_keys(
-            session=self.session, client_slug=self.client_slug
-        )
-        self.client_id = client_id
-
-    def get_scopes_from_role(self, role: RoleResponse) -> list[dict[str, list[str]]]:
-        """
-        Given a role object, return a list of dicts with scopes and permissions.
-        """
-        scopes: list[dict[str, list[str]]] = []
-
-        def process_module(module: ModuleResponse, scope_prefix: str = "") -> None:
-            current_scope = module.name.lower().replace(" ", "-")
-            full_scope = (
-                f"{scope_prefix}:{current_scope}" if scope_prefix else current_scope
-            )
-            if hasattr(module, "permissions"):
-                permissions = [
-                    permission.name.lower().replace(" ", "-")
-                    for permission in getattr(module, "permissions", [])
-                ]
-                if permissions:
-                    scopes.append({"scope": full_scope, "permissions": permissions})
-            for child in getattr(module, "child_modules", []):
-                process_module(child, full_scope)
-
-        for module in getattr(role, "modules", []):
-            process_module(module)
-
-        return scopes
-
-    def get_merged_scopes_from_roles(
-        self, roles: list[RoleResponse]
-    ) -> list[dict[str, list[str]]]:
-        """
-        Given a list of role objects, return a merged
-        list of dicts with scopes and combined permissions.
-        """
-        scope_permissions = defaultdict(set)
-
-        def process_module(module: ModuleResponse, scope_prefix: str = "") -> None:
-            current_scope = module.name.lower().replace(" ", "-")
-            full_scope = (
-                f"{scope_prefix}:{current_scope}" if scope_prefix else current_scope
-            )
-            permissions = [
-                permission.name.lower().replace(" ", "-")
-                for permission in getattr(module, "permissions", [])
-            ]
-            scope_permissions[full_scope].update(permissions)
-            for child in getattr(module, "child_modules", []):
-                process_module(child, full_scope)
-
-        for role in roles:
-            for module in getattr(role, "modules", []):
-                process_module(module)
-
-        return [
-            {"scope": scope, "permissions": sorted(perms)}
-            for scope, perms in scope_permissions.items()
-        ]
 
     async def create_user(
         self,
-        client_slug: str,
+        client_id: str,
         username: str | None = None,
         phone: str | None = None,
         email: str | None = None,
@@ -200,12 +142,13 @@ class UserService:
         user_type_id: str | None = None,
         description: str | None = None,
         user_metadata: dict | None = None,
+        user_id: str | None = None,
     ) -> BaseUserResponse:
         """
         Creates a new user with the provided information.
 
          Args:
-          - client_slug (str): The client slug means client_id or name. This is required.
+          - client_id (str): The client id. This is required.
           - username (str | None): The username of the user.
           - phone (str | None): The phone number of the user.
           - email (str | None): The email address of the user.
@@ -213,7 +156,7 @@ class UserService:
           - user_type_id (str | None) : The Type ID of the user.
           - description (str | None): The description of the user.
           - meta_data (dict[str, Any] | None): The metadata of the user.
-
+          - user_id (str | None): The ID of the user who is creating the user.
         Returns:
           - BaseUserResponse: A response containing the created user's basic information.
 
@@ -227,21 +170,16 @@ class UserService:
 
         if role_ids is None:
             role_ids = []
-        self.client_slug = client_slug
-        await self._resolve_context_ids()
-
+        
         existing_user = await self.session.scalar(
             select(Users)
             .options(load_only(Users.phone, Users.email, Users.username))
             .where(
-                and_(
-                    Users.client_id == self.client_id,
-                    or_(
-                        and_(Users.phone == phone, Users.phone.is_not(None)),
-                        and_(Users.email == email, Users.email.is_not(None)),
-                    ),
-                    Users.deleted_at.is_(None),
-                )
+                or_(
+                    and_(Users.phone == phone, Users.phone.is_not(None)),
+                    and_(Users.email == email, Users.email.is_not(None)),
+                ),
+                Users.deleted_at.is_(None)
             )
         )
         if existing_user:
@@ -256,7 +194,7 @@ class UserService:
                 .options(load_only(Roles.id))
                 .where(
                     and_(
-                        Roles.client_id == self.client_id,
+                        Roles.client_id == client_id,
                         Roles.id.in_(role_ids),
                         Roles.deleted_at.is_(None),
                     )
@@ -272,7 +210,7 @@ class UserService:
                 .options(load_only(UserType.id))
                 .where(
                     and_(
-                        UserType.client_id == self.client_id,
+                        UserType.client_id == client_id,
                         UserType.id == user_type_id,
                         UserType.deleted_at.is_(None),
                     )
@@ -287,9 +225,10 @@ class UserService:
                 phone=phone,
                 email=email,
                 user_type_id=user_type_id,
-                client_id=self.client_id,
                 description=description,
                 user_metadata=user_metadata,
+                created_by=user_id,
+                updated_by=user_id,
             )
             self.session.add(user)
 
@@ -301,7 +240,7 @@ class UserService:
                 user_role_link = UserRoleLink(
                     user_id=user.id,
                     role_id=role_id,
-                    client_id=self.client_id,
+                    client_id=client_id,
                 )
                 self.session.add(user_role_link)
 
@@ -318,7 +257,7 @@ class UserService:
 
     async def get_all_users(  # noqa: C901
         self,
-        client_slug: str,
+        client_id: str,
         page_param: Params,
         user: Users,
         user_ids: list[str] | None = None,
@@ -334,7 +273,7 @@ class UserService:
         Retrieves a paginated list of users with optional filtering and sorting.
 
         Args:
-          - client_slug (str): The client slug means client_id or name. This is required.
+          - client_id (str): The client id. This is required.
           - param (Params): Pagination parameters including page number and size.
           - user_ids (list[str] | None): Optional list of user IDs to filter.
           - username (str | None): Optional filter by username.
@@ -352,9 +291,6 @@ class UserService:
           - UserNotFoundError: If no user with the provided username is found.
 
         """
-        self.client_slug = client_slug
-        await self._resolve_context_ids()
-
         query = (
             select(Users)
             .options(
@@ -373,7 +309,6 @@ class UserService:
             )
             .where(
                 and_(
-                    Users.client_id == self.client_id,
                     Users.deleted_at.is_(None),
                     Users.id != user.id,
                 )
@@ -442,12 +377,12 @@ class UserService:
         pagination.items = items
         return pagination
 
-    async def get_user_by_id(self, client_slug: str, user_id: str) -> ListUserResponse:
+    async def get_user_by_id(self, client_id: str, user_id: str) -> ListUserResponse:
         """
         Retrieves detailed information about a specific user by their ID.
 
         Args:
-            - client_slug (str): The client slug means client_id or name. This is required.
+            - client_id (str): The client id. This is required.
             - user_id (str): The unique identifier of the user to retrieve.
 
         Returns:
@@ -457,9 +392,6 @@ class UserService:
             - UserNotFoundError: If no user with the provided username is found.
 
         """
-        self.client_slug = client_slug
-        await self._resolve_context_ids()
-
         user = await self.session.scalar(
             select(Users)
             .options(
@@ -478,7 +410,6 @@ class UserService:
             )
             .where(
                 and_(
-                    Users.client_id == self.client_id,
                     Users.id == user_id,
                     Users.deleted_at.is_(None),
                 )
@@ -501,12 +432,12 @@ class UserService:
             is_active=user.is_active,
         )
 
-    async def change_user_status(self, client_slug: str, user_id: str) -> Users:
+    async def change_user_status(self, client_id: str, user_id: str) -> Users:
         """
         Toggles the active status of a user by their ID.
 
         Args:
-          - client_slug (str): The client slug means client_id or name. This is required.
+          - client_id (str): The client id. This is required.
           - user_id (str): The ID of the user whose status is to be changed.
 
         Returns:
@@ -516,9 +447,6 @@ class UserService:
           - UserNotFoundError: If no user with the provided username is found.
 
         """
-        self.client_slug = client_slug
-        await self._resolve_context_ids()
-
         existing_user = await self.session.scalar(
             select(Users)
             .options(
@@ -532,7 +460,6 @@ class UserService:
             )
             .where(
                 and_(
-                    Users.client_id == self.client_id,
                     Users.id == user_id,
                     Users.deleted_at.is_(None),
                 )
@@ -549,12 +476,12 @@ class UserService:
         return existing_user
 
     async def _assign_user_roles(
-        self, session: AsyncSession, user_id: str, role_ids: list[str]
+        self, session: AsyncSession, user_id: str, role_ids: list[str], client_id: str
     ) -> None:
         """Synchronize user roles with the provided role_ids."""
         # Fetch current role links for the user
         existing_links = await session.scalars(
-            select(UserRoleLink).where(UserRoleLink.user_id == user_id)
+            select(UserRoleLink).where(UserRoleLink.user_id == user_id, UserRoleLink.client_id == client_id, UserRoleLink.deleted_at.is_(None))
         )
         existing_links = list(existing_links)
         existing_role_ids = {link.role_id for link in existing_links}
@@ -573,13 +500,13 @@ class UserService:
             link = UserRoleLink(
                 user_id=user_id,
                 role_id=role_id,
-                client_id=self.client_id,
+                client_id=client_id,
             )
             session.add(link)
 
     async def update(  # noqa: C901
         self,
-        client_slug: str,
+        client_id: str,
         user_id: str,
         username: str | None = None,
         email: EmailStr | None = None,
@@ -593,7 +520,7 @@ class UserService:
         Updates the information of a specific user by their ID.
 
         Args:
-            - client_slug (str): The client slug means client_id or name. This is required.
+            - client_id (str): The client id. This is required.
           - user_id (str): The unique identifier of the user to retrieve.
           - username (str | None): The username of the user.
           - phone (str | None): The phone number of the user.
@@ -613,9 +540,6 @@ class UserService:
           - UserTypeNotFoundError: If the provided user type ID does not exist.
 
         """
-        self.client_slug = client_slug
-        await self._resolve_context_ids()
-
         async with self.session.begin_nested():
             existing_user = await self.session.scalar(
                 select(Users)
@@ -633,7 +557,6 @@ class UserService:
                 )
                 .where(
                     and_(
-                        Users.client_id == self.client_id,
                         Users.id == user_id,
                         Users.deleted_at.is_(None),
                     )
@@ -646,7 +569,6 @@ class UserService:
                 existing_phone = await self.session.scalar(
                     select(Users.id).where(
                         and_(
-                            Users.client_id == self.client_id,
                             Users.phone == phone,
                             Users.id != user_id,
                         )
@@ -658,7 +580,6 @@ class UserService:
                 existing_email = await self.session.scalar(
                     select(Users.id).where(
                         and_(
-                            Users.client_id == self.client_id,
                             Users.email == email,
                             Users.id != user_id,
                         )
@@ -673,7 +594,7 @@ class UserService:
                     .options(load_only(Roles.id, Roles.name))
                     .where(
                         and_(
-                            Roles.client_id == self.client_id,
+                            Roles.client_id == client_id,
                             Roles.id.in_(role_ids),
                             Roles.deleted_at.is_(None),
                         )
@@ -682,7 +603,7 @@ class UserService:
                 existing_roles = roles_result.all()
                 if len(existing_roles) != len(role_ids):
                     raise RoleNotFoundError
-                await self._assign_user_roles(self.session, user_id, role_ids)
+                await self._assign_user_roles(self.session, user_id, role_ids, client_id)
                 roles = existing_roles
 
             if user_type_id:
@@ -691,7 +612,7 @@ class UserService:
                     .options(load_only(UserType.id))
                     .where(
                         and_(
-                            UserType.client_id == self.client_id,
+                            UserType.client_id == client_id,
                             UserType.id == user_type_id,
                             UserType.deleted_at.is_(None),
                         )
@@ -728,12 +649,12 @@ class UserService:
                 user_type_id=existing_user.user_type_id,
             )
 
-    async def delete(self, client_slug: str, user_id: str) -> SuccessResponse:
+    async def delete(self, client_id: str, user_id: str) -> SuccessResponse:
         """
         Deletes a user account by their ID.
 
         Args:
-          - client_slug (str): The client slug means client_id or name. This is required.
+          - client_id (str): The client id. This is required.
           - user_id (str): The ID of the user whose status is to be changed.
 
         Returns:
@@ -742,15 +663,11 @@ class UserService:
         Raises:
           - UserNotFoundError: If no user with the provided username is found.
         """
-        self.client_slug = client_slug
-        await self._resolve_context_ids()
-
         existing_user = await self.session.scalar(
             select(Users)
             .options(load_only(Users.id, Users.username, Users.email, Users.phone))
             .where(
                 and_(
-                    Users.client_id == self.client_id,
                     Users.id == user_id,
                     Users.deleted_at.is_(None),
                 )
@@ -763,12 +680,12 @@ class UserService:
 
         return SuccessResponse(message=UserMessage.USER_DELETED)
 
-    async def get_self(self, client_slug: str, user_id: str) -> UserResponse:
+    async def get_self(self, client_id: str, user_id: str, user: Users) -> UserResponse:
         """
         Retrieves the profile information of the currently authenticated user.
 
         Args:
-          - client_slug (str): The client slug means client_id or name. This is required.
+          - client_id (str): The client id. This is required.
 
         Returns:
           - UserResponse: A response containing the user's profile information.
@@ -777,8 +694,6 @@ class UserService:
           - UserNotFoundError: If no user with the provided username is found.
 
         """
-        self.client_slug = client_slug
-        await self._resolve_context_ids()
 
         user = await self.session.scalar(
             select(Users)
@@ -787,7 +702,6 @@ class UserService:
                 selectinload(Users.roles),
             )
             .where(
-                Users.client_id == self.client_id,
                 Users.id == user_id,
             )
         )
@@ -800,7 +714,7 @@ class UserService:
         if role_ids:
             roles = await self.role_service.get_roles_by_ids(
                 role_ids=role_ids,
-                client_id=self.client_id,
+                client_id=client_id,
             )
 
         return UserResponse(

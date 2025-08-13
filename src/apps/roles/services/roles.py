@@ -478,7 +478,6 @@ class RoleService:
                     Modules.id.in_(module_ids),
                     Modules.deleted_at.is_(None),
                     Modules.client_id == client_id,
-                    Modules.created_by == user_id,
                 )
             )
             .options(
