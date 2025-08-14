@@ -251,9 +251,7 @@ class SetupService:
             file.file.close()
 
     async def get_codelist_lookup_list(
-        self,
-        is_active: bool | None = None,
-        params: PaginationParams | None = None,
+        self, is_active: bool | None = None, params: PaginationParams | None = None
     ) -> PaginatedResponse[LookupResponse]:
         """
         Get list of all code-list lookup entries.
@@ -262,7 +260,11 @@ class SetupService:
             LookupListResponse: List of lookup entries with id, name, slug and type.
         """
         # Query active code-list lookup entries
-        stmt = select(LookupModel).where(LookupModel.lookup_type == LookupType.CODELIST.value).order_by(LookupModel.updated_at.desc())
+        stmt = (
+            select(LookupModel)
+            .where(LookupModel.lookup_type == LookupType.CODELIST.value)
+            .order_by(LookupModel.updated_at.desc())
+        )
         if is_active is not None:
             stmt = stmt.where(LookupModel.is_active == is_active)
         assert params is not None, "Pagination params must be provided"
@@ -288,11 +290,7 @@ class SetupService:
         lookup_responses: list[LookupResponse] = []
         for lookup in page.items:
             lookup_responses.append(
-                LookupResponse(
-                    id=str(lookup.id),
-                    name=lookup.name,
-                    slug=lookup.slug,
-                )
+                LookupResponse(id=str(lookup.id), name=lookup.name, slug=lookup.slug)
             )
 
         return PaginatedResponse.create(
@@ -300,9 +298,7 @@ class SetupService:
         )
 
     async def get_nflist_lookup_list(
-        self,
-        is_active: bool | None = None,
-        params: PaginationParams | None = None,
+        self, is_active: bool | None = None, params: PaginationParams | None = None
     ) -> PaginatedResponse[LookupResponse]:
         """
         Get list of all nf-list lookup entries.
@@ -311,7 +307,11 @@ class SetupService:
             LookupListResponse: List of lookup entries with id, name, slug and type.
         """
         # Query active nf-list lookup entries
-        stmt = select(LookupModel).where(LookupModel.lookup_type == LookupType.NFLIST.value).order_by(LookupModel.updated_at.desc())
+        stmt = (
+            select(LookupModel)
+            .where(LookupModel.lookup_type == LookupType.NFLIST.value)
+            .order_by(LookupModel.updated_at.desc())
+        )
         if is_active is not None:
             stmt = stmt.where(LookupModel.is_active == is_active)
         assert params is not None, "Pagination params must be provided"
@@ -337,11 +337,7 @@ class SetupService:
         lookup_responses: list[LookupResponse] = []
         for lookup in page.items:
             lookup_responses.append(
-                LookupResponse(
-                    id=str(lookup.id),
-                    name=lookup.name,
-                    slug=lookup.slug,
-                )
+                LookupResponse(id=str(lookup.id), name=lookup.name, slug=lookup.slug)
             )
 
         return PaginatedResponse.create(

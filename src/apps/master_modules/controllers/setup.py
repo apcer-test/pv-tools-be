@@ -42,7 +42,7 @@ async def upload_excel_file(
     name="Get lookup list for code-list",
     description="Get list of all active lookup entries with their id, name, slug and type.",
     operation_id="get_codelist_lookup_list",
-    dependencies=[Depends(permission_required(["setup"], ["code-list"]))]
+    dependencies=[Depends(permission_required(["setup"], ["code-list"]))],
 )
 async def get_codelist_lookup_list(
     service: Annotated[SetupService, Depends()],
@@ -77,8 +77,7 @@ async def get_codelist_lookup_list(
     pagination_params = PaginationParams(page=page, page_size=page_size, search=search)
     return BaseResponse(
         data=await service.get_codelist_lookup_list(
-            is_active=is_active,
-            params=pagination_params,
+            is_active=is_active, params=pagination_params
         )
     )
 
@@ -89,7 +88,7 @@ async def get_codelist_lookup_list(
     name="Get lookup list for nf-list",
     description="Get list of all active lookup entries with their id, name, slug and type.",
     operation_id="get_nflist_lookup_list",
-    dependencies=[Depends(permission_required(["setup"], ["null-flavour-list"]))]
+    dependencies=[Depends(permission_required(["setup"], ["null-flavour-list"]))],
 )
 async def get_nflist_lookup_list(
     service: Annotated[SetupService, Depends()],
@@ -124,10 +123,10 @@ async def get_nflist_lookup_list(
     pagination_params = PaginationParams(page=page, page_size=page_size, search=search)
     return BaseResponse(
         data=await service.get_nflist_lookup_list(
-            is_active=is_active,
-            params=pagination_params,
+            is_active=is_active, params=pagination_params
         )
     )
+
 
 @router.get(
     "/lookup/{lookup_id}/values",
@@ -174,14 +173,13 @@ async def get_lookup_values(
     )
 
 
-
 @router.post(
     "/lookup/{lookup_id}/codelist/values",
     status_code=status.HTTP_201_CREATED,
     name="Create code-list lookup value",
     description="Create a lookup value for a given lookup id (code-list).",
     operation_id="create_lookup_value",
-    dependencies=[Depends(permission_required(["setup"], ["code-list"]))]
+    dependencies=[Depends(permission_required(["setup"], ["code-list"]))],
 )
 async def create_lookup_value(
     lookup_id: Annotated[str, Path(..., description="Lookup id")],
@@ -204,7 +202,7 @@ async def create_lookup_value(
     name="Create nf-list lookup value",
     description="Create an nf-list lookup value for a given lookup id.",
     operation_id="create_nf_lookup_value",
-    dependencies=[Depends(permission_required(["setup"], ["null-flavour-list"]))]
+    dependencies=[Depends(permission_required(["setup"], ["null-flavour-list"]))],
 )
 async def create_nf_lookup_value(
     lookup_id: Annotated[str, Path(..., description="Lookup id")],

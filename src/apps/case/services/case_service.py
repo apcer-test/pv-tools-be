@@ -79,12 +79,16 @@ class CaseService:
         self.session = session
 
     async def _check_components_exist(
-        self, client_id: str, components: List[CaseNumberComponentCreate], separator: str | None
+        self,
+        client_id: str,
+        components: List[CaseNumberComponentCreate],
+        separator: str | None,
     ) -> bool:
         """Check if a configuration with the same components and separator already exists"""
         # Get all configurations with their components
         configs = await self.session.scalars(
-            select(CaseNumberConfiguration).options(
+            select(CaseNumberConfiguration)
+            .options(
                 selectinload(CaseNumberConfiguration.components).options(
                     load_only(
                         CaseNumberComponent.id,
@@ -112,11 +116,16 @@ class CaseService:
         """Deactivate the currently active configuration"""
         await self.session.execute(
             update(CaseNumberConfiguration)
-            .where(CaseNumberConfiguration.is_active == True, CaseNumberConfiguration.client_id == client_id)  # noqa: E712
+            .where(
+                CaseNumberConfiguration.is_active == True,
+                CaseNumberConfiguration.client_id == client_id,
+            )  # noqa: E712
             .values(is_active=False)
         )
 
-    async def set_configuration_active(self, client_id: str, config_id: str) -> CaseNumberConfiguration:
+    async def set_configuration_active(
+        self, client_id: str, config_id: str
+    ) -> CaseNumberConfiguration:
         """Set a configuration as active and deactivate others"""
         # Check if configuration exists
         config = await self.get_configuration(client_id, config_id)
@@ -137,7 +146,9 @@ class CaseService:
     ) -> CaseNumberConfiguration:
         """Create a new case number configuration"""
         # Check for duplicate components along with separator
-        if await self._check_components_exist(client_id, config.components, config.separator):
+        if await self._check_components_exist(
+            client_id, config.components, config.separator
+        ):
             raise DuplicateConfigComponentsError
 
         # Generate configuration name
@@ -204,7 +215,10 @@ class CaseService:
                     )
                 )
             )
-            .where(CaseNumberConfiguration.id == config_id, CaseNumberConfiguration.client_id == client_id)
+            .where(
+                CaseNumberConfiguration.id == config_id,
+                CaseNumberConfiguration.client_id == client_id,
+            )
         )
 
     async def list_configurations(
@@ -218,17 +232,21 @@ class CaseService:
         Returns:
             List of configurations matching the filter
         """
-        query = select(CaseNumberConfiguration).options(
-            selectinload(CaseNumberConfiguration.components).options(
-                load_only(
-                    CaseNumberComponent.id,
-                    CaseNumberComponent.component_type,
-                    CaseNumberComponent.size,
-                    CaseNumberComponent.prompt,
-                    CaseNumberComponent.ordering,
+        query = (
+            select(CaseNumberConfiguration)
+            .options(
+                selectinload(CaseNumberConfiguration.components).options(
+                    load_only(
+                        CaseNumberComponent.id,
+                        CaseNumberComponent.component_type,
+                        CaseNumberComponent.size,
+                        CaseNumberComponent.prompt,
+                        CaseNumberComponent.ordering,
+                    )
                 )
             )
-        ).where(CaseNumberConfiguration.client_id == client_id)
+            .where(CaseNumberConfiguration.client_id == client_id)
+        )
 
         if is_active is not None:
             query = query.where(CaseNumberConfiguration.is_active == is_active)

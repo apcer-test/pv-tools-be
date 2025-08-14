@@ -12,6 +12,7 @@ from core.utils.mixins import TimeStampMixin, ULIDPrimaryKeyMixin
 if TYPE_CHECKING:
     from apps.clients.models.clients import Clients
 
+
 class CaseNumberConfiguration(Base, ULIDPrimaryKeyMixin, TimeStampMixin):
     """Configuration for case number generation patterns."""
 
@@ -32,7 +33,9 @@ class CaseNumberConfiguration(Base, ULIDPrimaryKeyMixin, TimeStampMixin):
     cases: Mapped[List["Case"]] = relationship(
         "Case", back_populates="config", cascade="all, delete-orphan"
     )
-    client: Mapped["Clients"] = relationship("Clients", back_populates="case_number_configurations")
+    client: Mapped["Clients"] = relationship(
+        "Clients", back_populates="case_number_configurations"
+    )
 
     def __repr__(self) -> str:
         """String representation of the case number configuration."""

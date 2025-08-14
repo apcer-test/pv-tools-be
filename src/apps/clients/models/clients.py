@@ -1,20 +1,20 @@
-from typing import TYPE_CHECKING
-from typing import List
-from sqlalchemy import ForeignKey, JSON, String
+from typing import TYPE_CHECKING, List
+
+from sqlalchemy import JSON, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from core.db import Base
 from core.utils.mixins import TimeStampMixin, ULIDPrimaryKeyMixin, UserMixin
 
 if TYPE_CHECKING:
+    from apps.case.models.case import CaseNumberConfiguration
     from apps.media.models.media import Media
-    from apps.user_type.models.user_type import UserType
-    from apps.roles.models.roles import Roles
     from apps.modules.models.modules import Modules
     from apps.permissions.models.permissions import Permissions
-    from apps.users.models.user import Users
-    from apps.users.models.user import UserRoleLink
-    from apps.case.models.case import CaseNumberConfiguration
+    from apps.roles.models.roles import Roles
+    from apps.user_type.models.user_type import UserType
+    from apps.users.models.user import UserRoleLink, Users
+
 
 class Clients(Base, ULIDPrimaryKeyMixin, TimeStampMixin, UserMixin):
     """Represents a Client in the system.
@@ -36,7 +36,9 @@ class Clients(Base, ULIDPrimaryKeyMixin, TimeStampMixin, UserMixin):
     slug: Mapped[str] = mapped_column(String(128), nullable=False, unique=True)
     description: Mapped[str | None] = mapped_column(String(255), nullable=True)
     meta_data: Mapped[dict | None] = mapped_column(JSON, nullable=True)
-    media_id: Mapped[str | None] = mapped_column(ForeignKey("media.id", use_alter=True), nullable=True)
+    media_id: Mapped[str | None] = mapped_column(
+        ForeignKey("media.id", use_alter=True), nullable=True
+    )
     is_active: Mapped[bool] = mapped_column(default=True, nullable=False)
 
     media: Mapped["Media"] = relationship(

@@ -17,10 +17,7 @@ from apps.users.utils import current_user, permission_required
 from core.auth import HasPermission
 from core.utils.schema import BaseResponse, SuccessResponse
 
-router = APIRouter(
-    prefix="/roles",
-    tags=["Roles"],
-)
+router = APIRouter(prefix="/roles", tags=["Roles"])
 
 
 @router.post(
@@ -28,7 +25,7 @@ router = APIRouter(
     status_code=status.HTTP_201_CREATED,
     name="Create role",
     operation_id="create-role",
-    dependencies=[Depends(permission_required(["roles"], ["role-management"]))]
+    dependencies=[Depends(permission_required(["roles"], ["role-management"]))],
 )
 async def create_role(
     body: Annotated[CreateRoleRequest, Body()],
@@ -52,7 +49,13 @@ async def create_role(
       - RoleAlreadyExistsError: If a role with the same name already exists.
     """
 
-    return BaseResponse(data=await service.create_role(**body.model_dump(), client_id=user.get("client_id"), user_id=user.get("user").id))
+    return BaseResponse(
+        data=await service.create_role(
+            **body.model_dump(),
+            client_id=user.get("client_id"),
+            user_id=user.get("user").id
+        )
+    )
 
 
 @router.get(
@@ -60,7 +63,7 @@ async def create_role(
     status_code=status.HTTP_200_OK,
     name="Get all roles",
     operation_id="get-all-roles",
-    dependencies=[Depends(permission_required(["roles"], ["role-management"]))]
+    dependencies=[Depends(permission_required(["roles"], ["role-management"]))],
 )
 async def get_all_roles(
     service: Annotated[RoleService, Depends()],
@@ -83,7 +86,11 @@ async def get_all_roles(
     Raises:
       - RoleNotFoundError: If the role with the given key is not found.
     """
-    return BaseResponse(data=await service.get_all_roles(page_params, sortby, name, client_id=user.get("client_id")))
+    return BaseResponse(
+        data=await service.get_all_roles(
+            page_params, sortby, name, client_id=user.get("client_id")
+        )
+    )
 
 
 @router.get(
@@ -91,10 +98,12 @@ async def get_all_roles(
     status_code=status.HTTP_200_OK,
     name="Get role by id",
     operation_id="get-role-by-key",
-    dependencies=[Depends(permission_required(["roles"], ["role-management"]))]
+    dependencies=[Depends(permission_required(["roles"], ["role-management"]))],
 )
 async def get_role_by_id(
-    role_id: Annotated[str, Path()], service: Annotated[RoleService, Depends()], user: Annotated[tuple[Users, str], Depends(current_user)]
+    role_id: Annotated[str, Path()],
+    service: Annotated[RoleService, Depends()],
+    user: Annotated[tuple[Users, str], Depends(current_user)],
 ) -> BaseResponse[RoleResponse]:
     """
     Retrieve a role by its key.
@@ -109,7 +118,11 @@ async def get_role_by_id(
       - RoleNotFoundError: If the role with the given key is not found.
     """
 
-    return BaseResponse(data=await service.get_roles_by_ids(role_ids=[role_id], client_id=user.get("client_id")))
+    return BaseResponse(
+        data=await service.get_roles_by_ids(
+            role_ids=[role_id], client_id=user.get("client_id")
+        )
+    )
 
 
 @router.put(
@@ -117,7 +130,7 @@ async def get_role_by_id(
     status_code=status.HTTP_200_OK,
     name="Update role",
     operation_id="update-role",
-    dependencies=[Depends(permission_required(["roles"], ["role-management"]))]
+    dependencies=[Depends(permission_required(["roles"], ["role-management"]))],
 )
 async def update_role(
     role_id: Annotated[str, Path()],
@@ -145,7 +158,12 @@ async def update_role(
 
     """
     return BaseResponse(
-        data=await service.update_role(role_id=role_id, **body.model_dump(), client_id=user.get("client_id"), user_id=user.get("user").id)
+        data=await service.update_role(
+            role_id=role_id,
+            **body.model_dump(),
+            client_id=user.get("client_id"),
+            user_id=user.get("user").id
+        )
     )
 
 
@@ -154,10 +172,12 @@ async def update_role(
     status_code=status.HTTP_200_OK,
     name="delete role using role_id",
     operation_id="delete-role",
-    dependencies=[Depends(permission_required(["roles"], ["role-management"]))]
+    dependencies=[Depends(permission_required(["roles"], ["role-management"]))],
 )
 async def delete_role(
-    role_id: Annotated[str, Path()], service: Annotated[RoleService, Depends()], user: Annotated[tuple[Users, str], Depends(current_user)]
+    role_id: Annotated[str, Path()],
+    service: Annotated[RoleService, Depends()],
+    user: Annotated[tuple[Users, str], Depends(current_user)],
 ) -> BaseResponse[SuccessResponse]:
     """
     Delete a role by its key.
@@ -173,4 +193,10 @@ async def delete_role(
       - RoleAssignedFoundError: If the role is assigned to any users.
 
     """
-    return BaseResponse(data=await service.delete_role(role_id=role_id, client_id=user.get("client_id"), user_id=user.get("user").id))
+    return BaseResponse(
+        data=await service.delete_role(
+            role_id=role_id,
+            client_id=user.get("client_id"),
+            user_id=user.get("user").id,
+        )
+    )
