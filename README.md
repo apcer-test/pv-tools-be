@@ -116,16 +116,14 @@ NOTE: we'll add targeted tfvars when moving to other enviroment
 | CodePipeline | Automated deployment pipelines | `modules/code-pipeline` |
 | CodeBuild | Build and test automation | `modules/code-pipeline` |
 | ECR | Container image registry | `modules/ecr` |
-| Route53 | DNS management and health checks | `modules/route53` |
+
 
 ### Authentication & Messaging
 
 | Service | Description | Module |
 |---------|-------------|---------|
 | Cognito | User authentication and authorization | `modules/cognito` |
-| SES | Email service (commented out) | `modules/ses` |
-| SNS | Notification service (commented out) | `modules/sns` |
-| SQS | Message queuing (commented out) | `modules/sqs` |
+
 
 ## Configuration
 

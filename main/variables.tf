@@ -433,6 +433,36 @@ variable "bastion_ami_id" {
   default     = ""
 }
 
+variable "bastion_instance_type" {
+  description = "Instance type for bastion host"
+  type        = string
+  default     = "t3.micro"
+}
+
+variable "bastion_volume_size" {
+  description = "Volume size for bastion host"
+  type        = number
+  default     = 20
+}
+
+variable "bastion_enable_instance_scheduler" {
+  description = "Enable instance scheduler for bastion"
+  type        = bool
+  default     = false
+}
+
+variable "bastion_disable_api_termination" {
+  description = "Disable API termination for bastion"
+  type        = bool
+  default     = false
+}
+
+variable "bastion_security_group_ids" {
+  description = "Additional security group IDs for bastion host"
+  type        = list(string)
+  default     = []
+}
+
 # CloudTrail variables
 variable "create_cloudtrail" {
   description = "Flag to determine whether to create CloudTrail"
@@ -459,30 +489,9 @@ variable "known_ip_addresses" {
   default     = []
 }
 
-# ACM Certificate variables
-variable "create_acm_certificates" {
-  description = "Whether to create ACM certificates"
-  type        = bool
-  default     = false
-}
 
-variable "domain_name" {
-  description = "Primary domain name for certificates"
-  type        = string
-  default     = ""
-}
 
-variable "certificate_subject_alternative_names" {
-  description = "Subject alternative names for certificates"
-  type        = list(string)
-  default     = []
-}
 
-variable "route53_zone_id" {
-  description = "Route53 hosted zone ID for DNS validation"
-  type        = string
-  default     = ""
-}
 
 # Cognito variables
 variable "create_cognito" {
@@ -573,194 +582,24 @@ variable "cognito_unauthenticated_role_policy_statements" {
   ]
 }
 
-# SES variables
-variable "create_ses" {
-  description = "Whether to create SES resources"
+
+
+
+
+# ElastiCache Redis Configuration
+variable "create_elasticache" {
+  description = "Whether to create ElastiCache Redis cluster"
   type        = bool
   default     = false
 }
 
-variable "ses_domain_name" {
-  description = "Domain name for SES identity"
-  type        = string
-  default     = ""
-}
-
-variable "ses_reputation_metrics_enabled" {
-  description = "Enable SES reputation metrics"
-  type        = bool
-  default     = true
-}
-
-variable "ses_sending_enabled" {
-  description = "Enable SES sending"
-  type        = bool
-  default     = true
-}
-
-variable "ses_event_destinations" {
-  description = "SES event destinations"
-  type        = map(any)
-  default     = {}
-}
-
-variable "ses_receipt_rules" {
-  description = "SES receipt rules"
-  type        = map(any)
-  default     = {}
-}
-
-# SNS variables
-variable "create_sns" {
-  description = "Whether to create SNS resources"
-  type        = bool
-  default     = false
-}
-
-variable "sns_topic_name" {
-  description = "Name of the SNS topic"
-  type        = string
-  default     = "notifications"
-}
-
-variable "sns_fifo_topic" {
-  description = "Whether this is a FIFO SNS topic"
-  type        = bool
-  default     = false
-}
-
-variable "sns_content_based_deduplication" {
-  description = "Enable content-based deduplication for SNS"
-  type        = bool
-  default     = false
-}
-
-variable "sns_kms_master_key_id" {
-  description = "KMS master key ID for SNS encryption"
-  type        = string
-  default     = null
-}
-
-variable "sns_subscriptions" {
-  description = "SNS topic subscriptions"
-  type        = map(any)
-  default     = {}
-}
-
-# SQS variables
-variable "create_sqs" {
-  description = "Whether to create SQS resources"
-  type        = bool
-  default     = false
-}
-
-variable "sqs_queue_name" {
-  description = "Name of the SQS queue"
-  type        = string
-  default     = "messages"
-}
-
-variable "sqs_create_dead_letter_queue" {
-  description = "Whether to create SQS dead letter queue"
-  type        = bool
-  default     = false
-}
-
-variable "sqs_delay_seconds" {
-  description = "Delay in seconds for SQS queue"
-  type        = number
-  default     = 0
-}
-
-variable "sqs_max_message_size" {
-  description = "Maximum message size for SQS queue"
-  type        = number
-  default     = 262144
-}
-
-variable "sqs_message_retention_seconds" {
-  description = "Message retention period for SQS queue"
-  type        = number
-  default     = 345600
-}
-
-variable "sqs_receive_wait_time_seconds" {
-  description = "Receive wait time for SQS queue"
-  type        = number
-  default     = 0
-}
-
-variable "sqs_visibility_timeout_seconds" {
-  description = "Visibility timeout for SQS queue"
-  type        = number
-  default     = 30
-}
-
-variable "sqs_fifo_queue" {
-  description = "Whether this is a FIFO SQS queue"
-  type        = bool
-  default     = false
-}
-
-variable "sqs_content_based_deduplication" {
-  description = "Enable content-based deduplication for SQS"
-  type        = bool
-  default     = false
-}
-
-variable "sqs_managed_sse_enabled" {
-  description = "Enable SQS managed server-side encryption"
-  type        = bool
-  default     = true
-}
-
-variable "sqs_kms_master_key_id" {
-  description = "KMS master key ID for SQS encryption"
-  type        = string
-  default     = null
-}
-
-variable "sqs_redrive_policy" {
-  description = "Redrive policy for SQS queue"
-  type        = string
-  default     = null
-}
-variable "bastion_instance_type" {
-  description = "Instance type for bastion host"
-  type        = string
-  default     = "t3.micro"
-}
-
-variable "bastion_volume_size" {
-  description = "Volume size for bastion host"
-  type        = number
-  default     = 20
-}
-
-variable "bastion_enable_instance_scheduler" {
-  description = "Enable instance scheduler for bastion"
-  type        = bool
-  default     = false
-}
-
-variable "bastion_disable_api_termination" {
-  description = "Disable API termination for bastion"
-  type        = bool
-  default     = false
-}
-
-variable "bastion_security_group_ids" {
-  description = "Additional security group IDs for bastion host"
-  type        = list(string)
-  default     = []
-}
 # Master CDN Configuration
-
 variable "cloudfront_acm_certificate_arn" {
   description = "ACM certificate ARN for CloudFront distributions (must be in us-east-1). Leave empty for automatic wildcard certificate detection based on domain aliases"
   type        = string
   default     = ""
 }
+
 variable "cdn_distributions" {
   description = "Master configuration for all CloudFront distributions"
   type = map(object({
@@ -805,98 +644,6 @@ variable "cdn_distributions" {
       })
     }), null)
     create               = optional(bool, true)
-  }))
-  default = {}
-}
-
-# Route53 variables
-variable "create_route53" {
-  description = "Whether to create Route53 hosted zone and records"
-  type        = bool
-  default     = false
-}
-
-variable "route53_domain_name" {
-  description = "Domain name for Route53 hosted zone"
-  type        = string
-  default     = ""
-}
-
-variable "route53_a_records" {
-  description = "Map of A records to create in Route53"
-  type = map(object({
-    name    = string
-    ttl     = number
-    records = list(string)
-  }))
-  default = {}
-}
-
-variable "route53_cname_records" {
-  description = "Map of CNAME records to create in Route53"
-  type = map(object({
-    name   = string
-    ttl    = number
-    record = string
-  }))
-  default = {}
-}
-
-variable "route53_mx_records" {
-  description = "Map of MX records to create in Route53"
-  type = map(object({
-    name    = string
-    ttl     = number
-    records = list(string)
-  }))
-  default = {}
-}
-
-variable "route53_txt_records" {
-  description = "Map of TXT records to create in Route53"
-  type = map(object({
-    name    = string
-    ttl     = number
-    records = list(string)
-  }))
-  default = {}
-}
-
-variable "route53_alias_records" {
-  description = "Map of alias records to create in Route53"
-  type = map(object({
-    name                   = string
-    type                   = string
-    alias_name             = string
-    alias_zone_id          = string
-    evaluate_target_health = bool
-  }))
-  default = {}
-}
-
-variable "route53_health_checks" {
-  description = "Map of health checks to create in Route53"
-  type = map(object({
-    fqdn              = string
-    port              = number
-    type              = string
-    resource_path     = string
-    failure_threshold = number
-    request_interval  = number
-  }))
-  default = {}
-}
-
-variable "route53_failover_records" {
-  description = "Map of failover records to create in Route53"
-  type = map(object({
-    name            = string
-    type            = string
-    ttl             = number
-    set_identifier  = string
-    health_check_id = string
-    failover_type   = string
-    records         = list(string)
   }))
   default = {}
 }
@@ -992,11 +739,4 @@ variable "synthetics" {
       memory_size = number
     })
   })
-}
-
-# ElastiCache Redis Configuration
-variable "create_elasticache" {
-  description = "Whether to create ElastiCache Redis cluster"
-  type        = bool
-  default     = false
 }

@@ -57,57 +57,7 @@ s3_tags = {
   Service     = "storage"
 }
 
-# Route53 Configuration
-create_route53 = true
-route53_domain_name = "webelight.co.in"
-route53_a_records = {
-  www = {
-    name    = "www"
-    ttl     = 300
-    records = ["1.2.3.4"]  # Replace with actual IP
-  }
-}
-route53_cname_records = {
-  api = {
-    name   = "api"
-    ttl    = 300
-    record = "api-test.webelight.co.in"
-  }
-}
-route53_mx_records = {
-  mail = {
-    name    = "@"
-    ttl     = 300
-    records = ["10 mail.webelight.co.in"]
-  }
-}
-route53_txt_records = {
-  spf = {
-    name    = "@"
-    ttl     = 300
-    records = ["v=spf1 include:_spf.google.com ~all"]
-  }
-}
-route53_alias_records = {
-  root = {
-    name                   = "@"
-    type                   = "A"
-    alias_name             = "s3-website-ap-south-1.amazonaws.com"
-    alias_zone_id          = "Z3BAYT2Z1FUQ6P"
-    evaluate_target_health = false
-  }
-}
-route53_health_checks = {
-  api_health = {
-    fqdn              = "api-test.webelight.co.in"
-    port              = 80
-    type              = "HTTP"
-    resource_path     = "/healthcheck"
-    failure_threshold = 3
-    request_interval  = 30
-  }
-}
-route53_failover_records = {}
+
 
 ###S3 Bucket ECOSYSTEM        
 storage_buckets = {
@@ -239,13 +189,7 @@ known_ip_addresses = [
 ]
 
 
-# ACM Certificate Configuration
-create_acm_certificates = true
-domain_name = "webelight.co.in"
-certificate_subject_alternative_names = [
-  "*.webelight.co.in"
-]
-route53_zone_id = "Z10292551GRPV7J7TQC3J"  # Leave empty - new hosted zone will be created automatically
+
 
 # Cognito Configuration
 create_cognito = true

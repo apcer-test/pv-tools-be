@@ -287,10 +287,6 @@ module "cloudfront_s3" {
   error_pages                   = each.value.error_pages
   default_cache_behavior        = each.value.default_cache_behavior
   tags                          = each.value.tags
-
-  depends_on = [
-    module.acm_cloudfront
-  ]
 }
 
 # Create CloudFront distributions for ECS services
@@ -322,8 +318,4 @@ module "cloudfront_ecs" {
   default_cache_behavior        = each.value.default_cache_behavior
   forwarded_values              = each.value.default_cache_behavior.forwarded_values
   tags                          = each.value.tags
-
-  depends_on = [
-    module.acm_cloudfront
-  ]
 } 
