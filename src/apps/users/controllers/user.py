@@ -47,6 +47,42 @@ logger = logging.getLogger(__name__)
 
 
 @router.get(
+    "/self", status_code=status.HTTP_200_OK, name="Get Self", operation_id="get-Self"
+)
+async def get_self(
+    user: Annotated[tuple[Users, str], Depends(current_user)],
+    service: Annotated[UserService, Depends()],
+) -> BaseResponse[UserResponse]:
+    """
+    Retrieves the profile information of the currently authenticated user.
+
+    Returns:
+        - BaseResponse[UserResponse]: A response containing the user's profile information.
+
+    """
+
+    return BaseResponse(data=await service.get_self(client_id=user.get("client_id"), user_id=user.get("user").id))
+
+
+@router.get(
+    "/{user_id}",
+    status_code=status.HTTP_200_OK,
+    name="Get user by id",
+    operation_id="get-user-by-id",
+)
+async def get_user_by_id(
+    user: Annotated[tuple[Users, str], Depends(current_user)],
+    user_id: Annotated[str, Path()],
+    service: Annotated[UserService, Depends()],
+) -> BaseResponse[ListUserResponse]:
+    """
+    Retrieves detailed information about a specific user by their ID.
+    """
+
+    return BaseResponse(data=await service.get_user_by_id(client_id=user.get("client_id"), user_id=user_id))
+
+
+@router.get(
     "/openid/login/{provider}/{client_id}",
     status_code=status.HTTP_200_OK,
     response_description="",
@@ -227,31 +263,6 @@ async def create_user(
 
 
 @router.get(
-    "/self", status_code=status.HTTP_200_OK, name="Get Self", operation_id="get-Self"
-)
-async def get_self(
-    user: Annotated[tuple[Users, str], Depends(current_user)],
-    service: Annotated[UserService, Depends()],
-) -> BaseResponse[UserResponse]:
-    """
-    Retrieves the profile information of the currently authenticated user.
-
-    Args:
-        - client_slug (str): The client slug means client_id or name. This is required.
-
-    Returns:
-        - BaseResponse[UserResponse]: A response containing
-        the user's profile information.
-
-    Raises:
-        - UserNotFoundError: If no user with the provided username is found.
-
-    """
-
-    return BaseResponse(data=await service.get_self(client_id=user.get("client_id"), user_id=user.get("user").id))
-
-
-@router.get(
     "", 
     status_code=status.HTTP_200_OK,
     name="Get all users",
@@ -308,35 +319,6 @@ async def get_all_users(
             sortby=sortby,
         )
     )
-
-
-@router.get(
-    "/{user_id}",
-    status_code=status.HTTP_200_OK,
-    name="Get user by id",
-    operation_id="get-user-by-id",
-)
-async def get_user_by_id(
-    user: Annotated[tuple[Users, str], Depends(current_user)],
-    user_id: Annotated[str, Path()], 
-    service: Annotated[UserService, Depends()]
-) -> BaseResponse[ListUserResponse]:
-    """
-    Retrieves detailed information about a specific user by their ID.
-
-    Args:
-      - client_slug (str): The client slug means client_id or name. This is required.
-      - user_id (str): The unique identifier of the user to retrieve.
-
-    Returns:
-      - BaseResponse[ListUserResponse]: A response containing the user's information.
-
-    Raises:
-      - UserNotFoundError: If no user with the provided username is found.
-
-    """
-
-    return BaseResponse(data=await service.get_user_by_id(client_id=user.get("client_id"), user_id=user_id))
 
 
 @router.put(

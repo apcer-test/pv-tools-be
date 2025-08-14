@@ -996,12 +996,13 @@ class UserService:
 
         return SuccessResponse(message=UserMessage.USER_DELETED)
 
-    async def get_self(self, client_id: str, user_id: str, user: Users) -> UserResponse:
+    async def get_self(self, client_id: str, user_id: str) -> UserResponse:
         """
         Retrieves the profile information of the currently authenticated user.
 
         Args:
           - client_id (str): The client id. This is required.
+          - user_id (str): The user id. This is required.
 
         Returns:
           - UserResponse: A response containing the user's profile information.
