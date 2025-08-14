@@ -90,4 +90,41 @@ variable "selection_tag_value" {
   description = "Tag value for resource selection"
   type        = string
   default     = "true"
+}
+
+# Lifecycle variables
+variable "cold_storage_after_days" {
+  description = "Number of days after which to move backups to cold storage"
+  type        = number
+  default     = null
+}
+
+variable "delete_after_days" {
+  description = "Number of days after which to delete backups (alternative to delete_after)"
+  type        = number
+  default     = null
+}
+
+variable "enable_long_term_retention" {
+  description = "Whether to enable long-term retention rule"
+  type        = bool
+  default     = false
+}
+
+variable "long_term_schedule" {
+  description = "CRON schedule for long-term retention backups"
+  type        = string
+  default     = "cron(0 5 1 * ? *)"  # Monthly on 1st at 5 AM UTC
+}
+
+variable "long_term_retention_days" {
+  description = "Retention period in days for long-term backups"
+  type        = number
+  default     = 365
+}
+
+variable "long_term_cold_storage_after_days" {
+  description = "Number of days after which to move long-term backups to cold storage"
+  type        = number
+  default     = 90
 } 

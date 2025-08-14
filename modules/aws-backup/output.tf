@@ -3,6 +3,11 @@ output "vault_arn" {
   value       = aws_backup_vault.main.arn
 }
 
+output "vault_name" {
+  description = "Name of the AWS Backup vault"
+  value       = aws_backup_vault.main.name
+}
+
 output "plan_name" {
   description = "Name of the AWS Backup plan"
   value       = aws_backup_plan.main.name

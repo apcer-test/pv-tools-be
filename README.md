@@ -109,6 +109,7 @@ NOTE: we'll add targeted tfvars when moving to other enviroment
 | Synthetics | Automated health checks | `modules/cloudwatch-synthetics` |
 | AWS Backup | Automated backup and recovery | `modules/aws-backup` |
 | AWS Budgets | Cost monitoring and alerts | `modules/aws-budgets` |
+| AWS VPN | Client VPN and Site-to-Site VPN | `modules/aws-vpn` |
 
 ### CI/CD & DevOps
 

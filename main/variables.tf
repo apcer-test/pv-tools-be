@@ -698,6 +698,37 @@ variable "aws_backup_resource_arns" {
   default     = []
 }
 
+# AWS Backup Lifecycle variables
+variable "aws_backup_cold_storage_after_days" {
+  description = "Number of days after which to move backups to cold storage"
+  type        = number
+  default     = 30
+}
+
+variable "aws_backup_enable_long_term_retention" {
+  description = "Whether to enable long-term retention rule"
+  type        = bool
+  default     = true
+}
+
+variable "aws_backup_long_term_schedule" {
+  description = "CRON schedule for long-term retention backups"
+  type        = string
+  default     = "cron(0 5 1 * ? *)"  # Monthly on 1st at 5 AM UTC
+}
+
+variable "aws_backup_long_term_retention_days" {
+  description = "Retention period in days for long-term backups"
+  type        = number
+  default     = 365
+}
+
+variable "aws_backup_long_term_cold_storage_after_days" {
+  description = "Number of days after which to move long-term backups to cold storage"
+  type        = number
+  default     = 90
+}
+
 # Serverless microservices CodePipeline configuration
 variable "serverless_microservices_codepipeline" {
   description = "Configuration for serverless microservices CodePipelines"
@@ -782,5 +813,45 @@ variable "aws_budgets" {
     alarm_period = 86400
     create_sns_topic = true
     subscriber_email_addresses = []
+  }
+}
+
+# AWS VPN Configuration
+variable "create_aws_vpn" {
+  description = "Whether to create AWS VPN resources"
+  type        = bool
+  default     = false
+}
+
+variable "aws_vpn" {
+  description = "Configuration for AWS VPN"
+  type = object({
+    create_client_vpn = optional(bool, false)
+    create_site_to_site_vpn = optional(bool, false)
+    client_vpn_cidr_block = optional(string, "172.31.0.0/16")
+    client_vpn_subnet_ids = optional(list(string), [])
+    client_vpn_authorized_networks = optional(list(string), ["0.0.0.0/0"])
+    client_vpn_domain = optional(string, "vpn.local")
+    split_tunnel = optional(bool, true)
+    enable_connection_logging = optional(bool, false)
+    log_retention_days = optional(number, 30)
+    customer_gateways = optional(map(object({
+      bgp_asn           = number
+      ip_address        = string
+      static_routes_only = bool
+      static_routes     = list(string)
+    })), {})
+  })
+  default = {
+    create_client_vpn = false
+    create_site_to_site_vpn = false
+    client_vpn_cidr_block = "172.31.0.0/16"
+    client_vpn_subnet_ids = []
+    client_vpn_authorized_networks = ["0.0.0.0/0"]
+    client_vpn_domain = "vpn.local"
+    split_tunnel = true
+    enable_connection_logging = false
+    log_retention_days = 30
+    customer_gateways = {}
   }
 }

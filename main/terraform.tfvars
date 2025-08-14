@@ -235,10 +235,17 @@ aws_backup_schedule = "cron(0 5 * * ? *)"
 aws_backup_retention_days = 35
 aws_backup_selection_name = "apcer-backup-selection-dev"
 aws_backup_resource_arns = [
-  # Add your resource ARNs here
-  # "arn:aws:ec2:ap-south-1:123456789012:instance/i-1234567890abcdef0",
-  # "arn:aws:rds:ap-south-1:123456789012:db:apcer-db-dev"
+  # Additional resource ARNs can be added here
+  # The module will automatically include RDS, ECS, and ElastiCache resources
+  # based on what's created in your infrastructure
 ]
+
+# AWS Backup Lifecycle Configuration
+aws_backup_cold_storage_after_days = 30
+aws_backup_enable_long_term_retention = true
+aws_backup_long_term_schedule = "cron(0 5 1 * ? *)"  # Monthly on 1st at 5 AM UTC
+aws_backup_long_term_retention_days = 365
+aws_backup_long_term_cold_storage_after_days = 90
 
 # CloudFront Configuration
 cloudfront_acm_certificate_arn = "arn:aws:acm:us-east-1:912106457730:certificate/11da5ef2-0995-4549-b889-12a81d9d1ece"
@@ -307,4 +314,33 @@ aws_budgets = {
   alarm_period = 86400  # 24 hours
   create_sns_topic = true
   subscriber_email_addresses = ["devops@webelight.co.in"]
+}
+
+# AWS VPN Configuration
+create_aws_vpn = false  # Set to true when you need VPN
+aws_vpn = {
+  create_client_vpn = false
+  create_site_to_site_vpn = false
+  client_vpn_cidr_block = "172.31.0.0/16"
+  client_vpn_subnet_ids = [
+    # Add your private subnet IDs here when needed
+    # module.vpc[0].private_subnet_ids[0]
+  ]
+  client_vpn_authorized_networks = [
+    "10.10.0.0/16",  # VPC CIDR
+    "172.31.0.0/16"  # Client VPN CIDR
+  ]
+  client_vpn_domain = "vpn.webelight.co.in"
+  split_tunnel = true
+  enable_connection_logging = false
+  log_retention_days = 30
+  customer_gateways = {
+    # Example Site-to-Site VPN configuration
+    # office = {
+    #   bgp_asn = 65000
+    #   ip_address = "203.0.113.10"
+    #   static_routes_only = true
+    #   static_routes = ["192.168.1.0/24", "192.168.2.0/24"]
+    # }
+  }
 }

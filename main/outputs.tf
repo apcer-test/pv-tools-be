@@ -157,4 +157,75 @@ output "budget_configuration" {
   value       = try(module.aws_budgets[0].budget_configuration, {})
 }
 
+# AWS Backup Outputs
+output "backup_vault_arn" {
+  description = "ARN of the AWS Backup vault"
+  value       = try(module.aws_backup[0].vault_arn, "")
+}
+
+output "backup_vault_name" {
+  description = "Name of the AWS Backup vault"
+  value       = try(module.aws_backup[0].vault_name, "")
+}
+
+output "backup_plan_name" {
+  description = "Name of the AWS Backup plan"
+  value       = try(module.aws_backup[0].plan_name, "")
+}
+
+output "backup_selection_name" {
+  description = "Name of the AWS Backup selection"
+  value       = try(module.aws_backup[0].selection_name, "")
+}
+
+output "backup_resource_arns" {
+  description = "List of resource ARNs being backed up"
+  value       = try(local.backup_resource_arns, [])
+}
+
+output "backup_configuration" {
+  description = "Complete backup configuration"
+  value = var.create_aws_backup ? {
+    vault_name     = var.aws_backup_vault_name
+    plan_name      = var.aws_backup_plan_name
+    schedule       = var.aws_backup_schedule
+    retention_days = var.aws_backup_retention_days
+    resource_count = length(local.backup_resource_arns)
+    resources      = local.backup_resource_arns
+    lifecycle = {
+      cold_storage_after_days = var.aws_backup_cold_storage_after_days
+      enable_long_term_retention = var.aws_backup_enable_long_term_retention
+      long_term_schedule = var.aws_backup_long_term_schedule
+      long_term_retention_days = var.aws_backup_long_term_retention_days
+      long_term_cold_storage_after_days = var.aws_backup_long_term_cold_storage_after_days
+    }
+  } : null
+}
+
+# AWS VPN Outputs
+output "client_vpn_endpoint_id" {
+  description = "ID of the Client VPN endpoint"
+  value       = try(module.aws_vpn[0].client_vpn_endpoint_id, "")
+}
+
+output "client_vpn_endpoint_dns_name" {
+  description = "DNS name of the Client VPN endpoint"
+  value       = try(module.aws_vpn[0].client_vpn_endpoint_dns_name, "")
+}
+
+output "vpn_gateway_id" {
+  description = "ID of the VPN Gateway"
+  value       = try(module.aws_vpn[0].vpn_gateway_id, "")
+}
+
+output "vpn_connections" {
+  description = "Map of VPN connection configurations"
+  value       = try(module.aws_vpn[0].vpn_connections, {})
+}
+
+output "vpn_configuration" {
+  description = "Complete VPN configuration summary"
+  value       = try(module.aws_vpn[0].vpn_configuration, {})
+}
+
 # CodePipeline Outputs
