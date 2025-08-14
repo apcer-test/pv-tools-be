@@ -13,7 +13,7 @@ from core.exceptions import NotFoundError, ConflictError
 from apps.clients.models.clients import Clients
 from apps.media.models.media import Media
 from apps.clients.schemas.request import CreateClientRequest, UpdateClientRequest, ListClientsRequest
-from apps.clients.schemas.response import ClientResponse, ClientListResponse
+from apps.clients.schemas.response import ClientResponse, ClientListResponse, GlobalClientResponse
 from fastapi_pagination.ext.sqlalchemy import paginate
 from fastapi_pagination import Params
 from core.utils.slug_utils import generate_unique_slug
@@ -41,6 +41,16 @@ class ClientService:
             return MediaType.DOCUMENT
         else:
             return MediaType.UNKNOWN
+
+    async def get_global_clients(self) -> list[GlobalClientResponse]:
+        """
+        Get all global clients.
+        """
+        clients = await self.session.scalars(select(Clients).where(Clients.deleted_at.is_(None)))
+        return [GlobalClientResponse(
+            id=client.id,
+            name=client.name
+        ) for client in clients]
 
     async def create_client(self, client_data: CreateClientRequest, user_id: str) -> Clients:
         """

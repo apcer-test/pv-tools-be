@@ -41,7 +41,8 @@ async def create_role(
       - name (str): The name of the role (e.g., "Manager", "Editor").
       - module_permissions (list[ModulePermissionAssignment] | None):
             Optional list of module-permission assignments specifying what actions this role can perform.
-      - slug (str | None): Optional slug for the role used for referencing or URL-friendly names.
+      - description (str | None): Optional description for the role.
+      - role_metadata (dict[str, Any] | None): Optional metadata for the role.
 
     Returns:
       - BaseResponse[BaseRoleResponse]: A response wrapper containing the newly created role's information.
@@ -108,7 +109,7 @@ async def get_role_by_id(
     return BaseResponse(data=await service.get_roles_by_ids(role_ids=[role_id], client_id=user.get("client_id")))
 
 
-@router.patch(
+@router.put(
     "/{role_id}",
     status_code=status.HTTP_200_OK,
     name="Update role",
@@ -128,7 +129,8 @@ async def update_role(
       - name (str): Optional  The name of the role (e.g., "Manager", "Editor").
       - module_permissions (list[ModulePermissionAssignment] | None):
             Optional list of module-permission assignments specifying what actions this role can perform.
-      - slug (str | None): Optional slug for the role used for referencing or URL-friendly names.
+      - description (str | None): Optional description for the role.
+      - role_metadata (dict[str, Any] | None): Optional metadata for the role.
 
     Returns:
       - BaseResponse[RoleResponse]: The updated role details wrapped in a standardized response.

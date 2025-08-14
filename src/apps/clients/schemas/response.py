@@ -32,6 +32,13 @@ class ClientListResponse(CamelCaseModel):
     pages: int = Field(..., description="Total number of pages")
 
 
+class GlobalClientResponse(CamelCaseModel):
+    """Schema for global client information in responses."""
+
+    id: str = Field(..., description="Unique identifier for the client")
+    name: str = Field(..., description="Name of the client")
+
+
 class CreateClientResponse(CamelCaseModel):
     """Schema for client creation response."""
     

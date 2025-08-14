@@ -36,7 +36,7 @@ from apps.users.schemas.response import (
     ListUserResponse,
     RoleResponse,
     UpdateUserResponse,
-    UserAssignResponse,
+    UserAssignmentsResponse,
     UserResponse,
     UserStatusResponse,
     UserTypeResponse,
@@ -547,8 +547,7 @@ class UserService:
         page_param: Params,
         user: str,
         user_ids: list[str] | None = None,
-        email: str | None = None,
-        phone: str | None = None,
+        search: str | None = None,
         role_slug: str | None = None,
         user_type_slug: str | None = None,
         client_slug: str | None = None,
@@ -562,8 +561,7 @@ class UserService:
           - client_id (str): The client id. This is required.
           - param (Params): Pagination parameters including page number and size.
           - user_ids (list[str] | None): Optional list of user IDs to filter.
-          - email (str | None): Optional filter by email address.
-          - phone (str | None): Optional filter by phone number.
+          - search (str | None): Optional filter by email address or phone number.
           - role_slug (str | None): Optional filter by user role.
           - user_type_slug (str | None): Optional filter by user type.
           - is_active (bool | None): Optional filter by active status.
@@ -603,11 +601,15 @@ class UserService:
         if user_ids:
             query = query.where(Users.id.in_(user_ids))
 
-        if email:
-            query = query.where(Users.email.ilike(f"%{email}%"))
-
-        if phone:
-            query = query.where(Users.phone.ilike(f"%{phone}%"))
+        if search:
+            query = query.where(
+                or_(
+                    Users.email.ilike(f"%{search}%"),
+                    Users.first_name.ilike(f"%{search}%"),
+                    Users.last_name.ilike(f"%{search}%"),
+                    Users.phone.ilike(f"%{search}%"),
+                )
+            )
 
         if role_slug:
             query = query.join(UserRoleLink, Users.id == UserRoleLink.user_id).join(Roles, UserRoleLink.role_id == Roles.id).where(Roles.slug.ilike(f"%{role_slug}%"))
@@ -636,6 +638,8 @@ class UserService:
             UserSortBy.ROLE_ASC: Roles.name.asc(),
             UserSortBy.USER_TYPE_DESC: UserType.name.desc(),
             UserSortBy.USER_TYPE_ASC: UserType.name.asc(),
+            UserSortBy.CREATED_AT_DESC: Users.created_at.desc(),
+            UserSortBy.CREATED_AT_ASC: Users.created_at.asc(),
         }
 
         sort_order = sort_options.get(sortby, Users.created_at.desc())
@@ -650,10 +654,10 @@ class UserService:
             if user.role_links:
                 for role_link in user.role_links:
                     if role_link.role and role_link.client:
-                        assigns.append(UserAssignResponse(
-                            role_name=role_link.role.name or "",
-                            user_type=role_link.user_type.name if role_link.user_type else "",
-                            client_name=role_link.client.name or ""
+                        assigns.append(UserAssignmentsResponse(
+                            role=RoleResponse(id=role_link.role.id, name=role_link.role.name) if role_link.role else None,
+                            user_type=UserTypeResponse(id=role_link.user_type.id, name=role_link.user_type.name) if role_link.user_type else None,
+                            client=ClientResponse(id=role_link.client.id, name=role_link.client.name) if role_link.client else None
                         ))
             
             items.append(ListUserResponse(
@@ -726,10 +730,10 @@ class UserService:
         if user.role_links:
             for role_link in user.role_links:
                 if role_link.role and role_link.client:
-                    assigns.append(UserAssignResponse(
-                        role_name=role_link.role.name or "",
-                        user_type=role_link.user_type.name if role_link.user_type else "",
-                        client_name=role_link.client.name or ""
+                    assigns.append(UserAssignmentsResponse(
+                        role=RoleResponse(id=role_link.role.id, name=role_link.role.name) if role_link.role else None,
+                        user_type=UserTypeResponse(id=role_link.user_type.id, name=role_link.user_type.name) if role_link.user_type else None,
+                        client=ClientResponse(id=role_link.client.id, name=role_link.client.name) if role_link.client else None
                     ))
         
         return ListUserResponse(

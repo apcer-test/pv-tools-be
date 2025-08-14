@@ -4,7 +4,7 @@ from pydantic import BaseModel
 
 
 class BaseUserTypeResponse(BaseModel):
-    id: int
+    id: str
     name: str
     slug: str
     description: str | None = None

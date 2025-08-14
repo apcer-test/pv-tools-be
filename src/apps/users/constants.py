@@ -12,8 +12,8 @@ class UserSortBy(StrEnum):
     ROLE_DESC = "role_desc"
     USER_TYPE_DESC = "user_type_desc"
     USER_TYPE_ASC = "user_type_asc"
-    USER_SUB_TYPE_ASC = "user_sub_type_asc"
-    USER_SUB_TYPE_DESC = "user_sub_type_desc"
+    CREATED_AT_DESC = "created_at_desc"
+    CREATED_AT_ASC = "created_at_asc"
 
 
 class UserErrorMessage(StrEnum):

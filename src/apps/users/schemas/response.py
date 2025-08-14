@@ -111,21 +111,6 @@ class UserTypeResponse(BaseModel):
     name: str | None
 
 
-class UserSubTypeResponse(BaseModel):
-    """Response model for subtype information."""
-
-    id: str | None
-    name: str | None
-
-
-class TenantAppResponse(BaseModel):
-    """Response model for tenant_app information."""
-
-    id: str | None
-    app_name: str
-    tenant_id: str | None
-
-
 class UserResponse(BaseModel):
     """Response model for getting information of self."""
 
@@ -161,6 +146,13 @@ class UserAssignResponse(BaseModel):
     client_name: str
 
 
+class UserAssignmentsResponse(BaseModel):
+    """Response model for user assignments information."""
+
+    role: RoleResponse | None
+    user_type: UserTypeResponse | None
+    client: ClientResponse | None
+
 class ListUserResponse(BaseModel):
     """Response model for getting user's information."""
 
@@ -170,7 +162,7 @@ class ListUserResponse(BaseModel):
     is_active: bool
     first_name: str
     last_name: str
-    assigns: list[UserAssignResponse]
+    assigns: list[UserAssignmentsResponse]
     description: str | None = None
     meta_data: dict[str, Any] | None = None
     created_by: str | None = None

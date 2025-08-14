@@ -1,13 +1,10 @@
 from typing import Annotated
-from fastapi import APIRouter, Depends, Path, Query, status
-from fastapi_pagination import Page
+from fastapi import APIRouter, Depends, Path, status
 
 from apps.users.utils import current_user
-from core.auth import AdminHasPermission
-from core.dependencies import verify_api_keys, verify_access_token
 from core.utils.schema import BaseResponse
 from apps.clients.schemas.request import CreateClientRequest, UpdateClientRequest, ListClientsRequest
-from apps.clients.schemas.response import ClientResponse, ClientListResponse, CreateClientResponse, UpdateClientResponse, DeleteClientResponse
+from apps.clients.schemas.response import ClientResponse, ClientListResponse, CreateClientResponse, UpdateClientResponse, DeleteClientResponse, GlobalClientResponse
 from apps.clients.services.clients import ClientService
 from apps.users.models.user import Users
 
@@ -81,6 +78,22 @@ async def get_client(
     client = await service.get_client_by_id(client_id)
     
     return BaseResponse(data=service._to_response(client))
+
+
+@router.get(
+    "/global/clients",
+    status_code=status.HTTP_200_OK,
+    response_model=BaseResponse[list[GlobalClientResponse]],
+    name="Get global clients",
+    description="Get global clients"
+)
+async def get_global_clients(
+    service: Annotated[ClientService, Depends()],
+) -> BaseResponse[list[GlobalClientResponse]]:
+    """
+    Get global clients
+    """
+    return BaseResponse(data=await service.get_global_clients())
 
 
 @router.put(
@@ -171,6 +184,7 @@ async def delete_client(
 )
 async def list_clients(
     service: Annotated[ClientService, Depends()],
+    user: Annotated[tuple[Users, str], Depends(current_user)],
     params: Annotated[ListClientsRequest, Depends()]
 ) -> BaseResponse[ClientListResponse]:
     """

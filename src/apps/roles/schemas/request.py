@@ -4,8 +4,8 @@ from pydantic import BaseModel, Field
 
 
 class ModulePermissionAssignment(BaseModel):
-    module_id: int
-    permission_ids: list[int]
+    module_id: str
+    permission_ids: list[str]
 
 
 class CreateRoleRequest(BaseModel):
@@ -13,15 +13,11 @@ class CreateRoleRequest(BaseModel):
 
     name: str
     module_permissions: list[ModulePermissionAssignment] | None = None
-    slug: str | None = None
-
-
-class UpdateRoleRequest(BaseModel):
-    """Request model for updating a role."""
-
-    name: str | None = None
-    module_permissions: list[ModulePermissionAssignment] | None = None
-    slug: str | None = None
     description: str | None = None
     role_metadata: dict[str, Any] | None = None
+
+
+class UpdateRoleRequest(CreateRoleRequest):
+    """Request model for updating a role."""
+
     reason: str = Field(..., description="Reason for updating the role")

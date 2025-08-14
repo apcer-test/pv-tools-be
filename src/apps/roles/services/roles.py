@@ -74,7 +74,7 @@ class RoleService:
                 raise InvalidModulePermissionError
 
     async def _assign_module_permissions(
-        self, role_id: int, module_permissions: list[dict[str, Any]], client_id: str | None = None
+        self, role_id: str, module_permissions: list[dict[str, Any]], client_id: str | None = None
     ) -> None:
         """Assign module permissions to a role."""
         for mp in module_permissions:
@@ -93,7 +93,6 @@ class RoleService:
     async def create_role(
         self,
         name: str,
-        slug: str,
         module_permissions: list[dict[str, Any]] | None = None,
         description: str | None = None,
         role_metadata: dict | None = None,
@@ -132,7 +131,6 @@ class RoleService:
                 raise RoleAlreadyExistsError
 
         slug = await validate_and_generate_slug(
-            slug=slug,
             name=name,
             db=self.session,
             model=Roles,
@@ -144,8 +142,8 @@ class RoleService:
                 name=name,
                 client_id=client_id,
                 slug=slug,
-                description=None,
-                meta_data=None,
+                description=description,
+                meta_data=role_metadata,
                 created_by=user_id,
                 updated_by=user_id,
             )
@@ -166,8 +164,8 @@ class RoleService:
         role_id: str,
         name: str | None,
         module_permissions: list[dict[str, Any]] | None,
-        slug: str | None,
         description: str | None = None,
+        reason: str | None = None,
         role_metadata: dict | None = None,
         client_id: str | None = None,
         user_id: str | None = None,
@@ -176,24 +174,23 @@ class RoleService:
         Update a role by its key.
 
         Args:
-          - role_id (str): The unique identifier of the role (can be a numeric ID or a string slug).
-          - name (str): Optional  The name of the role (e.g., "Manager", "Editor").
-          - module_permissions (list[ModulePermissionAssignment] | None):
+        - role_id (str): The unique identifier of the role (can be a numeric ID or a string slug).
+        - name (str): Optional  The name of the role (e.g., "Manager", "Editor").
+        - module_permissions (list[ModulePermissionAssignment] | None):
                 Optional list of module-permission assignments specifying what actions this role can perform.
-          - slug (str | None): Optional slug for the role used for referencing or URL-friendly names.
-          - description (str | None): Optional description of the role.
-          - role_metadata (dict | None): Optional metadata for the role.
-          - client_id (str | None): Optional client ID.
-          - user_id (str | None): Optional user ID.
+        - description (str | None): Optional description of the role.
+        - role_metadata (dict | None): Optional metadata for the role.
+        - client_id (str | None): Optional client ID.
+        - user_id (str | None): Optional user ID.
         Returns:
             RoleResponse: The updated role details response.
 
         Raises:
             RoleNotFoundError: If the role with the given key is not found.
             RoleAlreadyExistsError: If a role with the same name already exists.
-
         """
-
+        
+        # Step 1: Retrieve the role
         async with self.session.begin_nested():
             role = await self.session.scalar(
                 select(Roles).where(
@@ -207,6 +204,7 @@ class RoleService:
             if not role:
                 raise RoleNotFoundError
 
+        # Step 2: Check and update the role name if necessary
         if name and name != role.name:
             async with self.session.begin_nested():
                 # Check if new name conflicts with existing role
@@ -225,37 +223,36 @@ class RoleService:
                     raise RoleAlreadyExistsError
             role.name = name
 
-        if slug and role.slug != slug:
-            await validate_unique_slug(
-                slug,
-                db=self.session,
-                model=Roles,
-                client_id=client_id,
-            )
-            role.slug = slug
-        elif role.name != name:
-            role.slug = await generate_unique_slug(
-                text=name,
-                db=self.session,
-                model=Roles,
-                client_id=client_id,
-                existing_id=role.id,
-            )
-
-        if module_permissions is not None:
-            async with self.session.begin_nested():
-                await self._validate_module_permissions(module_permissions)
-                await self._assign_module_permissions(role_id, module_permissions, client_id)
-
+        # Step 3: Update the description if provided
         if description is not None:
             role.description = description
 
+        # Step 4: Update metadata if provided
         if role_metadata is not None:
             role.meta_data = role_metadata
 
+        # Step 5: Remove old module permissions and assign new ones if provided
+        if module_permissions is not None:
+            async with self.session.begin_nested():
+                # Remove old module permissions for the role
+                await self.session.execute(
+                    delete(RoleModulePermissionLink).where(
+                        and_(
+                            RoleModulePermissionLink.role_id == role_id,
+                            RoleModulePermissionLink.client_id == client_id,
+                        )
+                    )
+                )
+
+                # Validate and assign new module permissions
+                await self._validate_module_permissions(module_permissions)
+                await self._assign_module_permissions(role_id, module_permissions, client_id)
+
+        # Step 6: Set the updated_by field and updated_at field
         role.updated_by = user_id
         role.updated_at = datetime.now(UTC).replace(tzinfo=None)
 
+        # Step 7: Commit changes and return the updated role
         async with self.session.begin_nested():
             return await self.get_role_by_id(role_id=role_id, client_id=client_id)
 
@@ -392,11 +389,13 @@ class RoleService:
             for link in role_module_permission_links
         }
 
+        # Create a mapping of module id to the module object for easy lookup
         id_to_module = {m.id: m for m in filtered_modules}
 
+        # For each module, filter its permissions based on the allowed permissions
         for module in filtered_modules:
             module.child_modules = []
-            # Get only permission IDs and names
+            # Get only permission IDs and names for the allowed permissions
             module.permissions = [
                 {"id": p.id, "name": p.name}
                 for p in module.permissions
@@ -405,20 +404,20 @@ class RoleService:
 
         roots = []
         for module in filtered_modules:
-            if module.id not in {
-                link.module_id for link in role_module_permission_links
-            }:
+            # Only consider modules linked to the role (via role_module_permission_links)
+            if module.id not in {link.module_id for link in role_module_permission_links}:
                 continue
 
+            # Check if the module has a parent, if so, add it to its parent's child_modules list
             if module.parent_module_id:
                 parent = id_to_module.get(module.parent_module_id)
                 if parent:
                     parent.child_modules.append(module)
                 else:
-                    # Parent not found — treat as root
+                    # If no parent found (parent is not in the current list), treat this as a root
                     roots.append(module)
             else:
-                # No parent — treat as root
+                # No parent module (this module is a root)
                 roots.append(module)
 
         return [ModuleBasicResponse.model_validate(m, from_attributes=True) for m in roots]
