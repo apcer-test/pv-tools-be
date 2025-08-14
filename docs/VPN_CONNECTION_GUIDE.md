@@ -14,10 +14,10 @@ This guide explains how to connect to the AWS VPN from your local machine.
 
 Before connecting to the VPN, ensure you have:
 
-- ✅ AWS Client VPN endpoint created and active
-- ✅ Client certificates generated and installed
-- ✅ AWS VPN Client installed on your machine
-- ✅ Proper network permissions
+- AWS Client VPN endpoint created and active
+- Client certificates generated and installed
+- AWS VPN Client installed on your machine
+- Proper network permissions
 
 ## Certificate Generation
 
@@ -186,11 +186,11 @@ netstat -rn | grep 172.31
 - **Split Tunnel**: Enabled (only VPC traffic goes through VPN)
 
 ### **Accessible Resources:**
-- ✅ Private subnets in VPC
-- ✅ RDS databases
-- ✅ ElastiCache Redis
-- ✅ ECS services (internal)
-- ✅ S3 buckets (if configured)
+- Private subnets in VPC
+- RDS databases
+- ElastiCache Redis
+- ECS services (internal)
+- S3 buckets (if configured)
 
 ## Troubleshooting
 
@@ -258,22 +258,22 @@ openssl x509 -in client.crt.bundle -text -noout
 ## Security Best Practices
 
 ### **Certificate Management:**
-- ✅ Store certificates securely
-- ✅ Use strong private keys (2048-bit minimum)
-- ✅ Rotate certificates regularly
-- ✅ Limit certificate access
+- Store certificates securely
+- Use strong private keys (2048-bit minimum)
+- Rotate certificates regularly
+- Limit certificate access
 
 ### **Network Security:**
-- ✅ Use split tunnel (only VPC traffic)
-- ✅ Restrict authorized networks
-- ✅ Monitor connection logs
-- ✅ Use least privilege access
+- Use split tunnel (only VPC traffic)
+- Restrict authorized networks
+- Monitor connection logs
+- Use least privilege access
 
 ### **Client Security:**
-- ✅ Keep VPN client updated
-- ✅ Use strong authentication
-- ✅ Disconnect when not in use
-- ✅ Monitor for suspicious activity
+- Keep VPN client updated
+- Use strong authentication
+- Disconnect when not in use
+- Monitor for suspicious activity
 
 ## Support
 

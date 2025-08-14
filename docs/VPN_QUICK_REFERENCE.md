@@ -1,6 +1,6 @@
 # AWS VPN Quick Reference
 
-## 🚀 Quick Setup
+## Quick Setup
 
 ### 1. Enable VPN in Terraform
 ```hcl
@@ -27,7 +27,7 @@ terraform apply
 ./scripts/setup-vpn-connection.sh apcer dev
 ```
 
-## 🔗 Connection Details
+## Connection Details
 
 | Item | Value |
 |------|-------|
@@ -38,7 +38,7 @@ terraform apply
 | **Client CIDR** | 172.31.0.0/16 |
 | **VPC CIDR** | 10.10.0.0/16 |
 
-## 📱 Client Installation
+## Client Installation
 
 ### macOS
 ```bash
@@ -54,7 +54,7 @@ wget https://d20adtppz83p9s.cloudfront.net/Linux/latest/AWS_VPN_Client.deb
 sudo dpkg -i AWS_VPN_Client.deb
 ```
 
-## 🔧 Connection Configuration
+## Connection Configuration
 
 1. **Open AWS VPN Client**
 2. **Add Connection:**
@@ -65,7 +65,7 @@ sudo dpkg -i AWS_VPN_Client.deb
 3. **Enable Split Tunnel**
 4. **Connect**
 
-## ✅ Verification Commands
+## Verification Commands
 
 ```bash
 # Check IP
@@ -81,7 +81,7 @@ netstat -rn | grep 172.31
 aws-vpn-client status
 ```
 
-## 🚨 Troubleshooting
+## Troubleshooting
 
 ### Certificate Issues
 ```bash
@@ -106,15 +106,15 @@ tail -f /var/log/aws-vpn-client.log
 - Enable split tunnel
 - Check VPC DNS settings
 
-## 📋 Accessible Resources
+## Accessible Resources
 
-- ✅ Private subnets (10.10.x.x)
-- ✅ RDS databases
-- ✅ ElastiCache Redis
-- ✅ ECS services (internal)
-- ✅ S3 buckets (if configured)
+- Private subnets (10.10.x.x)
+- RDS databases
+- ElastiCache Redis
+- ECS services (internal)
+- S3 buckets (if configured)
 
-## 🔒 Security Notes
+## Security Notes
 
 - Store certificates securely
 - Use strong private keys
@@ -122,7 +122,7 @@ tail -f /var/log/aws-vpn-client.log
 - Monitor connection logs
 - Disconnect when not in use
 
-## 📞 Support
+## Support
 
 - Check: `docs/VPN_CONNECTION_GUIDE.md`
 - AWS Console: Client VPN service
