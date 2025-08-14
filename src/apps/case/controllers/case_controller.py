@@ -7,8 +7,8 @@ from fastapi import APIRouter, Body, Depends, Path, Query, status
 from apps.case.schemas.request import CaseCreate, CaseNumberConfigurationCreate
 from apps.case.schemas.response import CaseNumberConfigurationResponse, CaseResponse
 from apps.case.services.case_service import CaseService
+from apps.users.utils import permission_required
 from core.utils.schema import BaseResponse
-from src.apps.users.utils import permission_required
 
 router = APIRouter(prefix="/api/cases", tags=["Cases"])
 

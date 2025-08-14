@@ -13,7 +13,6 @@ from apps.master_modules.exception import (
     ExistingLookupValueException,
     InvalidExcelSheetDataException,
     InvalidFileFormatException,
-    InvalidRequestException,
     LookupNotFoundException,
     LookupValueNotFoundException,
 )
@@ -344,24 +343,29 @@ class SetupService:
             items=lookup_responses, total=page.total, params=params
         )
 
-    async def get_lookup_values(
-        self, lookup_id: str, params: PaginationParams, is_active: bool | None = None
+    async def _get_lookup_values_by_type(
+        self,
+        lookup_id: str,
+        lookup_type: LookupType,
+        params: PaginationParams,
+        is_active: bool | None = None,
     ) -> (
         PaginatedResponse[CodeListLookupValueResponse]
         | PaginatedResponse[NFListLookupValueResponse]
     ):
         """
-        Get paginated lookup values for a specific lookup id.
-        Returns response shape inferred from the lookup type.
+        Helper function to get paginated lookup values for a specific lookup id and type.
+        Validates the lookup type and returns appropriate response shape.
         """
-        # Validate that lookup exists
+        # Validate that lookup exists and is of correct type
         lookup = await self.session.scalar(
-            select(LookupModel).where((LookupModel.id == lookup_id))
+            select(LookupModel).where(
+                (LookupModel.id == lookup_id)
+                & (LookupModel.lookup_type == lookup_type.value)
+            )
         )
         if not lookup:
-            # Hide details, return empty list
-            empty = []
-            return PaginatedResponse.create(items=empty, total=0, params=params)
+            raise LookupNotFoundException
 
         # Build values query
         stmt = select(LookupValuesModel).where(
@@ -369,7 +373,6 @@ class SetupService:
         )
         if is_active is not None:
             stmt = stmt.where(LookupValuesModel.is_active == is_active)
-        # Determine search fields per lookup type and paginate via helper
 
         ordered_stmt = stmt.order_by(LookupValuesModel.updated_at.desc())
         page = await paginate_query(
@@ -383,7 +386,7 @@ class SetupService:
         values = page.items
 
         # Map based on type
-        if lookup.lookup_type == LookupType.NFLIST.value:
+        if lookup_type == LookupType.NFLIST:
             items: list[NFListLookupValueResponse] = []
             for v in values:
                 items.append(
@@ -409,6 +412,34 @@ class SetupService:
             return PaginatedResponse.create(
                 items=items2, total=page.total, params=params
             )
+
+    async def get_codelist_lookup_values(
+        self, lookup_id: str, params: PaginationParams, is_active: bool | None = None
+    ) -> PaginatedResponse[CodeListLookupValueResponse]:
+        """
+        Get paginated lookup values for a specific codelist lookup id.
+        Validates that the lookup is of type codelist.
+        """
+        return await self._get_lookup_values_by_type(
+            lookup_id=lookup_id,
+            lookup_type=LookupType.CODELIST,
+            params=params,
+            is_active=is_active,
+        )
+
+    async def get_nflist_lookup_values(
+        self, lookup_id: str, params: PaginationParams, is_active: bool | None = None
+    ) -> PaginatedResponse[NFListLookupValueResponse]:
+        """
+        Get paginated lookup values for a specific nflist lookup id.
+        Validates that the lookup is of type nflist.
+        """
+        return await self._get_lookup_values_by_type(
+            lookup_id=lookup_id,
+            lookup_type=LookupType.NFLIST,
+            params=params,
+            is_active=is_active,
+        )
 
     async def verify_lookup_value_exists(self, lookup_id: str, name: str) -> bool:
         """Verify if a lookup value exists for a given lookup id and name."""
@@ -496,18 +527,17 @@ class SetupService:
             if e2b_code_r3 is not None:
                 value.e2b_code_r3 = e2b_code_r3
 
-    async def update_lookup_value(
+    async def _update_lookup_value_by_type(
         self,
         lookup_value_id: str,
+        lookup_type: LookupType,
         name: str | None = None,
         e2b_code_r2: str | None = None,
         e2b_code_r3: str | None = None,
         is_active: bool | None = None,
     ) -> SuccessResponse:
         """
-        Partially update a lookup value. All provided fields will be updated.
-        - For nf-list values: only `name` and `is_active` are allowed.
-        - For code-list values: `name`, `is_active`, `e2b_code_r2`, `e2b_code_r3` are allowed.
+        Helper function to update a lookup value with type validation.
         """
         # Fetch value with its lookup type
         value = await self.session.scalar(
@@ -527,20 +557,17 @@ class SetupService:
         if not value:
             raise LookupValueNotFoundException
 
+        # Validate lookup exists and is of correct type
         lookup = await self.session.scalar(
             select(LookupModel)
             .options(load_only(LookupModel.id, LookupModel.lookup_type))
-            .where(LookupModel.id == value.lookup_model_id)
+            .where(
+                (LookupModel.id == value.lookup_model_id)
+                & (LookupModel.lookup_type == lookup_type.value)
+            )
         )
         if not lookup:
             raise LookupNotFoundException
-
-        is_nflist = lookup.lookup_type == LookupType.NFLIST.value
-
-        # Validate fields per type: if nf-list, reject e2b codes
-        if is_nflist and (e2b_code_r2 is not None or e2b_code_r3 is not None):
-
-            raise InvalidRequestException(message=constants.INVALID_NF_UPDATE_REQUEST)
 
         # If name is changing, ensure uniqueness within same lookup
         if name is not None and name.strip() and name != value.name:
@@ -552,31 +579,57 @@ class SetupService:
                 )
             )
             if exists:
-
                 raise ExistingLookupValueException
 
         # Apply updates for provided fields only
         self._apply_lookup_value_updates(
-            value, name, is_active, is_nflist, e2b_code_r2, e2b_code_r3
+            value,
+            name,
+            is_active,
+            lookup_type == LookupType.NFLIST,
+            e2b_code_r2,
+            e2b_code_r3,
         )
 
         return SuccessResponse(message=constants.LOOKUP_VALUE_UPDATED_SUCCESSFULLY)
 
-    async def update_lookup_status(
-        self, lookup_id: str, is_active: bool
+    async def update_codelist_lookup_value(
+        self,
+        lookup_value_id: str,
+        name: str | None = None,
+        e2b_code_r2: str | None = None,
+        e2b_code_r3: str | None = None,
+        is_active: bool | None = None,
     ) -> SuccessResponse:
-        """Update is_active for a lookup using the lookup id."""
-        lookup = await self.session.scalar(
-            select(LookupModel)
-            .options(load_only(LookupModel.id, LookupModel.is_active))
-            .where(LookupModel.id == lookup_id)
+        """
+        Update a code-list lookup value. All fields are optional.
+        Validates that the lookup value belongs to a code-list lookup.
+        """
+        return await self._update_lookup_value_by_type(
+            lookup_value_id=lookup_value_id,
+            lookup_type=LookupType.CODELIST,
+            name=name,
+            e2b_code_r2=e2b_code_r2,
+            e2b_code_r3=e2b_code_r3,
+            is_active=is_active,
         )
-        if not lookup:
-            raise LookupNotFoundException
 
-        lookup.is_active = is_active
-
-        return SuccessResponse(message=constants.LOOKUP_STATUS_UPDATED_SUCCESSFULLY)
+    async def update_nflist_lookup_value(
+        self,
+        lookup_value_id: str,
+        name: str | None = None,
+        is_active: bool | None = None,
+    ) -> SuccessResponse:
+        """
+        Update an nf-list lookup value. Only name and is_active can be updated.
+        Validates that the lookup value belongs to an nf-list lookup.
+        """
+        return await self._update_lookup_value_by_type(
+            lookup_value_id=lookup_value_id,
+            lookup_type=LookupType.NFLIST,
+            name=name,
+            is_active=is_active,
+        )
 
     async def get_lookup_values_by_slugs(
         self, slugs: list[str]

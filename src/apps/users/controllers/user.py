@@ -5,10 +5,8 @@ from typing import Annotated
 
 from authlib.integrations.base_client.errors import OAuthError
 from fastapi import APIRouter, Body, Depends, Path, Query, Request, status
-from fastapi.params import Query
 from fastapi.responses import RedirectResponse
 from fastapi_pagination import Page, Params
-from sqlalchemy import and_, select
 
 from apps.users.constants import UserSortBy
 from apps.users.models.user import Users
@@ -29,7 +27,6 @@ from apps.users.services import MicrosoftSSOService, UserService
 from apps.users.utils import current_user, permission_required
 from config import AppEnvironment, settings
 from constants.config import MICROSOFT_GENERATE_CODE_SCOPE
-from core.db import db_session
 from core.types import Providers
 from core.utils.schema import BaseResponse, SuccessResponse
 from core.utils.sso_client import SSOOAuthClient
@@ -37,6 +34,95 @@ from core.utils.sso_client import SSOOAuthClient
 router = APIRouter(prefix="/users", tags=["User"])
 
 logger = logging.getLogger(__name__)
+
+
+@router.get(
+    "/self", status_code=status.HTTP_200_OK, name="Get Self", operation_id="get-Self"
+)
+async def get_self(
+    user: Annotated[tuple[Users, str], Depends(current_user)],
+    service: Annotated[UserService, Depends()],
+) -> BaseResponse[UserResponse]:
+    """
+    Retrieves the profile information of the currently authenticated user.
+
+    Args:
+        - client_slug (str): The client slug means client_id or name. This is required.
+
+    Returns:
+        - BaseResponse[UserResponse]: A response containing
+        the user's profile information.
+
+    Raises:
+        - UserNotFoundError: If no user with the provided username is found.
+
+    """
+
+    return BaseResponse(
+        data=await service.get_self(
+            client_id=user.get("client_id"), user_id=user.get("user").id
+        )
+    )
+
+
+@router.get(
+    "",
+    status_code=status.HTTP_200_OK,
+    name="Get all users",
+    operation_id="get-all-users",
+    dependencies=[Depends(permission_required(["user"], ["user-management"]))],
+)
+async def get_all_users(
+    param: Annotated[Params, Depends()],
+    service: Annotated[UserService, Depends()],
+    user: Annotated[tuple[Users, str], Depends(current_user)],
+    user_ids: Annotated[list[str] | None, Query()] = None,
+    search: Annotated[str | None, Query()] = None,
+    role: Annotated[str | None, Query()] = None,
+    user_type: Annotated[str | None, Query()] = None,
+    client: Annotated[str | None, Query()] = None,
+    is_active: Annotated[bool | None, Query()] = None,
+    sortby: Annotated[UserSortBy | None, Query()] = None,
+) -> BaseResponse[Page[ListUserResponse]]:
+    """
+    Retrieves a paginated list of users with optional filtering and sorting.
+
+    Args:
+      - client_slug (str): The client slug means client_id or name. This is required.
+      - param (Params): Pagination parameters including page number and size.
+      - user_ids (list[str] | None): Optional list of user IDs to filter.
+      - username (str | None): Optional filter by username.
+      - email (str | None): Optional filter by email address.
+      - phone (str | None): Optional filter by phone number.
+      - role (str | None): Optional filter by user role.
+      - type_name (str | None): Optional filter by user type.
+      - sub_type (str | None): Optional filter by user sub_type.
+      - is_active (bool | None): Optional filter by active status.
+      - sortby (UserSortBy | None): Optional sorting field and direction.
+
+    Returns:
+      - BaseResponse[Page[ListUserResponse]]: A paginated response containing
+        a list of users matching the provided criteria.
+
+    Raises:
+      - UserNotFoundError: If no user with the provided username is found.
+
+    """
+
+    return BaseResponse(
+        data=await service.get_all_users(
+            client_id=user.get("client_id"),
+            page_param=param,
+            user=user.get("user").id,
+            user_ids=user_ids,
+            search=search,
+            role_slug=role,
+            user_type_slug=user_type,
+            client_slug=client,
+            is_active=is_active,
+            sortby=sortby,
+        )
+    )
 
 
 @router.get(
@@ -219,95 +305,6 @@ async def create_user(
     return BaseResponse(
         data=await service.create_simple_user(
             **body.model_dump(), user_id=user.get("user").id
-        )
-    )
-
-
-@router.get(
-    "/self", status_code=status.HTTP_200_OK, name="Get Self", operation_id="get-Self"
-)
-async def get_self(
-    user: Annotated[tuple[Users, str], Depends(current_user)],
-    service: Annotated[UserService, Depends()],
-) -> BaseResponse[UserResponse]:
-    """
-    Retrieves the profile information of the currently authenticated user.
-
-    Args:
-        - client_slug (str): The client slug means client_id or name. This is required.
-
-    Returns:
-        - BaseResponse[UserResponse]: A response containing
-        the user's profile information.
-
-    Raises:
-        - UserNotFoundError: If no user with the provided username is found.
-
-    """
-
-    return BaseResponse(
-        data=await service.get_self(
-            client_id=user.get("client_id"), user_id=user.get("user").id
-        )
-    )
-
-
-@router.get(
-    "",
-    status_code=status.HTTP_200_OK,
-    name="Get all users",
-    operation_id="get-all-users",
-    dependencies=[Depends(permission_required(["user"], ["user-management"]))],
-)
-async def get_all_users(
-    param: Annotated[Params, Depends()],
-    service: Annotated[UserService, Depends()],
-    user: Annotated[tuple[Users, str], Depends(current_user)],
-    user_ids: Annotated[list[str] | None, Query()] = None,
-    search: Annotated[str | None, Query()] = None,
-    role: Annotated[str | None, Query()] = None,
-    user_type: Annotated[str | None, Query()] = None,
-    client: Annotated[str | None, Query()] = None,
-    is_active: Annotated[bool | None, Query()] = None,
-    sortby: Annotated[UserSortBy | None, Query()] = None,
-) -> BaseResponse[Page[ListUserResponse]]:
-    """
-    Retrieves a paginated list of users with optional filtering and sorting.
-
-    Args:
-      - client_slug (str): The client slug means client_id or name. This is required.
-      - param (Params): Pagination parameters including page number and size.
-      - user_ids (list[str] | None): Optional list of user IDs to filter.
-      - username (str | None): Optional filter by username.
-      - email (str | None): Optional filter by email address.
-      - phone (str | None): Optional filter by phone number.
-      - role (str | None): Optional filter by user role.
-      - type_name (str | None): Optional filter by user type.
-      - sub_type (str | None): Optional filter by user sub_type.
-      - is_active (bool | None): Optional filter by active status.
-      - sortby (UserSortBy | None): Optional sorting field and direction.
-
-    Returns:
-      - BaseResponse[Page[ListUserResponse]]: A paginated response containing
-        a list of users matching the provided criteria.
-
-    Raises:
-      - UserNotFoundError: If no user with the provided username is found.
-
-    """
-
-    return BaseResponse(
-        data=await service.get_all_users(
-            client_id=user.get("client_id"),
-            page_param=param,
-            user=user.get("user").id,
-            user_ids=user_ids,
-            search=search,
-            role_slug=role,
-            user_type_slug=user_type,
-            client_slug=client,
-            is_active=is_active,
-            sortby=sortby,
         )
     )
 

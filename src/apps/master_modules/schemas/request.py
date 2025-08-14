@@ -62,11 +62,10 @@ class LookupValuesBySlugsRequest(BaseModel):
     slugs: list[str]
 
 
-class UpdateLookupValueRequest(BaseModel):
+class UpdateCodeListLookupValueRequest(BaseModel):
     """
-    Partial update schema for a lookup value. All fields are optional.
-    For nf-list values, only `name` and `is_active` are allowed.
-    For code-list values, `e2b_code_r2` and `e2b_code_r3` may also be provided.
+    Partial update schema for a code-list lookup value. All fields are optional.
+    Allows updating name, e2b codes, and active status.
     """
 
     name: str | None = None
@@ -91,5 +90,31 @@ class UpdateLookupValueRequest(BaseModel):
         elif info.field_name in ("e2b_code_r2", "e2b_code_r3"):
             if len(value) > R2_R3_MAX_LENGTH:
                 raise MaxLengthException
+
+        return value
+
+
+class UpdateNFListLookupValueRequest(BaseModel):
+    """
+    Partial update schema for an nf-list lookup value. All fields are optional.
+    Only allows updating name and active status.
+    """
+
+    name: str | None = None
+    is_active: bool | None = None
+
+    @field_validator("name")
+    @classmethod
+    def _validate_name(cls, value: str | None) -> str | None:
+        """
+        Validate the name field.
+        """
+        if value is None:
+            return value
+
+        if value.strip() == "":
+            raise InvalidRequestException
+        if len(value) > NAME_MAX_LENGTH:
+            raise MaxLengthException
 
         return value

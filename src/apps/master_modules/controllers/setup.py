@@ -6,15 +6,14 @@ from apps.master_modules.schemas.request import (
     CodeListLookupValueCreateRequest,
     LookupValuesBySlugsRequest,
     NFListLookupValueCreateRequest,
-    UpdateLookupValueRequest,
-    UpdateLookupValueStatusRequest,
+    UpdateCodeListLookupValueRequest,
+    UpdateNFListLookupValueRequest,
 )
 from apps.master_modules.schemas.response import LookupResponse
 from apps.master_modules.services.setup import SetupService
-from core.types import LookupType
+from apps.users.utils import permission_required
 from core.utils.pagination import PaginatedResponse, PaginationParams
 from core.utils.schema import BaseResponse, SuccessResponse
-from src.apps.users.utils import permission_required
 
 router = APIRouter(prefix="/setup", tags=["Setup"])
 
@@ -129,13 +128,14 @@ async def get_nflist_lookup_list(
 
 
 @router.get(
-    "/lookup/{lookup_id}/values",
+    "/codelist/lookup/{lookup_id}/values",
     status_code=status.HTTP_200_OK,
-    name="Get lookup values by lookup id",
-    description="Get paginated list of lookup values for a given lookup id.",
-    operation_id="get_lookup_values",
+    name="Get codelist lookup values by lookup id",
+    description="Get paginated list of lookup values for a given codelist lookup id.",
+    operation_id="get_codelist_lookup_values",
+    dependencies=[Depends(permission_required(["setup"], ["code-list"]))],
 )
-async def get_lookup_values(
+async def get_codelist_lookup_values(
     lookup_id: Annotated[str, Path(..., description="Lookup id")],
     service: Annotated[SetupService, Depends()],
     is_active: (
@@ -163,11 +163,57 @@ async def get_lookup_values(
     ) = None,
 ) -> BaseResponse:
     """
-    Return lookup values for a specific lookup. Response shape is inferred from the lookup type.
+    Return lookup values for a specific codelist lookup. Only returns values for codelist type lookups.
     """
     pagination_params = PaginationParams(page=page, page_size=page_size, search=search)
     return BaseResponse(
-        data=await service.get_lookup_values(
+        data=await service.get_codelist_lookup_values(
+            lookup_id=lookup_id, is_active=is_active, params=pagination_params
+        )
+    )
+
+
+@router.get(
+    "/nflist/lookup/{lookup_id}/values",
+    status_code=status.HTTP_200_OK,
+    name="Get nflist lookup values by lookup id",
+    description="Get paginated list of lookup values for a given nflist lookup id.",
+    operation_id="get_nflist_lookup_values",
+    dependencies=[Depends(permission_required(["setup"], ["null-flavour-list"]))],
+)
+async def get_nflist_lookup_values(
+    lookup_id: Annotated[str, Path(..., description="Lookup id")],
+    service: Annotated[SetupService, Depends()],
+    is_active: (
+        Annotated[
+            bool,
+            Query(
+                default=None,
+                description="Filter by active status (true/false). Omit for all",
+            ),
+        ]
+        | None
+    ) = None,
+    page: Annotated[int, Query(1, ge=1, description="Page number")] | None = 1,
+    page_size: (
+        Annotated[int, Query(10, ge=1, le=100, description="Items per page")] | None
+    ) = 10,
+    search: (
+        Annotated[
+            str | None,
+            Query(
+                None, description="Search by value name (contains, case-insensitive)"
+            ),
+        ]
+        | None
+    ) = None,
+) -> BaseResponse:
+    """
+    Return lookup values for a specific nflist lookup. Only returns values for nflist type lookups.
+    """
+    pagination_params = PaginationParams(page=page, page_size=page_size, search=search)
+    return BaseResponse(
+        data=await service.get_nflist_lookup_values(
             lookup_id=lookup_id, is_active=is_active, params=pagination_params
         )
     )
@@ -220,46 +266,47 @@ async def create_nf_lookup_value(
 
 
 @router.patch(
-    "/lookup/values/{lookup_value_id}",
+    "/lookup/values/codelist/{lookup_value_id}",
     status_code=status.HTTP_200_OK,
-    name="Update lookup value",
-    description=(
-        "Partially update a lookup value. For nf-list, only name/status allowed; "
-        "for code-list, name/status/e2b_code_r2/e2b_code_r3 allowed."
-    ),
-    operation_id="update_lookup_value",
+    name="Update codelist lookup value",
+    description="Update a codelist lookup value. Allows updating name, e2b codes, and active status.",
+    operation_id="update_codelist_lookup_value",
+    dependencies=[Depends(permission_required(["setup"], ["code-list"]))],
 )
-async def update_lookup_value(
+async def update_codelist_lookup_value(
     lookup_value_id: Annotated[str, Path(..., description="Lookup value id")],
-    body: Annotated[UpdateLookupValueRequest, Body(..., description="Request body")],
+    body: Annotated[
+        UpdateCodeListLookupValueRequest, Body(..., description="Request body")
+    ],
     service: Annotated[SetupService, Depends()],
 ) -> BaseResponse[SuccessResponse]:
-    """Partially update a lookup value by its id."""
+    """Update a codelist lookup value. Allows updating name, e2b codes, and active status."""
     return BaseResponse(
-        data=await service.update_lookup_value(
+        data=await service.update_codelist_lookup_value(
             lookup_value_id=lookup_value_id, **body.model_dump()
         )
     )
 
 
-@router.put(
-    "/lookup/{lookup_id}/status",
+@router.patch(
+    "/lookup/values/nflist/{lookup_value_id}",
     status_code=status.HTTP_200_OK,
-    name="Update lookup status",
-    description="Update is_active for a lookup by its id.",
-    operation_id="update_lookup_status",
+    name="Update nflist lookup value",
+    description="Update an nflist lookup value. Only name and active status can be updated.",
+    operation_id="update_nflist_lookup_value",
+    dependencies=[Depends(permission_required(["setup"], ["null-flavour-list"]))],
 )
-async def update_lookup_status(
-    lookup_id: Annotated[str, Path(..., description="Lookup id")],
+async def update_nflist_lookup_value(
+    lookup_value_id: Annotated[str, Path(..., description="Lookup value id")],
     body: Annotated[
-        UpdateLookupValueStatusRequest, Body(..., description="Request body")
+        UpdateNFListLookupValueRequest, Body(..., description="Request body")
     ],
     service: Annotated[SetupService, Depends()],
 ) -> BaseResponse[SuccessResponse]:
-    """Update lookup status by its id."""
+    """Update an nflist lookup value. Only name and active status can be updated."""
     return BaseResponse(
-        data=await service.update_lookup_status(
-            lookup_id=lookup_id, **body.model_dump()
+        data=await service.update_nflist_lookup_value(
+            lookup_value_id=lookup_value_id, **body.model_dump()
         )
     )
 

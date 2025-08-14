@@ -14,7 +14,6 @@ from apps.roles.schemas.response import RoleResponse
 from apps.roles.services import RoleService
 from apps.users.models.user import Users
 from apps.users.utils import current_user, permission_required
-from core.auth import HasPermission
 from core.utils.schema import BaseResponse, SuccessResponse
 
 router = APIRouter(prefix="/roles", tags=["Roles"])
