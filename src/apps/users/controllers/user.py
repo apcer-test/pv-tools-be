@@ -126,6 +126,40 @@ async def get_all_users(
 
 
 @router.get(
+    "/{user_id}",
+    status_code=status.HTTP_200_OK,
+    name="Get user by id",
+    operation_id="get-user-by-id",
+    dependencies=[Depends(permission_required(["user"], ["user-management"]))],
+)
+async def get_user_by_id(
+    user: Annotated[tuple[Users, str], Depends(current_user)],
+    user_id: Annotated[str, Path()],
+    service: Annotated[UserService, Depends()],
+) -> BaseResponse[ListUserResponse]:
+    """
+    Retrieves detailed information about a specific user by their ID.
+
+    Args:
+      - client_slug (str): The client slug means client_id or name. This is required.
+      - user_id (str): The unique identifier of the user to retrieve.
+
+    Returns:
+      - BaseResponse[ListUserResponse]: A response containing the user's information.
+
+    Raises:
+      - UserNotFoundError: If no user with the provided username is found.
+
+    """
+
+    return BaseResponse(
+        data=await service.get_user_by_id(
+            client_id=user.get("client_id"), user_id=user_id
+        )
+    )
+
+
+@router.get(
     "/openid/login/{provider}/{client_id}",
     status_code=status.HTTP_200_OK,
     response_description="",
@@ -305,40 +339,6 @@ async def create_user(
     return BaseResponse(
         data=await service.create_simple_user(
             **body.model_dump(), user_id=user.get("user").id
-        )
-    )
-
-
-@router.get(
-    "/{user_id}",
-    status_code=status.HTTP_200_OK,
-    name="Get user by id",
-    operation_id="get-user-by-id",
-    dependencies=[Depends(permission_required(["user"], ["user-management"]))],
-)
-async def get_user_by_id(
-    user: Annotated[tuple[Users, str], Depends(current_user)],
-    user_id: Annotated[str, Path()],
-    service: Annotated[UserService, Depends()],
-) -> BaseResponse[ListUserResponse]:
-    """
-    Retrieves detailed information about a specific user by their ID.
-
-    Args:
-      - client_slug (str): The client slug means client_id or name. This is required.
-      - user_id (str): The unique identifier of the user to retrieve.
-
-    Returns:
-      - BaseResponse[ListUserResponse]: A response containing the user's information.
-
-    Raises:
-      - UserNotFoundError: If no user with the provided username is found.
-
-    """
-
-    return BaseResponse(
-        data=await service.get_user_by_id(
-            client_id=user.get("client_id"), user_id=user_id
         )
     )
 
