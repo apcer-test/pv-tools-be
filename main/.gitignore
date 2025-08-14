@@ -11,7 +11,6 @@
 *.tfvars.json
 
 # Saved plan files
-*.tfplan
 *.tfplan.backup
 
 # Crash log files
