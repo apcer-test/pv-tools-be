@@ -113,7 +113,48 @@ output "redis_reader_endpoint" {
 
 output "redis_port" {
   description = "Port of the Redis cluster"
-  value       = var.create_elasticache ? module.elasticache[0].redis_port : ""
+  value       = try(module.elasticache[0].redis_port, "")
+}
+
+# AWS Budgets Outputs
+output "budget_id" {
+  description = "ID of the AWS Budget"
+  value       = try(module.aws_budgets[0].budget_id, "")
+}
+
+output "budget_arn" {
+  description = "ARN of the AWS Budget"
+  value       = try(module.aws_budgets[0].budget_arn, "")
+}
+
+output "budget_name" {
+  description = "Name of the AWS Budget"
+  value       = try(module.aws_budgets[0].budget_name, "")
+}
+
+output "budget_notifications" {
+  description = "Budget notification configurations"
+  value       = try(module.aws_budgets[0].budget_notifications, [])
+}
+
+output "budget_cloudwatch_alarm_names" {
+  description = "Names of the CloudWatch alarms for budget monitoring"
+  value       = try(module.aws_budgets[0].cloudwatch_alarm_names, [])
+}
+
+output "budget_sns_topic_arn" {
+  description = "ARN of the SNS topic for budget notifications"
+  value       = try(module.aws_budgets[0].sns_topic_arn, "")
+}
+
+output "budget_sns_topic_name" {
+  description = "Name of the SNS topic for budget notifications"
+  value       = try(module.aws_budgets[0].sns_topic_name, "")
+}
+
+output "budget_configuration" {
+  description = "Complete budget configuration"
+  value       = try(module.aws_budgets[0].budget_configuration, {})
 }
 
 # CodePipeline Outputs

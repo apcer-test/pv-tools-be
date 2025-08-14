@@ -264,3 +264,47 @@ synthetics = {
 
 # ElastiCache Redis Configuration
 create_elasticache = true
+
+# AWS Budgets Configuration
+create_aws_budgets = true
+aws_budgets = {
+  budget_type = "COST"
+  budget_limit_amount = "900"
+  budget_limit_unit = "USD"
+  budget_time_unit = "MONTHLY"
+  cost_filters = {
+    # Filter by service if needed
+    # "Service" = ["Amazon Elastic Compute Cloud", "Amazon Relational Database Service"]
+  }
+  budget_notifications = [
+    {
+      comparison_operator        = "GREATER_THAN"
+      threshold                  = 80
+      threshold_type             = "PERCENTAGE"
+      notification_type          = "ACTUAL"
+      subscriber_email_addresses = ["devops@webelight.co.in"]
+      subscriber_sns_topic_arns  = []
+    },
+    {
+      comparison_operator        = "GREATER_THAN"
+      threshold                  = 100
+      threshold_type             = "PERCENTAGE"
+      notification_type          = "ACTUAL"
+      subscriber_email_addresses = ["devops@webelight.co.in"]
+      subscriber_sns_topic_arns  = []
+    },
+    {
+      comparison_operator        = "GREATER_THAN"
+      threshold                  = 120
+      threshold_type             = "PERCENTAGE"
+      notification_type          = "FORECASTED"
+      subscriber_email_addresses = ["devops@webelight.co.in"]
+      subscriber_sns_topic_arns  = []
+    }
+  ]
+  create_budget_alarm = true
+  alarm_evaluation_periods = 1
+  alarm_period = 86400  # 24 hours
+  create_sns_topic = true
+  subscriber_email_addresses = ["devops@webelight.co.in"]
+}

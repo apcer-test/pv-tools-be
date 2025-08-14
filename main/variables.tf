@@ -740,3 +740,47 @@ variable "synthetics" {
     })
   })
 }
+
+# AWS Budgets Configuration
+variable "create_aws_budgets" {
+  description = "Whether to create AWS Budgets with monitoring and alerts"
+  type        = bool
+  default     = false
+}
+
+variable "aws_budgets" {
+  description = "Configuration for AWS Budgets"
+  type = object({
+    budget_type = optional(string, "COST")
+    budget_limit_amount = optional(string, "100")
+    budget_limit_unit = optional(string, "USD")
+    budget_time_unit = optional(string, "MONTHLY")
+    cost_filters = optional(map(list(string)), {})
+    budget_notifications = optional(list(object({
+      comparison_operator        = string
+      threshold                  = number
+      threshold_type             = string
+      notification_type          = string
+      subscriber_email_addresses = list(string)
+      subscriber_sns_topic_arns  = optional(list(string), [])
+    })), [])
+    create_budget_alarm = optional(bool, true)
+    alarm_evaluation_periods = optional(number, 1)
+    alarm_period = optional(number, 86400)
+    create_sns_topic = optional(bool, true)
+    subscriber_email_addresses = optional(list(string), [])
+  })
+  default = {
+    budget_type = "COST"
+    budget_limit_amount = "100"
+    budget_limit_unit = "USD"
+    budget_time_unit = "MONTHLY"
+    cost_filters = {}
+    budget_notifications = []
+    create_budget_alarm = true
+    alarm_evaluation_periods = 1
+    alarm_period = 86400
+    create_sns_topic = true
+    subscriber_email_addresses = []
+  }
+}

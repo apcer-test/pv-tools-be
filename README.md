@@ -108,6 +108,7 @@ NOTE: we'll add targeted tfvars when moving to other enviroment
 | X-Ray | Distributed tracing for ECS services | `modules/ecs-fargate` |
 | Synthetics | Automated health checks | `modules/cloudwatch-synthetics` |
 | AWS Backup | Automated backup and recovery | `modules/aws-backup` |
+| AWS Budgets | Cost monitoring and alerts | `modules/aws-budgets` |
 
 ### CI/CD & DevOps
 
