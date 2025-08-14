@@ -11,6 +11,7 @@ from apps.ai_extraction.controllers import (
     llm_router,
     prompt_registry_router,
 )
+from apps.case.controllers import case_router
 from apps.document_intake.controllers import document_intake_router
 from apps.handlers import start_exception_handlers
 from apps.mail_box_config.controllers import (
@@ -24,10 +25,11 @@ from apps.permissions.controllers import permissions_router
 from apps.user_type.controllers import user_type_router
 from apps.users.controllers import user_router
 from apps.modules.controllers import module_router
+from apps.master_modules.controllers import setup_router
 from config import AppEnvironment, settings
 from constants.config import rate_limiter_config
-from core.task.lifespan import lifespan
 from core.middlewares.memory_usage import MemoryUsageMiddleware
+from core.task.lifespan import lifespan
 from core.utils.schema import BaseValidationResponse
 
 
@@ -62,6 +64,8 @@ def init_routers(_app: FastAPI) -> None:
     base_router.include_router(permissions_router)
     base_router.include_router(user_type_router)
     base_router.include_router(module_router)
+    base_router.include_router(setup_router)
+    base_router.include_router(case_router)
     _app.include_router(base_router, responses={422: {"model": BaseValidationResponse}})
 
 

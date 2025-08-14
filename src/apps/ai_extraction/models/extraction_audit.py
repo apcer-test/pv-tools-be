@@ -1,15 +1,7 @@
 from decimal import Decimal
 from typing import TYPE_CHECKING
 
-from sqlalchemy import (
-    DECIMAL,
-    JSON,
-    ForeignKey,
-    Integer,
-    String,
-    Text,
-    UniqueConstraint,
-)
+from sqlalchemy import DECIMAL, JSON, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from apps.ai_extraction.models.llm import ExtractionAgentModel
@@ -85,4 +77,5 @@ class ExtractionAuditModel(Base, ULIDPrimaryKeyMixin, TimeStampMixin):
     )
 
     def __repr__(self) -> str:
+        """String representation of the extraction audit"""
         return f"<ExtractionAuditModel(id={self.id}, request_id={self.request_id}, status={self.status})>"

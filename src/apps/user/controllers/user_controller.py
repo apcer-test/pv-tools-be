@@ -13,12 +13,12 @@ from apps.user.schemas.request import EncryptedRequest
 from apps.user.schemas.response import BaseUserResponse
 from apps.user.services import UserService
 from apps.user.services.microsoft_sso import MicrosoftSSOService
+from config import AppEnvironment, settings
+from constants.config import MICROSOFT_GENERATE_CODE_SCOPE
 from core.auth import AdminHasPermission, HasPermission
 from core.types import Providers, RoleType
 from core.utils.schema import BaseResponse
 from core.utils.set_cookies import set_auth_cookies
-from config import AppEnvironment, settings
-from constants.config import MICROSOFT_GENERATE_CODE_SCOPE
 from core.utils.sso_client import SSOOAuthClient
 
 router = APIRouter(prefix="/api/user", tags=["User"])

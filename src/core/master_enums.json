@@ -1,5 +1,37 @@
 {
-  "CustomerType": {
-    "DEFAULT": "Default"
+  "ComponentType": {
+    "PROMPT": 1,
+    "YYYYMM": 2,
+    "YYYY": 3,
+    "YY": 4,
+    "YYMM": 5,
+    "SEQUENCE_MONTH": 6,
+    "SEQUENCE_YEAR": 7,
+    "SEQUENCE_RUNNING": 8,
+    "INITIAL_UNIT": 9,
+    "OWNER_UNIT": 10,
+    "labels": {
+      "1": "PROMPT",
+      "2": "YYYYMM",
+      "3": "YYYY",
+      "4": "YY",
+      "5": "YYMM",
+      "6": "SEQUENCE_MONTH",
+      "7": "SEQUENCE_YEAR",
+      "8": "SEQUENCE_RUNNING",
+      "9": "INITIAL_UNIT",
+      "10": "OWNER_UNIT"
+    },
+    "descriptions": {
+      "6": "Reset sequence every month",
+      "7": "Reset sequence every year",
+      "8": "Never reset sequence",
+      "9": "Company unit identifier",
+      "10": "Owner unit identifier"
+    },
+    "lookup_types": {
+      "CODELIST": "code-list",
+      "NFLIST": "nf-list"
+    }
   }
 }

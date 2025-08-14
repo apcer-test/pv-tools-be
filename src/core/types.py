@@ -45,3 +45,10 @@ class FrequencyType(StrEnum):
     MONTHLY = "MONTHLY"
     SECONDLY30 = "SECONDLY30"
     SECONDLY60 = "SECONDLY60"
+
+
+class LookupType(StrEnum):
+    """Enum class of Lookup type for master lookups."""
+
+    CODELIST = "code-list"
+    NFLIST = "nf-list"

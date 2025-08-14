@@ -38,4 +38,5 @@ class PromptTemplateModel(Base, ULIDPrimaryKeyMixin, TimeStampMixin):
     )
 
     def __repr__(self) -> str:
+        """String representation of the prompt template"""
         return f"<PromptTemplateModel(id={self.id}, doc_type_id={self.doc_type_id}, version={self.version})>"

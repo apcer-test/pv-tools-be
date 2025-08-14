@@ -32,6 +32,7 @@ class FallbackChainModel(Base, ULIDPrimaryKeyMixin, TimeStampMixin):
     )
 
     def __repr__(self) -> str:
+        """String representation of the fallback chain"""
         return f"<FallbackChainModel(id={self.id}, name={self.name})>"
 
 
@@ -77,4 +78,5 @@ class FallbackStepModel(Base, ULIDPrimaryKeyMixin, TimeStampMixin):
     __table_args__ = (UniqueConstraint("chain_id", "seq_no", name="uq_chain_seq_no"),)
 
     def __repr__(self) -> str:
+        """String representation of the fallback step"""
         return f"<FallbackStepModel(id={self.id}, chain_id={self.chain_id}, seq_no={self.seq_no})>"

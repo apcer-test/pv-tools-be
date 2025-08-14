@@ -360,7 +360,7 @@ def pooling_mail_box(
     frequency: FrequencyType | None = None,
     additional_filter: str | None = None,
 ):
-
+    """Pooling mail box"""
     try:
         print(f"CurrentDatetime: {datetime.now()}")
         print(f"Frequency: {frequency}")

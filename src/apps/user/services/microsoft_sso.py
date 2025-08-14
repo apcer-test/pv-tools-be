@@ -7,9 +7,9 @@ from starlette.responses import RedirectResponse
 
 from apps.user.exceptions import EmailNotFoundError, UserNotFoundException
 from apps.users.models.user import Users
+from config import settings
 from core.common_helpers import create_tokens
 from core.db import db_session
-from config import settings
 
 
 class MicrosoftSSOService:
