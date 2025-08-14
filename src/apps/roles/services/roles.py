@@ -424,7 +424,7 @@ class RoleService:
         return [ModuleBasicResponse.model_validate(m, from_attributes=True) for m in roots]
 
     async def get_roles_by_ids(
-        self, role_ids: list[int], client_id: int,
+        self, role_ids: list[str], client_id: str,
     ) -> list[RoleResponse]:
         """Efficiently get a list of RoleResponse for
         the given list of role IDs using a single query."""

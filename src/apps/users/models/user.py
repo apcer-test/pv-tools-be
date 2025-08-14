@@ -21,30 +21,22 @@ class Users(Base, ULIDPrimaryKeyMixin, TimeStampMixin, UserMixin):
         last_name (str): The user's last name.
         email (str): The user's email address (unique).
         phone (str | None): The user's phone number (unique).
-        user_type_id (str): The user's user_type_id.
         is_active (bool): The user's active status.
         reporting_manager_id (str | None): The user's reporting manager id.
         description (str | None): The user's description.
         meta_data (dict | None): The user's metadata.
-        user_type (UserType): The user's user type.
-        meta_data (dict | None): The user's metadata.
-        is_active (bool): The user's active status.
         clients (list): The user's clients.
         roles (list): The user's roles.
         role_links (list): The user's role links.
+        user_types (list): The user's user types.
     """
 
     __tablename__ = "users"
 
-    username: Mapped[str] = mapped_column(String(64), nullable=False, unique=True)
     first_name: Mapped[str] = mapped_column(String(64), nullable=False)
     last_name: Mapped[str] = mapped_column(String(64), nullable=False)
     email: Mapped[str] = mapped_column(String(64), unique=True, index=True, nullable=False)
     phone: Mapped[str | None] = mapped_column(String(16), nullable=True)
-    user_type_id: Mapped[str] = mapped_column(ForeignKey("user_type.id", use_alter=True, ondelete="CASCADE"), nullable=False)
-    user_type: Mapped["UserType"] = relationship(
-        "UserType", back_populates="users", foreign_keys=[user_type_id]
-    )
 
     reporting_manager_id: Mapped[str | None] = mapped_column(ForeignKey("users.id", use_alter=True, ondelete="SET NULL"), nullable=True)
     reporting_manager: Mapped["Users"] = relationship("Users", remote_side="[Users.id]", foreign_keys=[reporting_manager_id])
@@ -52,11 +44,17 @@ class Users(Base, ULIDPrimaryKeyMixin, TimeStampMixin, UserMixin):
     meta_data: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     is_active: Mapped[bool] = mapped_column(default=True, server_default="True")
 
-
     clients: Mapped[List["Clients"]] = relationship(
         secondary="user_role_link",
         primaryjoin="Users.id == UserRoleLink.user_id",
         secondaryjoin="UserRoleLink.client_id == Clients.id",
+        viewonly=True,
+    )
+
+    user_types: Mapped[List["UserType"]] = relationship(
+        secondary="user_role_link",
+        primaryjoin="Users.id == UserRoleLink.user_id",
+        secondaryjoin="UserRoleLink.user_type_id == UserType.id",
         viewonly=True,
     )
 
@@ -106,7 +104,6 @@ class Users(Base, ULIDPrimaryKeyMixin, TimeStampMixin, UserMixin):
         email: str,
         password: str,
         username: str = None,
-        user_type_id: str = None,
         description: str = None,
         meta_data: dict = None,
         is_active: bool = True,
@@ -120,7 +117,6 @@ class Users(Base, ULIDPrimaryKeyMixin, TimeStampMixin, UserMixin):
         :param email: The user's email address.
         :param password: The user's hashed password.
         :param username: The user's username (auto-generated if not provided).
-        :param user_type_id: The user's type ID.
         :param description: The user's description.
         :param meta_data: The user's metadata.
         :param is_active: Whether the user is active.
@@ -136,7 +132,6 @@ class Users(Base, ULIDPrimaryKeyMixin, TimeStampMixin, UserMixin):
             phone=phone,
             password=password,
             username=username,
-            user_type_id=user_type_id,
             description=description,
             meta_data=meta_data,
             is_active=is_active,
@@ -150,6 +145,7 @@ class UserRoleLink(Base, ULIDPrimaryKeyMixin, TimeStampMixin, UserMixin):
         client_id (str): The client id.
         user_id (str): The user id.
         role_id (str): The role id.
+        user_type_id (str | None): The user type id.
     """
 
     __tablename__ = "user_role_link"
@@ -157,6 +153,7 @@ class UserRoleLink(Base, ULIDPrimaryKeyMixin, TimeStampMixin, UserMixin):
     client_id: Mapped[str] = mapped_column(ForeignKey("clients.id", use_alter=True, ondelete="CASCADE"), nullable=False)
     user_id: Mapped[str] = mapped_column(ForeignKey("users.id", use_alter=True, ondelete="CASCADE"), nullable=False)
     role_id: Mapped[str] = mapped_column(ForeignKey("roles.id", use_alter=True, ondelete="CASCADE"), nullable=False)
+    user_type_id: Mapped[str | None] = mapped_column(ForeignKey("user_type.id", use_alter=True, ondelete="CASCADE"), nullable=True)
 
     user: Mapped["Users"] = relationship(
         back_populates="role_links", primaryjoin="UserRoleLink.user_id == Users.id"
@@ -166,4 +163,7 @@ class UserRoleLink(Base, ULIDPrimaryKeyMixin, TimeStampMixin, UserMixin):
     )
     client: Mapped["Clients"] = relationship(
         "Clients", back_populates="user_role_links", foreign_keys=[client_id]
+    )
+    user_type: Mapped["UserType"] = relationship(
+        "UserType", back_populates="user_role_links", foreign_keys=[user_type_id]
     )

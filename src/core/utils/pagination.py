@@ -2,7 +2,8 @@ import math
 from typing import Any, Dict, Generic, List, Optional, TypeVar
 
 from fastapi import Query
-from fastapi_pagination import Params
+from fastapi_pagination import Page, Params
+from fastapi_pagination.bases import AbstractPage
 from pydantic import Field, conint
 from sqlalchemy import Select, asc, desc, func
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -291,3 +292,14 @@ async def paginate_query(
         builder.apply_sorting(params.sort_by, params.sort_order, allowed_sort_fields)
 
     return await builder.paginate(params)
+
+
+def paginate_array(data: list[T], params: Params) -> AbstractPage[T]:
+    total = len(data)
+    page = params.page
+    size = params.size
+    start = (page - 1) * size
+    end = start + size
+    items = data[start:end]
+
+    return Page.create(items=items, total=total, params=params)

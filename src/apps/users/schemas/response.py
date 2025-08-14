@@ -3,9 +3,8 @@
 from datetime import datetime
 from typing import Any
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 
-from apps.roles.schemas import RoleResponse as AliasedRoleResponse
 from apps.users.constants import UserAuthAction
 
 
@@ -23,7 +22,6 @@ class LoginResponse(BaseModel):
     refresh_token: str | None
     mfa_token: str | None
     user_id: str
-    username: str | None
     session_id: str | None
     roles: list[str] | None = []
     scopes: dict[str, list[str]]
@@ -48,8 +46,13 @@ class CreateUserResponse(BaseModel):
     """Response model containing information about a created user."""
 
     id: str
-    name: str
-    username: str | None
+    first_name: str
+    last_name: str
+    email: str
+    phone: str | None = None
+    reporting_manager_id: str | None = None
+    is_active: bool
+    created_at: datetime
 
     class Config:
         """Configuration for Pydantic model."""
@@ -57,40 +60,40 @@ class CreateUserResponse(BaseModel):
         from_attributes = True
 
 
-class BaseUserResponse(BaseModel):
-    """Response model for user information."""
-
-    id: str
-    username: str | None
-    email: str | None = None
-    phone: str | None = None
-    role_ids: list[str] | None = None
-    user_type_id: str | None = None
-    description: str | None = None
-    user_metadata: dict[str, Any] | None = None
-
-
-class UserStatusResponse(BaseModel):
-    """Response model for user with status information."""
-
-    id: str
-    username: str | None
-    email: str | None = None
-    phone: str | None = None
-    is_active: bool
-
-
 class UpdateUserResponse(BaseModel):
     """Response model for updated user's information."""
 
     id: str
-    username: str | None
-    email: EmailStr | None = None
+    first_name: str
+    last_name: str
+    email: str
     phone: str | None = None
-    roles: list[RoleResponse]
-    user_type_id: str | None = None
-    description: str | None = None
-    user_metadata: dict[str, Any] | None = None
+    reporting_manager_id: str | None = None
+    is_active: bool
+    updated_at: datetime
+    message: str
+
+    class Config:
+        """Configuration for Pydantic model."""
+
+        from_attributes = True
+
+
+class UserClientAssignmentResponse(BaseModel):
+    """Response model for a single client assignment."""
+
+    client_id: str
+    role_id: str
+    user_type_id: str
+    status: str  # "assigned" or "updated"
+
+
+class AssignUserClientsResponse(BaseModel):
+    """Response model for user client assignment operation."""
+
+    user_id: str
+    assignments: list[UserClientAssignmentResponse]
+    message: str
 
 
 class PermissionResponse(BaseModel):
@@ -124,74 +127,61 @@ class TenantAppResponse(BaseModel):
 
 
 class UserResponse(BaseModel):
-    """response model for getting information of self."""
+    """Response model for getting information of self."""
 
     id: str
-    username: str | None
+    first_name: str
+    last_name: str
     email: str | None = None
     phone: str | None = None
-    roles: list[AliasedRoleResponse] | None
-    type: UserTypeResponse | None
+    roles: list[RoleResponse] | None
+    user_types: list[UserTypeResponse] | None
     description: str | None = None
-    user_metadata: dict[str, Any] | None = None
+    meta_data: dict[str, Any] | None = None
     created_at: datetime
     updated_at: datetime | None
-    mfa_enabled: bool | None
-    mfa_enrolled: bool | None
+    is_active: bool
+    reporting_manager_id: str | None = None
+    created_by: str | None = None
+    updated_by: str | None = None
 
 
-class ListUserResponse(UserStatusResponse):
+class ClientResponse(BaseModel):
+    """Response model for client information."""
+
+    id: str
+    name: str
+
+
+class UserAssignResponse(BaseModel):
+    """Response model for user assign information."""
+    
+    role_name: str
+    user_type: str
+    client_name: str
+
+
+class ListUserResponse(BaseModel):
     """Response model for getting user's information."""
 
-    roles: list[RoleResponse]
-    type: UserTypeResponse
-    description: str | None = None
-    user_metadata: dict[str, Any] | None = None
-
-
-class GenerateOTPResponse(BaseModel):
-    """Response model for generating OTP."""
-
-    otp: str
-
-
-class MFASetupResponse(BaseModel):
-    """Response model for MFA setup."""
-
-    qrcode_base64: str
-    backup_codes: list[str]
-    mfa_token: str
-
-
-class MFAVerifiedResponse(BaseModel):
-    """Response model for MFA verified."""
-
-    access_token: str
-    refresh_token: str
-    user_id: str
-    username: str | None
-    session_id: str | None
-    roles: list[str] | None = []
-    scopes: dict[str, list[str]]
-
-
-class MFAResetResponse(BaseModel):
-    """Response model for MFA reset."""
-
-    mfa_token: str
-
-
-class MFAEnableResponse(BaseModel):
-    """Response model for MFA enable."""
-
-    message: str
-    mfa_token: str | None
-    action: UserAuthAction | None
-
-
-class AdditionalClaimsResponse(BaseModel):
-    """Response model for additional claims."""
-
-    roles: list[str] | None = None
+    id: str
     email: str | None = None
-    is_mfa_enabled: str | None = None
+    phone: str | None = None
+    is_active: bool
+    first_name: str
+    last_name: str
+    assigns: list[UserAssignResponse]
+    description: str | None = None
+    meta_data: dict[str, Any] | None = None
+    created_by: str | None = None
+    updated_by: str | None = None
+    created_at: datetime
+    updated_at: datetime | None
+
+
+class UserStatusResponse(BaseModel):
+    """Response model for user status information."""
+
+    id: str
+    is_active: bool
+    message: str

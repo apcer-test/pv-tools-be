@@ -105,7 +105,7 @@ async def get_role_by_id(
       - RoleNotFoundError: If the role with the given key is not found.
     """
 
-    return BaseResponse(data=await service.get_role_by_id(role_id=role_id, client_id=user.get("client_id")))
+    return BaseResponse(data=await service.get_roles_by_ids(role_ids=[role_id], client_id=user.get("client_id")))
 
 
 @router.patch(

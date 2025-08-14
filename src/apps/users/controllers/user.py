@@ -9,9 +9,7 @@ import logging
 from authlib.integrations.base_client.errors import OAuthError
 from fastapi import APIRouter, Body, Depends, Path, Query, Request, status
 
-from apps.clients.models.clients import Clients
 from apps.users.models.user import Users
-from apps.users.schemas.response import BaseUserResponse
 from apps.users.services import UserService, MicrosoftSSOService
 from core.types import Providers
 from core.utils.schema import BaseResponse
@@ -22,14 +20,16 @@ from core.utils.sso_client import SSOOAuthClient
 from apps.users.constants import UserSortBy
 from apps.users.models.user import Users
 from apps.users.schemas.request import (
-    BaseUserRequest,
     CreateUserRequest,
+    UpdateUserRequest,
+    AssignUserClientsRequest,
 )
 from apps.users.schemas.response import (
-    BaseUserResponse,
+    CreateUserResponse,
     ListUserResponse,
     UpdateUserResponse,
     UserResponse,
+    AssignUserClientsResponse,
     UserStatusResponse,
 )
 from apps.users.utils import current_user
@@ -198,35 +198,28 @@ async def create_user(
     body: Annotated[CreateUserRequest, Body()],
     service: Annotated[UserService, Depends()],
     user: Annotated[tuple[Users, str], Depends(current_user)]
-) -> BaseResponse[BaseUserResponse]:
+) -> BaseResponse[CreateUserResponse]:
     """
-    Creates a new user with the provided information.
+    Creates a new user with basic information.
 
     Args:
-        - client_slug (str): The client slug means client_id or name. This is required.
-        - username (str | None): The username of the user.
-        - phone (str): The phone number of the user.
-        - email (str): The email address of the user.
-        - role_ids (list[str] | None) : List of role IDs to assign to the user.
-        - user_type_id (str | None) : The Type ID of the user.
-        - description (str | None): The description of the user.
-        - meta_data (dict[str, Any] | None): The metadata of the user.
+        - first_name (str): The user's first name.
+        - last_name (str): The user's last name.
+        - phone (str): The user's phone number.
+        - email (str): The user's email address.
+        - reporting_manager_id (str | None): The user's reporting manager ID.
 
     Returns:
-        - BaseResponse[BaseUserResponse]: A response containing
-        the created user's basic information.
+        - BaseResponse[CreateUserResponse]: A response containing the created user's basic information.
 
     Raises:
         - PhoneAlreadyExistsError: If the provided phone number already exists.
         - EmailAlreadyExistsError: If the provided email address already exists.
-        - RoleNotFoundError: If any of the provided role IDs do not exist.
-        - UserTypeNotFoundError: If the provided type ID does not exist.
 
     """
 
     return BaseResponse(
-        data=await service.create_user(
-            client_id=user.get("client_id"),
+        data=await service.create_simple_user(
             **body.model_dump(),
             user_id=user.get("user").id
         )
@@ -269,11 +262,11 @@ async def get_all_users(
     service: Annotated[UserService, Depends()],
     user: Annotated[tuple[Users, str], Depends(current_user)],
     user_ids: Annotated[list[str] | None, Query()] = None,
-    username: Annotated[str | None, Query()] = None,
     email: Annotated[str | None, Query()] = None,
     phone: Annotated[str | None, Query()] = None,
     role: Annotated[str | None, Query()] = None,
-    type_name: Annotated[str | None, Query(alias="type")] = None,
+    user_type: Annotated[str | None, Query()] = None,
+    client: Annotated[str | None, Query()] = None,
     is_active: Annotated[bool | None, Query()] = None,
     sortby: Annotated[UserSortBy | None, Query()] = None,
 ) -> BaseResponse[Page[ListUserResponse]]:
@@ -306,13 +299,13 @@ async def get_all_users(
         data=await service.get_all_users(
             client_id=user.get("client_id"),
             page_param=param,
-            user=user,
+            user=user.get("user").id,
             user_ids=user_ids,
-            username=username,
             email=email,
             phone=phone,
             role_slug=role,
-            user_type_slug=type_name,
+            user_type_slug=user_type,
+            client_slug=client,
             is_active=is_active,
             sortby=sortby,
         )
@@ -356,7 +349,7 @@ async def get_user_by_id(
 )
 async def update_user(
     user: Annotated[tuple[Users, str], Depends(current_user)],
-    body: Annotated[BaseUserRequest, Body()],
+    body: Annotated[UpdateUserRequest, Body()],
     user_id: Annotated[str, Path()],
     service: Annotated[UserService, Depends()],
 ) -> BaseResponse[UpdateUserResponse]:
@@ -364,29 +357,65 @@ async def update_user(
     Updates the information of a specific user by their ID.
 
     Args:
-      - client_slug (str): The client slug means client_id or name. This is required.
       - user_id (str): The unique identifier of the user to retrieve.
-      - username (str | None): The username of the user.
-      - phone (str | None): The phone number of the user.
-      - email (str | None): The email address of the user.
-      - role_ids (list[str] | None) : List of role IDs to assign to the user.
-      - user_type_id (str | None) : The Type ID of the user.
-      - description (str | None): The description of the user.
-      - meta_data (dict[str, Any] | None): The metadata of the user.
+      - first_name (str | None): The user's first name.
+      - last_name (str | None): The user's last name.
+      - phone (str | None): The user's phone number.
+      - email (str | None): The user's email address.
+      - reporting_manager_id (str | None): The user's reporting manager ID.
+      - reason (str): The reason for the update (required).
 
     Returns:
       - BaseResponse[UpdateUserResponse]: A response containing the updated user data.
 
     Raises:
-      - UserNotFoundError: If no user with the provided username is found.
+      - UserNotFoundError: If no user with the provided ID is found.
       - PhoneAlreadyExistsError: If the provided phone number already exists.
       - EmailAlreadyExistsError: If the provided email address already exists.
-      - RoleNotFoundError: If the provided role ID does not exist.
-      - UserTypeNotFoundError: If the provided user type ID does not exist.
 
     """
 
-    return BaseResponse(data=await service.update(client_id=user.get("client_id"), user_id=user_id, **body.model_dump()))
+    return BaseResponse(data=await service.update_simple_user(
+        user_id=user_id,
+        **body.model_dump(),
+        current_user_id=user.get("user").id
+    ))
+
+
+@router.post(
+    "/{user_id}/assign-clients",
+    status_code=status.HTTP_200_OK,
+    name="Assign clients to user",
+    operation_id="assign-user-clients",
+)
+async def assign_user_clients(
+    user: Annotated[tuple[Users, str], Depends(current_user)],
+    body: Annotated[AssignUserClientsRequest, Body()],
+    user_id: Annotated[str, Path()],
+    service: Annotated[UserService, Depends()],
+) -> BaseResponse[AssignUserClientsResponse]:
+    """
+    Assigns clients, roles, and user types to a user.
+
+    Args:
+        - user_id (str): The ID of the user to assign clients to.
+        - assignments (list[UserClientAssignment]): List of client assignments with role and user type.
+
+    Returns:
+        - BaseResponse[AssignUserClientsResponse]: A response containing the assignment results.
+
+    Raises:
+        - UserNotFoundError: If no user with the provided ID is found.
+        - RoleNotFoundError: If any of the provided role IDs do not exist.
+        - UserTypeNotFoundError: If any of the provided user type IDs do not exist.
+
+    """
+
+    return BaseResponse(data=await service.assign_user_clients(
+        user_id=user_id,
+        assignments=body.assignments,
+        current_user_id=user.get("user").id
+    ))
 
 
 @router.patch(

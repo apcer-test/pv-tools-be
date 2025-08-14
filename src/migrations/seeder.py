@@ -1,4 +1,5 @@
 from ulid import ULID
+import slugify
 
 # AI-related tables seeding (doc_type and fallback_chain)
 
@@ -33,18 +34,19 @@ VALUES (
 
 # 1. Client
 client_id = str(ULID())
+client_slug = slugify.slugify("Azurity Pharmaceuticals, Inc.")
 user_management_sql = f"""
 INSERT INTO clients (id, name, code, slug, description, meta_data, is_active, created_at, updated_at, deleted_at)
-VALUES ('{client_id}', 'Azurity Pharmaceuticals, Inc.', 'AZ', 'azurity', NULL, NULL, TRUE, NOW(), NOW(), NULL);
+VALUES ('{client_id}', 'Azurity Pharmaceuticals, Inc.', 'AZ', '{client_slug}', NULL, NULL, TRUE, NOW(), NOW(), NULL);
 """
 
 # 2. Permissions
 permissions = [
-    {"name": "View", "slug": "view"},
-    {"name": "Edit", "slug": "edit"},
-    {"name": "Lock", "slug": "lock"},
-    {"name": "Delete", "slug": "delete"},
-    {"name": "Audit", "slug": "audit"},
+    {"name": "View", "slug": slugify.slugify("View")},
+    {"name": "Edit", "slug": slugify.slugify("Edit")},
+    {"name": "Lock", "slug": slugify.slugify("Lock")},
+    {"name": "Delete", "slug": slugify.slugify("Delete")},
+    {"name": "Audit", "slug": slugify.slugify("Audit")},
 ]
 permission_ids = {}
 for p in permissions:
@@ -57,10 +59,10 @@ VALUES ('{pid}', '{p["name"]}', '{p["slug"]}', NULL, NULL, '{client_id}', NOW(),
 
 # 3. User Types
 user_types = [
-    {"name": "OwnDataAccess", "slug": "own_data_access"},
-    {"name": "TeamDataAccess", "slug": "team_data_access"},
-    {"name": "FullDataAccess", "slug": "full_data_access"},
-    {"name": "ReadOnlyDataAccess", "slug": "read_only_data_access"},
+    {"name": "User", "slug": slugify.slugify("User")},
+    {"name": "Manager", "slug": slugify.slugify("Manager")},
+    {"name": "Admin", "slug": slugify.slugify("Admin")},
+    {"name": "SuperAdmin", "slug": slugify.slugify("SuperAdmin")},
 ]
 user_type_ids = {}
 for ut in user_types:
@@ -72,25 +74,37 @@ VALUES ('{utid}', '{ut["name"]}', '{ut["slug"]}', NULL, NULL, '{client_id}', NOW
 """
 
 # 4. Roles
-role_id = str(ULID())
-user_management_sql += f"""
+roles = [
+    {"name": "Super Admin", "slug": slugify.slugify("Super Admin")},
+    {"name": "Admin", "slug": slugify.slugify("Admin")},
+    {"name": "Reviewer", "slug": slugify.slugify("Reviewer")},
+    {"name": "User", "slug": slugify.slugify("User")},
+    {"name": "Client", "slug": slugify.slugify("Client")},
+]
+
+role_ids = {}
+for r in roles:
+    rid = str(ULID())
+    role_ids[r["slug"]] = rid
+    user_management_sql += f"""
 INSERT INTO roles (id, name, slug, description, meta_data, client_id, created_at, updated_at, deleted_at)
-VALUES ('{role_id}', 'Super Admin', 'super_admin', NULL, NULL, '{client_id}', NOW(), NOW(), NULL);
+VALUES ('{rid}', '{r["name"]}', '{r["slug"]}', NULL, NULL, '{client_id}', NOW(), NOW(), NULL);
 """
 
 # 5. Modules and hierarchy
 modules = [
-    {"name": "Case", "slug": "case"},
-    {"name": "Case Management", "slug": "case_management", "parent_slug": "case"},
-    {"name": "Role", "slug": "role"},
-    {"name": "Role Management", "slug": "role_management", "parent_slug": "role"},
+    {"name": "Clients", "slug": "clients"},
+    {"name": "Client Management", "slug": slugify.slugify("Client Management"), "parent_slug": "clients"},
+    {"name": "Roles", "slug": "roles"},
+    {"name": "Role Management", "slug": slugify.slugify("Role Management"), "parent_slug": "roles"},
     {"name": "User", "slug": "user"},
-    {"name": "User Management", "slug": "user_management", "parent_slug": "user"},
+    {"name": "User Management", "slug": slugify.slugify("User Management"), "parent_slug": "user"},
     {"name": "Setup", "slug": "setup"},
-    {"name": "AER Numbering", "slug": "aer_numbering", "parent_slug": "setup"},
-    {"name": "Code List", "slug": "code_list", "parent_slug": "setup"},
-    {"name": "Null Flavour List", "slug": "null_flavour_list", "parent_slug": "setup"},
+    {"name": "AER Numbering", "slug": slugify.slugify("AER Numbering"), "parent_slug": "setup"},
+    {"name": "Code List", "slug": slugify.slugify("Code List"), "parent_slug": "setup"},
+    {"name": "Null Flavour List", "slug": slugify.slugify("Null Flavour List"), "parent_slug": "setup"},
 ]
+
 module_ids = {}
 # First pass: assign IDs
 for m in modules:
@@ -103,37 +117,46 @@ INSERT INTO modules (id, name, slug, description, meta_data, client_id, parent_m
 VALUES ('{module_ids[m["slug"]]}', '{m["name"]}', '{m["slug"]}', NULL, NULL, '{client_id}', {parent_id}, NOW(), NOW(), NULL);
 """
 
-# 6. Module Permission Links
+# 6. Module Permission Links (Only for child modules)
 for mod_slug, mod_id in module_ids.items():
-    for perm_slug, perm_id in permission_ids.items():
-        link_id = str(ULID())
-        user_management_sql += f"""
+    # Check if this module has a parent (i.e., it's a child module)
+    mod_data = next((m for m in modules if m["slug"] == mod_slug), None)
+    if mod_data and "parent_slug" in mod_data:
+        # Only link permissions to child modules (parent_slug should not be NULL)
+        for perm_slug, perm_id in permission_ids.items():
+            link_id = str(ULID())
+            user_management_sql += f"""
 INSERT INTO module_permission_link (id, client_id, module_id, permission_id, created_at, updated_at, deleted_at)
 VALUES ('{link_id}', '{client_id}', '{mod_id}', '{perm_id}', NOW(), NOW(), NULL);
 """
-
-# 7. Role Module Permission Links
-for mod_slug, mod_id in module_ids.items():
-    for perm_slug, perm_id in permission_ids.items():
-        link_id = str(ULID())
-        user_management_sql += f"""
+        
+# 7. Role Module Permission Links (Only for child modules)
+for role_slug, role_id in role_ids.items():
+    for mod_slug, mod_id in module_ids.items():
+        # Check if this module has a parent (i.e., it's a child module)
+        mod_data = next((m for m in modules if m["slug"] == mod_slug), None)
+        if mod_data and "parent_slug" in mod_data:
+            # Only link permissions to child modules (parent_slug should not be NULL)
+            for perm_slug, perm_id in permission_ids.items():
+                link_id = str(ULID())
+                user_management_sql += f"""
 INSERT INTO role_module_permission_link (id, client_id, role_id, module_id, permission_id, created_at, updated_at, deleted_at)
 VALUES ('{link_id}', '{client_id}', '{role_id}', '{mod_id}', '{perm_id}', NOW(), NOW(), NULL);
 """
 
 # 8. Super Admin User
 user_id = str(ULID())
-user_type_id = user_type_ids["full_data_access"]  # assign FullDataAccess
+user_type_id = user_type_ids["superadmin"]  # assign SuperAdmin
 user_management_sql += f"""
-INSERT INTO users (id, username, first_name, last_name, email, phone, user_type_id, description, meta_data, is_active, created_at, updated_at, deleted_at, created_by, updated_by, deleted_by)
-VALUES ('{user_id}', 'super-admin', 'super', 'admin', 'super-admin@azurity.com', '+910000000000', '{user_type_id}', NULL, NULL, TRUE, NOW(), NOW(), NULL, NULL, NULL, NULL);
+INSERT INTO users (id, first_name, last_name, email, phone, description, meta_data, is_active, created_at, updated_at, deleted_at, created_by, updated_by, deleted_by)
+VALUES ('{user_id}', 'super', 'admin', 'jigarv@webelight.co.in', '+910000000000', NULL, NULL, TRUE, NOW(), NOW(), NULL, NULL, NULL, NULL);
 """
 
 # 9. User Role Link
 user_role_link_id = str(ULID())
 user_management_sql += f"""
-INSERT INTO user_role_link (id, client_id, user_id, role_id, created_by, updated_by, deleted_by, created_at, updated_at, deleted_at)
-VALUES ('{user_role_link_id}', '{client_id}', '{user_id}', '{role_id}', NULL, NULL, NULL, NOW(), NOW(), NULL);
+INSERT INTO user_role_link (id, client_id, user_id, role_id, user_type_id, created_by, updated_by, deleted_by, created_at, updated_at, deleted_at)
+VALUES ('{user_role_link_id}', '{client_id}', '{user_id}', '{role_ids["super-admin"]}', '{user_type_id}', NULL, NULL, NULL, NOW(), NOW(), NULL);
 """
 
 # 10. Update created_by and updated_by in all tables

@@ -36,17 +36,14 @@ class LoginRequest(BaseModel):
         return self
 
 
-class BaseUserRequest(BaseModel):
-    """Request model for creating,updating a user."""
+class CreateUserRequest(BaseModel):
+    """Request model for creating a user."""
 
-    username: str | None = None
-    phone: str | None = None
-    email: EmailStr | None = None
-    role_ids: list[str] | None = None
-    user_type_id: str | None = None
-    description: str | None = None
-    user_metadata: dict[str, Any] | None = None
-    reason: str | None = None  # Required for update operations
+    first_name: str
+    last_name: str
+    phone: str
+    email: EmailStr
+    reporting_manager_id: str | None = None
 
     @field_validator("email", mode="before")
     @classmethod
@@ -62,55 +59,41 @@ class BaseUserRequest(BaseModel):
         return None
 
 
-class CreateUserRequest(BaseUserRequest):
-    """Schema for creating user."""
+class UpdateUserRequest(BaseModel):
+    """Request model for updating a user."""
+
+    first_name: str | None = None
+    last_name: str | None = None
+    phone: str | None = None
+    email: EmailStr | None = None
+    reporting_manager_id: str | None = None
+    reason: str  # Required for update operations
 
     @field_validator("email", mode="before")
     @classmethod
     def normalize_email(cls, v: str | None) -> str | None:
         return v.lower() if v else v
 
-    @model_validator(mode="after")
-    def check_email_or_phone(self) -> "CreateUserRequest":
-        """Ensure at least one of email or phone is provided."""
-        if not self.email and not self.phone:
-            raise PhoneOrEmailRequiredError
-        return self
+    @field_validator("phone")
+    @classmethod
+    def validate_phone_number(cls, _v: str) -> str | None:
+        """Validate Phone number."""
+        if _v:
+            return validate_and_format_phone_number(_v)
+        return None
 
 
-class GenerateOTPRequest(BaseModel):
-    """Schema for generating OTP."""
+class UserClientAssignment(BaseModel):
+    """Model for a single client assignment with role and user type."""
 
-    phone: str
-
-
-class VerifyMFARequest(BaseModel):
-    """Schema for verifying MFA."""
-
-    code: str | None = None
-    remember: bool | None = None
-    backup_code: str | None = None
-
-    @model_validator(mode="after")
-    def check_otp(self) -> "VerifyMFARequest":
-        if self.code is None and self.backup_code is None:
-            raise UserMfaCodeRequiredError
-        return self
+    client_id: str
+    role_id: str
+    user_type_id: str
 
 
-class ResetMFARequest(BaseModel):
-    """Schema for resetting MFA."""
+class AssignUserClientsRequest(BaseModel):
+    """Request model for assigning clients, roles, and user types to a user."""
 
-    backup_code: str
+    user_id: str
+    assignments: list[UserClientAssignment]
 
-
-class EnableMFARequest(BaseModel):
-    """Schema for enabling MFA."""
-
-    code: str | None = None
-
-
-class DisableMFARequest(BaseModel):
-    """Schema for disabling MFA."""
-
-    code: str

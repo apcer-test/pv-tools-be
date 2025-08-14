@@ -1,7 +1,8 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 from sqlalchemy import JSON, ForeignKey, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from apps.users.models.user import UserRoleLink
 from core.db import Base
 from core.utils.mixins import TimeStampMixin, ULIDPrimaryKeyMixin, UserMixin
 
@@ -19,6 +20,8 @@ class UserType(Base, ULIDPrimaryKeyMixin, TimeStampMixin, UserMixin):
         description (str): The user's type description.
         meta_data (dict): The user's type metadata.
         client_id (str): The client id.
+        users (list): The users with this user type.
+        user_role_links (list): The user role link relationships.
     """
 
     __tablename__ = "user_type"
@@ -33,8 +36,15 @@ class UserType(Base, ULIDPrimaryKeyMixin, TimeStampMixin, UserMixin):
         "Clients", back_populates="user_types", foreign_keys=[client_id]
     )
 
-    users: Mapped[list["Users"]] = relationship(
-        "Users", back_populates="user_type", foreign_keys="[Users.user_type_id]"
+    users: Mapped[List["Users"]] = relationship(
+        secondary="user_role_link",
+        primaryjoin="UserType.id == UserRoleLink.user_type_id",
+        secondaryjoin="UserRoleLink.user_id == Users.id",
+        viewonly=True,
+    )
+
+    user_role_links: Mapped[List["UserRoleLink"]] = relationship(
+        "UserRoleLink", back_populates="user_type", foreign_keys="[UserRoleLink.user_type_id]"
     )
 
     # Unique constraint for name and client_id combination

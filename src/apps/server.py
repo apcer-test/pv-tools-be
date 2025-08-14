@@ -23,6 +23,7 @@ from apps.roles.controllers import roles_router
 from apps.permissions.controllers import permissions_router
 from apps.user_type.controllers import user_type_router
 from apps.users.controllers import user_router
+from apps.modules.controllers import module_router
 from config import AppEnvironment, settings
 from constants.config import rate_limiter_config
 from core.task.lifespan import lifespan
@@ -60,6 +61,7 @@ def init_routers(_app: FastAPI) -> None:
     base_router.include_router(roles_router)
     base_router.include_router(permissions_router)
     base_router.include_router(user_type_router)
+    base_router.include_router(module_router)
     _app.include_router(base_router, responses={422: {"model": BaseValidationResponse}})
 
 
