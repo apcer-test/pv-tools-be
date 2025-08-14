@@ -14,6 +14,7 @@ from apps.master_modules.services.setup import SetupService
 from core.types import LookupType
 from core.utils.pagination import PaginatedResponse, PaginationParams
 from core.utils.schema import BaseResponse, SuccessResponse
+from src.apps.users.utils import permission_required
 
 router = APIRouter(prefix="/setup", tags=["Setup"])
 
@@ -36,24 +37,15 @@ async def upload_excel_file(
 
 
 @router.get(
-    "/lookup",
+    "/codelist/lookup",
     status_code=status.HTTP_200_OK,
-    name="Get lookup list",
+    name="Get lookup list for code-list",
     description="Get list of all active lookup entries with their id, name, slug and type.",
-    operation_id="get_lookup_list",
+    operation_id="get_codelist_lookup_list",
+    dependencies=[Depends(permission_required(["setup"], ["code-list"]))]
 )
-async def get_lookup_list(
+async def get_codelist_lookup_list(
     service: Annotated[SetupService, Depends()],
-    lookup_type_filter: (
-        Annotated[
-            LookupType,
-            Query(
-                default=None,
-                description="Filter lookups by type ('code-list' or 'nf-list')",
-            ),
-        ]
-        | None
-    ) = None,
     is_active: (
         Annotated[
             bool,
@@ -84,13 +76,58 @@ async def get_lookup_list(
     """
     pagination_params = PaginationParams(page=page, page_size=page_size, search=search)
     return BaseResponse(
-        data=await service.get_lookup_list(
-            lookup_type_filter=lookup_type_filter,
+        data=await service.get_codelist_lookup_list(
             is_active=is_active,
             params=pagination_params,
         )
     )
 
+
+@router.get(
+    "/nflist/lookup",
+    status_code=status.HTTP_200_OK,
+    name="Get lookup list for nf-list",
+    description="Get list of all active lookup entries with their id, name, slug and type.",
+    operation_id="get_nflist_lookup_list",
+    dependencies=[Depends(permission_required(["setup"], ["null-flavour-list"]))]
+)
+async def get_nflist_lookup_list(
+    service: Annotated[SetupService, Depends()],
+    is_active: (
+        Annotated[
+            bool,
+            Query(
+                default=None,
+                description="Filter by active status (true/false). Omit for all",
+            ),
+        ]
+        | None
+    ) = None,
+    page: Annotated[int, Query(1, ge=1, description="Page number")] | None = 1,
+    page_size: (
+        Annotated[int, Query(10, ge=1, le=100, description="Items per page")] | None
+    ) = 10,
+    search: (
+        Annotated[
+            str | None,
+            Query(
+                None, description="Search by lookup name (contains, case-insensitive)"
+            ),
+        ]
+        | None
+    ) = None,
+) -> BaseResponse[PaginatedResponse[LookupResponse]]:
+    """
+    Get list of all active lookup entries.
+    Returns a list of lookup entries with their id, name, slug and type.
+    """
+    pagination_params = PaginationParams(page=page, page_size=page_size, search=search)
+    return BaseResponse(
+        data=await service.get_nflist_lookup_list(
+            is_active=is_active,
+            params=pagination_params,
+        )
+    )
 
 @router.get(
     "/lookup/{lookup_id}/values",
@@ -137,12 +174,14 @@ async def get_lookup_values(
     )
 
 
+
 @router.post(
     "/lookup/{lookup_id}/codelist/values",
     status_code=status.HTTP_201_CREATED,
     name="Create code-list lookup value",
     description="Create a lookup value for a given lookup id (code-list).",
     operation_id="create_lookup_value",
+    dependencies=[Depends(permission_required(["setup"], ["code-list"]))]
 )
 async def create_lookup_value(
     lookup_id: Annotated[str, Path(..., description="Lookup id")],
@@ -165,6 +204,7 @@ async def create_lookup_value(
     name="Create nf-list lookup value",
     description="Create an nf-list lookup value for a given lookup id.",
     operation_id="create_nf_lookup_value",
+    dependencies=[Depends(permission_required(["setup"], ["null-flavour-list"]))]
 )
 async def create_nf_lookup_value(
     lookup_id: Annotated[str, Path(..., description="Lookup id")],

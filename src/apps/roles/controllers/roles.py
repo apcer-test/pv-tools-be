@@ -13,7 +13,7 @@ from apps.roles.schemas import BaseRoleResponse, CreateRoleRequest, UpdateRoleRe
 from apps.roles.schemas.response import RoleResponse
 from apps.roles.services import RoleService
 from apps.users.models.user import Users
-from apps.users.utils import current_user
+from apps.users.utils import current_user, permission_required
 from core.auth import HasPermission
 from core.utils.schema import BaseResponse, SuccessResponse
 
@@ -28,6 +28,7 @@ router = APIRouter(
     status_code=status.HTTP_201_CREATED,
     name="Create role",
     operation_id="create-role",
+    dependencies=[Depends(permission_required(["roles"], ["role-management"]))]
 )
 async def create_role(
     body: Annotated[CreateRoleRequest, Body()],
@@ -59,6 +60,7 @@ async def create_role(
     status_code=status.HTTP_200_OK,
     name="Get all roles",
     operation_id="get-all-roles",
+    dependencies=[Depends(permission_required(["roles"], ["role-management"]))]
 )
 async def get_all_roles(
     service: Annotated[RoleService, Depends()],
@@ -89,6 +91,7 @@ async def get_all_roles(
     status_code=status.HTTP_200_OK,
     name="Get role by id",
     operation_id="get-role-by-key",
+    dependencies=[Depends(permission_required(["roles"], ["role-management"]))]
 )
 async def get_role_by_id(
     role_id: Annotated[str, Path()], service: Annotated[RoleService, Depends()], user: Annotated[tuple[Users, str], Depends(current_user)]
@@ -114,6 +117,7 @@ async def get_role_by_id(
     status_code=status.HTTP_200_OK,
     name="Update role",
     operation_id="update-role",
+    dependencies=[Depends(permission_required(["roles"], ["role-management"]))]
 )
 async def update_role(
     role_id: Annotated[str, Path()],
@@ -150,6 +154,7 @@ async def update_role(
     status_code=status.HTTP_200_OK,
     name="delete role using role_id",
     operation_id="delete-role",
+    dependencies=[Depends(permission_required(["roles"], ["role-management"]))]
 )
 async def delete_role(
     role_id: Annotated[str, Path()], service: Annotated[RoleService, Depends()], user: Annotated[tuple[Users, str], Depends(current_user)]

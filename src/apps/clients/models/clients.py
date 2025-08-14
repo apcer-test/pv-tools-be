@@ -14,6 +14,7 @@ if TYPE_CHECKING:
     from apps.permissions.models.permissions import Permissions
     from apps.users.models.user import Users
     from apps.users.models.user import UserRoleLink
+    from apps.case.models.case import CaseNumberConfiguration
 
 class Clients(Base, ULIDPrimaryKeyMixin, TimeStampMixin, UserMixin):
     """Represents a Client in the system.
@@ -67,4 +68,8 @@ class Clients(Base, ULIDPrimaryKeyMixin, TimeStampMixin, UserMixin):
 
     user_role_links: Mapped[List["UserRoleLink"]] = relationship(
         "UserRoleLink", back_populates="client", foreign_keys="[UserRoleLink.client_id]"
+    )
+
+    case_number_configurations: Mapped[List["CaseNumberConfiguration"]] = relationship(
+        "CaseNumberConfiguration", back_populates="client", cascade="all, delete-orphan"
     )

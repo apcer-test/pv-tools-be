@@ -250,22 +250,19 @@ class SetupService:
         finally:
             file.file.close()
 
-    async def get_lookup_list(
+    async def get_codelist_lookup_list(
         self,
-        lookup_type_filter: LookupType | None = None,
         is_active: bool | None = None,
         params: PaginationParams | None = None,
     ) -> PaginatedResponse[LookupResponse]:
         """
-        Get list of all lookup entries.
+        Get list of all code-list lookup entries.
 
         Returns:
             LookupListResponse: List of lookup entries with id, name, slug and type.
         """
-        # Query active lookup entries, optionally filtered by lookup_type
-        stmt = select(LookupModel).order_by(LookupModel.updated_at.desc())
-        if lookup_type_filter is not None:
-            stmt = stmt.where(LookupModel.lookup_type == lookup_type_filter.value)
+        # Query active code-list lookup entries
+        stmt = select(LookupModel).where(LookupModel.lookup_type == LookupType.CODELIST.value).order_by(LookupModel.updated_at.desc())
         if is_active is not None:
             stmt = stmt.where(LookupModel.is_active == is_active)
         assert params is not None, "Pagination params must be provided"
@@ -295,7 +292,55 @@ class SetupService:
                     id=str(lookup.id),
                     name=lookup.name,
                     slug=lookup.slug,
-                    is_active=lookup.is_active,
+                )
+            )
+
+        return PaginatedResponse.create(
+            items=lookup_responses, total=page.total, params=params
+        )
+
+    async def get_nflist_lookup_list(
+        self,
+        is_active: bool | None = None,
+        params: PaginationParams | None = None,
+    ) -> PaginatedResponse[LookupResponse]:
+        """
+        Get list of all nf-list lookup entries.
+
+        Returns:
+            LookupListResponse: List of lookup entries with id, name, slug and type.
+        """
+        # Query active nf-list lookup entries
+        stmt = select(LookupModel).where(LookupModel.lookup_type == LookupType.NFLIST.value).order_by(LookupModel.updated_at.desc())
+        if is_active is not None:
+            stmt = stmt.where(LookupModel.is_active == is_active)
+        assert params is not None, "Pagination params must be provided"
+
+        # Apply search on name field if provided
+        if params.search:
+            search_term = func.lower(params.search)
+            stmt = stmt.where(
+                func.lower(LookupModel.name).contains(search_term)
+                | func.lower(LookupModel.slug).contains(search_term)
+            )
+
+        # Order by latest updated and paginate using helper to also compute total
+        page = await paginate_query(
+            stmt,
+            self.session,
+            params,
+            default_sort_by="updated_at",
+            default_sort_order="desc",
+        )
+
+        # Map to response models while reusing total from paginator
+        lookup_responses: list[LookupResponse] = []
+        for lookup in page.items:
+            lookup_responses.append(
+                LookupResponse(
+                    id=str(lookup.id),
+                    name=lookup.name,
+                    slug=lookup.slug,
                 )
             )
 

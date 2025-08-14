@@ -1,7 +1,7 @@
 from typing import Annotated
 from fastapi import APIRouter, Depends, Path, status
 
-from apps.users.utils import current_user
+from apps.users.utils import current_user, permission_required
 from core.utils.schema import BaseResponse
 from apps.clients.schemas.request import CreateClientRequest, UpdateClientRequest, ListClientsRequest
 from apps.clients.schemas.response import ClientResponse, ClientListResponse, CreateClientResponse, UpdateClientResponse, DeleteClientResponse, GlobalClientResponse
@@ -16,7 +16,8 @@ router = APIRouter(prefix="/clients", tags=["Clients"])
     status_code=status.HTTP_201_CREATED,
     response_model=BaseResponse[CreateClientResponse],
     name="Create Client",
-    description="Create a new client (Access token required)"
+    description="Create a new client (Access token required)",
+    dependencies=[Depends(permission_required(["clients"], ["client-management"]))]
 )
 async def create_client(
     client_data: CreateClientRequest,
@@ -55,7 +56,8 @@ async def create_client(
     status_code=status.HTTP_200_OK,
     response_model=BaseResponse[ClientResponse],
     name="Get Client",
-    description="Get client by ID (Access token required)"
+    description="Get client by ID (Access token required)",
+    dependencies=[Depends(permission_required(["clients"], ["client-management"]))]
 )
 async def get_client(
     service: Annotated[ClientService, Depends()],
@@ -101,7 +103,8 @@ async def get_global_clients(
     status_code=status.HTTP_200_OK,
     response_model=BaseResponse[UpdateClientResponse],
     name="Update Client",
-    description="Update client (Access token required)"
+    description="Update client (Access token required)",
+    dependencies=[Depends(permission_required(["clients"], ["client-management"]))]
 )
 async def update_client(
     client_data: UpdateClientRequest,
@@ -143,7 +146,8 @@ async def update_client(
     status_code=status.HTTP_200_OK,
     response_model=BaseResponse[DeleteClientResponse],
     name="Delete Client",
-    description="Delete client (Access token required)"
+    description="Delete client (Access token required)",
+    dependencies=[Depends(permission_required(["clients"], ["client-management"]))]
 )
 async def delete_client(
     service: Annotated[ClientService, Depends()],
@@ -180,7 +184,8 @@ async def delete_client(
     status_code=status.HTTP_200_OK,
     response_model=BaseResponse[ClientListResponse],
     name="List Clients",
-    description="List all clients with pagination and filters (returns only id, name, and code)"
+    description="List all clients with pagination and filters (returns only id, name, and code)",
+    dependencies=[Depends(permission_required(["clients"], ["client-management"]))]
 )
 async def list_clients(
     service: Annotated[ClientService, Depends()],

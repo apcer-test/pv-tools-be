@@ -32,7 +32,7 @@ from apps.users.schemas.response import (
     AssignUserClientsResponse,
     UserStatusResponse,
 )
-from apps.users.utils import current_user
+from apps.users.utils import current_user, permission_required
 from core.utils.schema import BaseResponse, SuccessResponse
 from fastapi.responses import RedirectResponse
 from sqlalchemy import select, and_
@@ -193,6 +193,7 @@ async def generate_code_callback(request: Request) -> RedirectResponse:
     status_code=status.HTTP_201_CREATED,
     name="Create User",
     operation_id="create-user",
+    dependencies=[Depends(permission_required(["user"], ["user-management"]))]
 )
 async def create_user(
     body: Annotated[CreateUserRequest, Body()],
@@ -256,6 +257,7 @@ async def get_self(
     status_code=status.HTTP_200_OK,
     name="Get all users",
     operation_id="get-all-users",
+    dependencies=[Depends(permission_required(["user"], ["user-management"]))]
 )
 async def get_all_users(
     param: Annotated[Params, Depends()],
@@ -315,6 +317,7 @@ async def get_all_users(
     status_code=status.HTTP_200_OK,
     name="Get user by id",
     operation_id="get-user-by-id",
+    dependencies=[Depends(permission_required(["user"], ["user-management"]))]
 )
 async def get_user_by_id(
     user: Annotated[tuple[Users, str], Depends(current_user)],
@@ -344,6 +347,7 @@ async def get_user_by_id(
     status_code=status.HTTP_200_OK,
     name="Update user",
     operation_id="update-user",
+    dependencies=[Depends(permission_required(["user"], ["user-management"]))]
 )
 async def update_user(
     user: Annotated[tuple[Users, str], Depends(current_user)],
@@ -385,6 +389,7 @@ async def update_user(
     status_code=status.HTTP_200_OK,
     name="Assign clients to user",
     operation_id="assign-user-clients",
+    dependencies=[Depends(permission_required(["user"], ["user-management"]))]
 )
 async def assign_user_clients(
     user: Annotated[tuple[Users, str], Depends(current_user)],
@@ -421,6 +426,7 @@ async def assign_user_clients(
     name="Make user active/Inactive",
     operation_id="change-user-status",
     status_code=status.HTTP_200_OK,
+    dependencies=[Depends(permission_required(["user"], ["user-management"]))]
 )
 async def change_user_status(
     user: Annotated[tuple[Users, str], Depends(current_user)],
@@ -451,6 +457,7 @@ async def change_user_status(
     status_code=status.HTTP_200_OK,
     name="delete user",
     operation_id="delete-user",
+    dependencies=[Depends(permission_required(["user"], ["user-management"]))]
 )
 async def delete_user(
     user: Annotated[tuple[Users, str], Depends(current_user)],

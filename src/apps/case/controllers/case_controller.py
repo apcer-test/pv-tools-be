@@ -8,19 +8,22 @@ from apps.case.schemas.request import CaseCreate, CaseNumberConfigurationCreate
 from apps.case.schemas.response import CaseNumberConfigurationResponse, CaseResponse
 from apps.case.services.case_service import CaseService
 from core.utils.schema import BaseResponse
+from src.apps.users.utils import permission_required
 
 router = APIRouter(prefix="/api/cases", tags=["Cases"])
 
 
 @router.post(
-    "/configurations",
+    "/configurations/{client_id}",
     status_code=status.HTTP_201_CREATED,
     response_model=BaseResponse[CaseNumberConfigurationResponse],
     name="Create Case Number Configuration",
     description="Create a new case number configuration",
     operation_id="create_case_configuration",
+    dependencies=[Depends(permission_required(["setup"], ["aer-numbering"]))]
 )
 async def create_configuration(
+    client_id: Annotated[str, Path(..., description="Client ID")],
     config: Annotated[CaseNumberConfigurationCreate, Body()],
     service: Annotated[CaseService, Depends()],
 ) -> BaseResponse[CaseNumberConfigurationResponse]:
@@ -36,18 +39,20 @@ async def create_configuration(
     Raises:
         HTTPException: If validation fails
     """
-    return BaseResponse(data=await service.create_configuration(config))
+    return BaseResponse(data=await service.create_configuration(client_id, config))
 
 
 @router.get(
-    "/configurations",
+    "/configurations/{client_id}",
     status_code=status.HTTP_200_OK,
     response_model=BaseResponse[list[CaseNumberConfigurationResponse]],
     name="List Case Number Configurations",
     description="List all case number configurations with optional active status filter",
     operation_id="list_case_configurations",
+    dependencies=[Depends(permission_required(["setup"], ["aer-numbering"]))]
 )
 async def list_configurations(
+    client_id: Annotated[str, Path(..., description="Client ID")],
     service: Annotated[CaseService, Depends()],
     is_active: Annotated[
         Optional[bool], Query(description="Filter by active status (true/false)")
@@ -62,18 +67,20 @@ async def list_configurations(
     Returns:
         List of configurations matching the filter
     """
-    return BaseResponse(data=await service.list_configurations(is_active=is_active))
+    return BaseResponse(data=await service.list_configurations(client_id=client_id, is_active=is_active))
 
 
 @router.put(
-    "/configurations/{config_id}/active",
+    "/{client_id}/configurations/{config_id}/active",
     status_code=status.HTTP_200_OK,
     response_model=BaseResponse[CaseNumberConfigurationResponse],
     name="Set Active Configuration",
     description="Set a configuration as active",
     operation_id="set_active_configuration",
+    dependencies=[Depends(permission_required(["setup"], ["aer-numbering"]))]
 )
 async def set_configuration_active(
+    client_id: Annotated[str, Path(..., description="Client ID")],
     config_id: Annotated[str, Path(..., description="Configuration ID")],
     service: Annotated[CaseService, Depends()],
 ) -> BaseResponse[CaseNumberConfigurationResponse]:
@@ -86,7 +93,7 @@ async def set_configuration_active(
     Returns:
         BaseResponse containing the activated configuration
     """
-    return BaseResponse(data=await service.set_configuration_active(config_id))
+    return BaseResponse(data=await service.set_configuration_active(client_id, config_id))
 
 
 @router.post(
@@ -96,6 +103,7 @@ async def set_configuration_active(
     name="Create Case",
     description="Create a new case",
     operation_id="create_case",
+    dependencies=[Depends(permission_required(["setup"], ["aer-numbering"]))]
 )
 async def create_case(
     case: Annotated[CaseCreate, Body()], service: Annotated[CaseService, Depends()]
@@ -137,7 +145,7 @@ async def get_case(
 
 
 @router.patch(
-    "/configurations/{config_id}",
+    "/{client_id}/configurations/{config_id}",
     status_code=status.HTTP_200_OK,
     response_model=BaseResponse[CaseNumberConfigurationResponse],
     name="Update Case Number Configuration",
@@ -145,6 +153,7 @@ async def get_case(
     operation_id="update_case_configuration",
 )
 async def update_configuration(
+    client_id: Annotated[str, Path(..., description="Client ID")],
     config_id: Annotated[str, Path(..., description="Configuration ID")],
     config: Annotated[CaseNumberConfigurationCreate, Body()],
     service: Annotated[CaseService, Depends()],
@@ -163,4 +172,4 @@ async def update_configuration(
         HTTPException: If validation fails or configuration not found
     """
 
-    return BaseResponse(data=await service.update_configuration(config_id, config))
+    return BaseResponse(data=await service.update_configuration(client_id, config_id, config))
