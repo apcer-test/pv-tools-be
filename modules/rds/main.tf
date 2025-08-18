@@ -11,8 +11,9 @@ resource "aws_db_instance" "this" {
   port                        = var.rds_port
   db_name                     = var.rds_db_name
   username                    = var.rds_master_db_user
-  # password not specified - AWS will auto-generate and store in Secrets Manager
-  manage_master_user_password = true   # AWS native secret management
+  # Password management
+  manage_master_user_password = var.rds_manage_master_user_secret
+  master_user_secret_kms_key_id = var.rds_manage_master_user_secret ? var.rds_master_user_secret_kms_key_id : null
   deletion_protection         = true
   vpc_security_group_ids      = var.rds_security_group_id
   db_subnet_group_name        = var.rds_db_subnet_group_name

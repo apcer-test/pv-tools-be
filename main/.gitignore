@@ -7,7 +7,6 @@
 *.tfstate.*
 
 # Terraform variable files (if sensitive)
-*.tfvars
 *.tfvars.json
 
 # Saved plan files

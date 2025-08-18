@@ -229,4 +229,16 @@ variable "rds_master_db_password" {
   type        = string
   sensitive   = true
   default     = null
+}
+
+variable "rds_manage_master_user_secret" {
+  description = "Whether to manage the master user secret in AWS Secrets Manager."
+  type        = bool
+  default     = false
+}
+
+variable "rds_master_user_secret_kms_key_id" {
+  description = "The KMS key ID to use for encrypting the master user secret."
+  type        = string
+  default     = null
 } 

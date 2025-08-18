@@ -79,6 +79,12 @@ variable "services" {
 
 
 # RDS Database variables
+variable "create_rds" {
+  description = "Whether to create RDS database"
+  type        = bool
+  default     = false
+}
+
 variable "create_rds_database" {
   type    = bool
 }
@@ -134,6 +140,28 @@ variable "rds_maintenance_window" {
 variable "rds_backup_retention_period" {
   description = "Backup retention period for RDS"
   type        = number
+}
+
+variable "rds_username" {
+  description = "Username for the master DB user"
+  type        = string
+}
+
+variable "rds_database_name" {
+  description = "Name of the database to create"
+  type        = string
+}
+
+variable "rds_manage_master_user_secret" {
+  description = "Whether to manage the master user secret in AWS Secrets Manager"
+  type        = bool
+  default     = false
+}
+
+variable "rds_master_user_secret_kms_key_id" {
+  description = "The KMS key ID to use for encrypting the master user secret"
+  type        = string
+  default     = null
 }
 
 

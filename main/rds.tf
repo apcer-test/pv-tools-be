@@ -20,7 +20,7 @@ locals {
 
 # Custom RDS Parameter Group with configurable SSL
 resource "aws_db_parameter_group" "rds_parameter_group" {
-  count  = var.create_rds_database ? 1 : 0
+  count  = var.create_rds ? 1 : 0
   family = var.rds_engine == "postgres" ? "postgres16" : "mysql8.0"
   name   = "${var.project_name}-db-params-${var.env}"
 
@@ -40,7 +40,7 @@ resource "aws_db_parameter_group" "rds_parameter_group" {
 
 # RDS Database Instance
 module "rds" {
-  count  = var.create_rds_database ? 1 : 0
+  count  = var.create_rds ? 1 : 0
   source = "../modules/rds"
   
   # Required basic variables (non-prefixed)
@@ -62,9 +62,10 @@ module "rds" {
   rds_engine                  = var.rds_engine
   rds_engine_version          = var.rds_engine_version
   rds_port                    = var.rds_port
-  rds_db_name                 = "test"
-  rds_master_db_user          = "master"
-  # rds_master_db_password not specified - AWS will auto-generate
+  rds_db_name                 = var.rds_database_name
+  rds_master_db_user          = var.rds_username
+  rds_manage_master_user_secret = var.rds_manage_master_user_secret
+  rds_master_user_secret_kms_key_id = var.rds_master_user_secret_kms_key_id
   rds_security_group_id       = [module.rds-sg[0].security_group_id]
   rds_db_subnet_group_name    = module.vpc.database_subnet_group_name
   rds_availability_zone       = local.rds_first_az
