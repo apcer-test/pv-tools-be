@@ -97,6 +97,10 @@ class Settings(BaseSettings):
     ENCRYPTION_KEY: Optional[str] = Field(None, alias="ENCRYPTION_KEY")
     SECRET_KEY: Optional[str] = Field(None, alias="SECRET_KEY")
 
+    AICB_URL: Optional[str] = Field(None, alias="AICB_URL")
+    AICB_USERNAME: Optional[str] = Field(None, alias="AICB_USERNAME")
+    AICB_PASSWORD: Optional[str] = Field(None, alias="AICB_PASSWORD")
+
     model_config = {"env_file": ".env", "extra": "ignore"}
 
     # Add a root validator for required fields
