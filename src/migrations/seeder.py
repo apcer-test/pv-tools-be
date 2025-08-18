@@ -53,8 +53,8 @@ for p in permissions:
     pid = str(ULID())
     permission_ids[p["slug"]] = pid
     user_management_sql += f"""
-INSERT INTO permissions (id, name, slug, description, meta_data, client_id, created_at, updated_at, deleted_at)
-VALUES ('{pid}', '{p["name"]}', '{p["slug"]}', NULL, NULL, '{client_id}', NOW(), NOW(), NULL);
+INSERT INTO permissions (id, name, slug, description, meta_data, created_at, updated_at, deleted_at)
+VALUES ('{pid}', '{p["name"]}', '{p["slug"]}', NULL, NULL, NOW(), NOW(), NULL);
 """
 
 
@@ -62,10 +62,6 @@ VALUES ('{pid}', '{p["name"]}', '{p["slug"]}', NULL, NULL, '{client_id}', NOW(),
 # 4. Roles
 roles = [
     {"name": "Super Admin", "slug": slugify.slugify("Super Admin")},
-    {"name": "Admin", "slug": slugify.slugify("Admin")},
-    {"name": "Reviewer", "slug": slugify.slugify("Reviewer")},
-    {"name": "User", "slug": slugify.slugify("User")},
-    {"name": "Client", "slug": slugify.slugify("Client")},
 ]
 
 role_ids = {}
@@ -73,8 +69,8 @@ for r in roles:
     rid = str(ULID())
     role_ids[r["slug"]] = rid
     user_management_sql += f"""
-INSERT INTO roles (id, name, slug, description, meta_data, client_id, created_at, updated_at, deleted_at)
-VALUES ('{rid}', '{r["name"]}', '{r["slug"]}', NULL, NULL, '{client_id}', NOW(), NOW(), NULL);
+INSERT INTO roles (id, name, slug, description, meta_data, is_active, created_at, updated_at, deleted_at)
+VALUES ('{rid}', '{r["name"]}', '{r["slug"]}', NULL, NULL, TRUE, NOW(), NOW(), NULL);
 """
 
 # 5. Modules and hierarchy
@@ -99,8 +95,8 @@ for m in modules:
 for m in modules:
     parent_id = f"'{module_ids[m['parent_slug']]}'" if "parent_slug" in m else "NULL"
     user_management_sql += f"""
-INSERT INTO modules (id, name, slug, description, meta_data, client_id, parent_module_id, created_at, updated_at, deleted_at)
-VALUES ('{module_ids[m["slug"]]}', '{m["name"]}', '{m["slug"]}', NULL, NULL, '{client_id}', {parent_id}, NOW(), NOW(), NULL);
+INSERT INTO modules (id, name, slug, description, meta_data, parent_module_id, created_at, updated_at, deleted_at)
+VALUES ('{module_ids[m["slug"]]}', '{m["name"]}', '{m["slug"]}', NULL, NULL, {parent_id}, NOW(), NOW(), NULL);
 """
 
 # 6. Module Permission Links (Only for child modules)
@@ -112,8 +108,8 @@ for mod_slug, mod_id in module_ids.items():
         for perm_slug, perm_id in permission_ids.items():
             link_id = str(ULID())
             user_management_sql += f"""
-INSERT INTO module_permission_link (id, client_id, module_id, permission_id, created_at, updated_at, deleted_at)
-VALUES ('{link_id}', '{client_id}', '{mod_id}', '{perm_id}', NOW(), NOW(), NULL);
+INSERT INTO module_permission_link (id, module_id, permission_id, created_at, updated_at, deleted_at)
+VALUES ('{link_id}', '{mod_id}', '{perm_id}', NOW(), NOW(), NULL);
 """
         
 # 7. Role Module Permission Links (Only for child modules)
@@ -126,8 +122,8 @@ for role_slug, role_id in role_ids.items():
             for perm_slug, perm_id in permission_ids.items():
                 link_id = str(ULID())
                 user_management_sql += f"""
-INSERT INTO role_module_permission_link (id, client_id, role_id, module_id, permission_id, created_at, updated_at, deleted_at)
-VALUES ('{link_id}', '{client_id}', '{role_id}', '{mod_id}', '{perm_id}', NOW(), NOW(), NULL);
+INSERT INTO role_module_permission_link (id, role_id, module_id, permission_id, created_at, updated_at, deleted_at)
+VALUES ('{link_id}', '{role_id}', '{mod_id}', '{perm_id}', NOW(), NOW(), NULL);
 """
 
 # 8. Super Admin User
@@ -147,12 +143,12 @@ VALUES ('{user_role_link_id}', '{client_id}', '{user_id}', '{role_ids["super-adm
 # 10. Update created_by and updated_by in all tables
 user_management_sql += f"""
 UPDATE clients SET created_by = '{user_id}', updated_by = '{user_id}' WHERE id = '{client_id}';
-UPDATE permissions SET created_by = '{user_id}', updated_by = '{user_id}' WHERE client_id = '{client_id}';
+UPDATE permissions SET created_by = '{user_id}', updated_by = '{user_id}';
 
-UPDATE roles SET created_by = '{user_id}', updated_by = '{user_id}' WHERE client_id = '{client_id}';
-UPDATE modules SET created_by = '{user_id}', updated_by = '{user_id}' WHERE client_id = '{client_id}';
-UPDATE module_permission_link SET created_by = '{user_id}', updated_by = '{user_id}' WHERE client_id = '{client_id}';
-UPDATE role_module_permission_link SET created_by = '{user_id}', updated_by = '{user_id}' WHERE client_id = '{client_id}';
+UPDATE roles SET created_by = '{user_id}', updated_by = '{user_id}';
+UPDATE modules SET created_by = '{user_id}', updated_by = '{user_id}';
+UPDATE module_permission_link SET created_by = '{user_id}', updated_by = '{user_id}';
+UPDATE role_module_permission_link SET created_by = '{user_id}', updated_by = '{user_id}';
 UPDATE user_role_link SET created_by = '{user_id}', updated_by = '{user_id}' WHERE client_id = '{client_id}';
 UPDATE users SET created_by = '{user_id}', updated_by = '{user_id}' WHERE id = '{user_id}';
 """

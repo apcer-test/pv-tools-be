@@ -4,8 +4,6 @@ from typing import Any, List
 
 from pydantic import BaseModel
 
-from apps.modules.schemas import ModuleResponse
-
 
 class UserBasicInfo(BaseModel):
     """Basic user information for role responses."""
@@ -42,6 +40,7 @@ class BaseRoleResponse(BaseModel):
     description: str | None = None
     role_metadata: dict[str, Any] | None = None
     users: List[UserBasicInfo] = []
+    is_active: bool
 
 
 class RoleResponse(BaseRoleResponse):

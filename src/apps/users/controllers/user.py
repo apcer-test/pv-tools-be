@@ -241,7 +241,7 @@ async def create_user(
     """
 
     return BaseResponse(
-        data=await service.create_simple_user(
+        data=await service.create_user(
             **body.model_dump(), user_id=user.get("user").id
         )
     )
@@ -282,7 +282,7 @@ async def update_user(
     """
 
     return BaseResponse(
-        data=await service.update_simple_user(
+        data=await service.update_user(
             user_id=user_id, **body.model_dump(), current_user_id=user.get("user").id
         )
     )

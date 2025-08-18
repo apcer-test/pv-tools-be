@@ -220,3 +220,11 @@ class EmailNotFoundError(BadRequestError):
     """
 
     message = constants.EMAIL_NOT_FOUND
+
+
+class UserDuplicateClientAssignmentError(BadRequestError):
+    """
+    Custom exception for user duplicate client assignment.
+    """
+
+    message = constants.USER_DUPLICATE_CLIENT_ASSIGNMENT

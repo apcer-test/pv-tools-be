@@ -1,37 +1,27 @@
 """Service with methods to set and get values."""
 
 import copy
-from collections import defaultdict
 from datetime import UTC, datetime
 from typing import Annotated, Any
 
 from fastapi import Depends
 from fastapi_pagination import Page, Params
 from fastapi_pagination.ext.sqlalchemy import paginate
-from sqlalchemy import and_, delete, exists, select, update
+from sqlalchemy import and_, delete, exists, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from apps.modules.models import ModulePermissionLink, Modules
-from apps.modules.schemas import ModuleResponse
 from apps.permissions.execeptions import InvalidModulePermissionError
-from apps.roles.constants import RoleMessage, RolesSortBy
+from apps.roles.constants import RolesSortBy
 from apps.roles.execeptions import (
     RoleAlreadyExistsError,
-    RoleAssignedFoundError,
     RoleNotFoundError,
 )
 from apps.roles.models import RoleModulePermissionLink, Roles
 from apps.roles.schemas.response import BaseRoleResponse, RoleResponse, ModuleBasicResponse, RoleStatusResponse
-from apps.users.models.user import UserRoleLink
 from core.db import db_session
-from core.utils import logger
-from core.utils.schema import SuccessResponse
-from core.utils.slug_utils import (
-    generate_unique_slug,
-    validate_and_generate_slug,
-    validate_unique_slug,
-)
+from core.utils.slug_utils import validate_and_generate_slug
 from apps.clients.models.clients import Clients
 
 
@@ -73,7 +63,7 @@ class RoleService:
                 raise InvalidModulePermissionError
 
     async def _assign_module_permissions(
-        self, role_id: str, module_permissions: list[dict[str, Any]], client_id: str | None = None
+        self, role_id: str, module_permissions: list[dict[str, Any]]
     ) -> None:
         """Assign module permissions to a role."""
         for mp in module_permissions:
@@ -85,7 +75,6 @@ class RoleService:
                     role_id=role_id,
                     module_id=module_id,
                     permission_id=permission_id,
-                    client_id=client_id,
                 )
                 self.session.add(link)
 
@@ -122,7 +111,6 @@ class RoleService:
                 select(Roles).where(
                     and_(
                         Roles.name.ilike(name),
-                        Roles.client_id == client_id,
                         Roles.deleted_at.is_(None),
                     )
                 )
@@ -133,14 +121,12 @@ class RoleService:
             name=name,
             db=self.session,
             model=Roles,
-            client_id=client_id,
             slug=None,
         )
 
         async with self.session.begin_nested():
             role = Roles(
                 name=name,
-                client_id=client_id,
                 slug=slug,
                 description=description,
                 meta_data=role_metadata,
@@ -152,7 +138,7 @@ class RoleService:
         if module_permissions:
             async with self.session.begin_nested():
                 await self._validate_module_permissions(module_permissions)
-                await self._assign_module_permissions(role.id, module_permissions, client_id)
+                await self._assign_module_permissions(role.id, module_permissions)
 
         async with self.session.begin_nested():
             await self.session.refresh(role)
@@ -196,7 +182,6 @@ class RoleService:
                 select(Roles).where(
                     and_(
                         Roles.id == role_id,
-                        Roles.client_id == client_id,
                         Roles.deleted_at.is_(None),
                     )
                 )
@@ -214,7 +199,6 @@ class RoleService:
                         and_(
                             Roles.id != role_id,
                             Roles.name.ilike(name),
-                            Roles.client_id == client_id,
                             Roles.deleted_at.is_(None),
                         )
                     )
@@ -239,14 +223,13 @@ class RoleService:
                     delete(RoleModulePermissionLink).where(
                         and_(
                             RoleModulePermissionLink.role_id == role_id,
-                            RoleModulePermissionLink.client_id == client_id,
                         )
                     )
                 )
 
                 # Validate and assign new module permissions
                 await self._validate_module_permissions(module_permissions)
-                await self._assign_module_permissions(role_id, module_permissions, client_id)
+                await self._assign_module_permissions(role_id, module_permissions)
 
         # Step 6: Set the updated_by field and updated_at field
         role.updated_by = user_id
@@ -254,7 +237,7 @@ class RoleService:
 
         # Step 7: Commit changes and return the updated role
         async with self.session.begin_nested():
-            return await self.get_role_by_id(role_id=role_id, client_id=client_id)
+            return await self.get_role_by_id(role_id=role_id)
 
     async def get_all_roles(
         self,
@@ -277,7 +260,6 @@ class RoleService:
         """
 
         query = select(Roles).where(
-            Clients.id == client_id,
             Roles.deleted_at.is_(None),
         )
 
@@ -294,7 +276,7 @@ class RoleService:
         result = await paginate(self.session, query, page_params)        
         return result
 
-    async def get_role_by_id(self, role_id: str, client_id: str | None = None) -> RoleResponse:
+    async def get_role_by_id(self, role_id: str) -> RoleResponse:
         """
         Retrieve a role by its key.
 
@@ -313,7 +295,6 @@ class RoleService:
             select(Roles).where(
                 and_(
                     Roles.id == role_id,
-                    Roles.client_id == client_id,
                     Roles.deleted_at.is_(None),
                 )
             )
@@ -325,7 +306,6 @@ class RoleService:
             select(RoleModulePermissionLink).where(
                 and_(
                     RoleModulePermissionLink.role_id == role_id,
-                    RoleModulePermissionLink.client_id == client_id,
                 )
             )
         )
@@ -338,6 +318,7 @@ class RoleService:
                 slug=role.slug,
                 description=role.description,
                 role_metadata=role.meta_data,
+                is_active=role.is_active,
                 modules=[],
             )
 
@@ -378,6 +359,7 @@ class RoleService:
                 slug=role.slug,
                 description=role.description,
                 role_metadata=role.meta_data,
+                is_active=role.is_active,
                 modules=[],
             )
 
@@ -391,6 +373,7 @@ class RoleService:
             slug=role.slug,
             description=role.description,
             role_metadata=role.meta_data,
+            is_active=role.is_active,
             modules=nested_modules,
         )
 
@@ -452,7 +435,6 @@ class RoleService:
                 and_(
                     Roles.id.in_(role_ids),
                     Roles.deleted_at.is_(None),
-                    Roles.client_id == client_id,
                 )
             )
         )
@@ -480,6 +462,7 @@ class RoleService:
                     slug=role.slug,
                     description=role.description,
                     role_metadata=role.meta_data,
+                    is_active=role.is_active,
                     modules=[],
                 )
                 for role in roles
@@ -495,7 +478,6 @@ class RoleService:
                 and_(
                     Modules.id.in_(direct_module_ids),
                     Modules.deleted_at.is_(None),
-                    Modules.client_id == client_id,
                 )
             )
             .options(selectinload(Modules.permissions), selectinload(Modules.child_modules))
@@ -517,7 +499,6 @@ class RoleService:
                     and_(
                         Modules.id.in_(parent_module_ids),
                         Modules.deleted_at.is_(None),
-                        Modules.client_id == client_id,
                     )
                 )
                 .options(selectinload(Modules.permissions), selectinload(Modules.child_modules))
@@ -535,6 +516,7 @@ class RoleService:
                     slug=role.slug,
                     description=role.description,
                     role_metadata=role.meta_data,
+                    is_active=role.is_active,
                     modules=[],
                 )
                 for role in roles
@@ -558,6 +540,7 @@ class RoleService:
                     slug=role.slug,
                     description=role.description,
                     role_metadata=role.meta_data,
+                    is_active=role.is_active,
                     modules=nested_modules,
                 )
             )

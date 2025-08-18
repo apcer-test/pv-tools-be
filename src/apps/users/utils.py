@@ -89,20 +89,19 @@ def permission_required(
         if not user or not client_id:
             raise UnauthorizedError(message=ErrorMessage.UNAUTHORIZED)
 
-        # Resolve required permission id within client
+        # Resolve required permission id
         permission_id = await session.scalar(
             select(Permissions.id).where(
                 and_(
                     Permissions.slug == required_permission_slug,
-                    Permissions.client_id == client_id,
                     Permissions.deleted_at.is_(None),
                 )
             )
         )
         if not permission_id:
-            # Permission configuration missing for client
+            # Permission configuration missing
             raise ForbiddenError(
-                message=f"Permission '{required_permission_slug}' is not configured for this client"
+                message=f"Permission '{required_permission_slug}' is not configured"
             )
 
         # Fetch role ids for this user in this client
@@ -130,7 +129,6 @@ def permission_required(
         modules_result = await session.execute(
             select(Modules.id, Modules.slug, Modules.parent_module_id).where(
                 and_(
-                    Modules.client_id == client_id,
                     Modules.slug.in_(all_slugs),
                     Modules.deleted_at.is_(None),
                 )
@@ -166,7 +164,6 @@ def permission_required(
                     RoleModulePermissionLink.role_id.in_(role_ids),
                     RoleModulePermissionLink.module_id.in_(child_module_ids),
                     RoleModulePermissionLink.permission_id == permission_id,
-                    RoleModulePermissionLink.client_id == client_id,
                     RoleModulePermissionLink.deleted_at.is_(None),
                 )
             )

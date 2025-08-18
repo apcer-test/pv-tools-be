@@ -25,6 +25,7 @@ from apps.users.constants import (
 from apps.users.exceptions import (
     EmailAlreadyExistsError,
     PhoneAlreadyExistsError,
+    UserDuplicateClientAssignmentError,
     UserNotFoundError,
 )
 from apps.users.models import UserRoleLink, Users
@@ -136,111 +137,6 @@ class UserService:
 
     async def create_user(
         self,
-        client_id: str,
-        first_name: str | None = None,
-        last_name: str | None = None,
-        phone: str | None = None,
-        email: str | None = None,
-        role_ids: list[str] | None = None,
-        description: str | None = None,
-        user_metadata: dict | None = None,
-        user_id: str | None = None,
-    ) -> CreateUserResponse:
-        """
-        Creates a new user with the provided information.
-
-         Args:
-          - client_id (str): The client id. This is required.
-          - phone (str | None): The phone number of the user.
-          - email (str | None): The email address of the user.
-          - role_ids (list[str] | None) : List of role IDs to assign to the user.
-
-          - description (str | None): The description of the user.
-          - meta_data (dict[str, Any] | None): The metadata of the user.
-          - user_id (str | None): The ID of the user who is creating the user.
-        Returns:
-          - CreateUserResponse: A response containing the created user's basic information.
-
-        Raises:
-          - PhoneAlreadyExistsError: If the provided phone number already exists.
-          - EmailAlreadyExistsError: If the provided email address already exists.
-          - RoleNotFoundError: If any of the provided role IDs do not exist.
-
-        """
-
-        if role_ids is None:
-            role_ids = []
-        
-        existing_user = await self.session.scalar(
-            select(Users)
-            .options(load_only(Users.phone, Users.email))
-            .where(
-                or_(
-                    and_(Users.phone == phone, Users.phone.is_not(None)),
-                    and_(Users.email == email, Users.email.is_not(None)),
-                ),
-                Users.deleted_at.is_(None)
-            )
-        )
-        if existing_user:
-            if phone and existing_user.phone == phone:
-                raise PhoneAlreadyExistsError
-            if email and existing_user.email == email:
-                raise EmailAlreadyExistsError
-
-        if len(role_ids) > 0:
-            existing_roles_result = await self.session.scalars(
-                select(Roles)
-                .options(load_only(Roles.id))
-                .where(
-                    and_(
-                        Roles.client_id == client_id,
-                        Roles.id.in_(role_ids),
-                        Roles.deleted_at.is_(None),
-                    )
-                )
-            )
-            existing_roles = list(existing_roles_result)
-            if len(existing_roles) != len(role_ids):
-                raise RoleNotFoundError
-
-        async with self.session.begin_nested():
-            user = Users(
-                first_name=first_name or "Unknown",
-                last_name=last_name or "Unknown",
-                phone=phone,
-                email=email,
-                description=description,
-                meta_data=user_metadata,
-                created_by=user_id,
-                updated_by=user_id,
-            )
-            self.session.add(user)
-
-        async with self.session.begin_nested():
-            await self.session.refresh(user)
-
-        async with self.session.begin_nested():
-            for role_id in role_ids:
-                user_role_link = UserRoleLink(
-                    user_id=user.id,
-                    role_id=role_id,
-                    client_id=client_id,
-                )
-                self.session.add(user_role_link)
-
-        return CreateUserResponse(
-            id=user.id,
-            first_name=user.first_name,
-            last_name=user.last_name,
-            email=user.email,
-            phone=user.phone,
-            is_active=user.is_active,
-            created_at=user.created_at,
-        )
-
-    async def create_simple_user(
-        self,
         first_name: str,
         last_name: str,
         phone: str,
@@ -306,13 +202,14 @@ class UserService:
             created_at=user.created_at,
         )
 
-    async def update_simple_user(
+    async def update_user(
         self,
         user_id: str,
         first_name: str | None = None,
         last_name: str | None = None,
         phone: str | None = None,
         email: str | None = None,
+        reason: str | None = None,
         current_user_id: str | None = None,
     ) -> UpdateUserResponse:
         """
@@ -433,7 +330,7 @@ class UserService:
         # Check for duplicate client assignments
         client_ids = [assignment.client_id for assignment in assignments]
         if len(client_ids) != len(set(client_ids)):
-            raise ValueError("Duplicate client assignments are not allowed. Each client can only be assigned once per user.")
+            raise UserDuplicateClientAssignmentError
 
         # Validate all roles exist before making any changes
         for assignment in assignments:
@@ -856,7 +753,6 @@ class UserService:
                     .options(load_only(Roles.id, Roles.name))
                     .where(
                         and_(
-                            Roles.client_id == client_id,
                             Roles.id.in_(role_ids),
                             Roles.deleted_at.is_(None),
                         )
@@ -986,7 +882,6 @@ class UserService:
                 .where(
                     and_(
                         RoleModulePermissionLink.role_id == user_role_link.role.id,
-                        RoleModulePermissionLink.client_id == client_id,
                     )
                 )
             )

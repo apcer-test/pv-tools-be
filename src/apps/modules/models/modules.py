@@ -10,7 +10,6 @@ from core.utils.mixins import TimeStampMixin, ULIDPrimaryKeyMixin, UserMixin
 
 if TYPE_CHECKING:
     from apps.permissions.models.permissions import Permissions
-    from apps.clients.models.clients import Clients
     from apps.roles.models.roles import RoleModulePermissionLink
 
 class Modules(Base, ULIDPrimaryKeyMixin, TimeStampMixin, UserMixin):
@@ -21,7 +20,6 @@ class Modules(Base, ULIDPrimaryKeyMixin, TimeStampMixin, UserMixin):
         slug (str): The module slug.
         description (str): The module description.
         meta_data (dict): The module metadata.
-        client_id (str): The client id.
         parent_module_id (str): The parent module id.
         child_modules (list): The child modules.
         permissions (list): The permissions.
@@ -34,10 +32,6 @@ class Modules(Base, ULIDPrimaryKeyMixin, TimeStampMixin, UserMixin):
     slug: Mapped[str] = mapped_column(String(64), nullable=False, unique=True)
     description: Mapped[str | None] = mapped_column(String(255), nullable=True)
     meta_data: Mapped[dict | None] = mapped_column(JSON, nullable=True)
-    client_id: Mapped[str] = mapped_column(ForeignKey("clients.id"), nullable=False)
-    client: Mapped["Clients"] = relationship(
-        "Clients", back_populates="modules", foreign_keys=[client_id]
-    )
 
     # Relationships
     parent_module_id: Mapped[str] = mapped_column(
@@ -73,7 +67,6 @@ class ModulePermissionLink(Base, ULIDPrimaryKeyMixin, TimeStampMixin, UserMixin)
 
     __tablename__ = "module_permission_link"
 
-    client_id: Mapped[str] = mapped_column(ForeignKey("clients.id"), nullable=False)
     module_id: Mapped[str] = mapped_column(ForeignKey("modules.id"), nullable=False)
     permission_id: Mapped[str] = mapped_column(ForeignKey("permissions.id"), nullable=False)
 
