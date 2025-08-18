@@ -9,7 +9,7 @@ class CreateClientRequest(CamelCaseModel):
     
     name: str = Field(..., min_length=1, max_length=128, description="Name of the client")
     code: str = Field(..., min_length=1, max_length=16, description="Unique code for the client")
-    media: Optional[MediaRequest] = Field(None, description="Media file information")
+    media: MediaRequest = Field(..., description="Media file information")
     is_active: bool = Field(True, description="Whether the client is active")
 
     @validator('code')
@@ -29,11 +29,11 @@ class CreateClientRequest(CamelCaseModel):
 class UpdateClientRequest(CamelCaseModel):
     """Schema for updating an existing client."""
     
-    name: Optional[str] = Field(None, min_length=1, max_length=128, description="Name of the client")
-    code: Optional[str] = Field(None, min_length=1, max_length=16, description="Unique code for the client")
+    name: str = Field(..., min_length=1, max_length=128, description="Name of the client")
+    code: str = Field(..., min_length=1, max_length=16, description="Unique code for the client")
     description: Optional[str] = Field(None, max_length=255, description="Description of the client")
     meta_data: Optional[dict] = Field(None, description="Additional metadata for the client")
-    media: Optional[MediaRequest] = Field(None, description="Media file information")
+    media: MediaRequest = Field(..., description="Media file information")
     is_active: Optional[bool] = Field(None, description="Whether the client is active")
     reason: str = Field(..., description="Reason for updating the client")
 

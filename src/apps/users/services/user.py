@@ -56,6 +56,8 @@ from core.db import db_session
 from config import settings
 from fastapi.responses import RedirectResponse
 
+from core.exceptions import UnauthorizedError
+
 class MicrosoftSSOService:
     """Service to handle Microsoft SSO authentication using Authlib"""
 
@@ -105,6 +107,9 @@ class MicrosoftSSOService:
 
             if not user:
                 raise UserNotFoundException
+
+            if user.is_active is False:
+                raise UnauthorizedError
 
             res = await create_tokens(user_id=user.id, client_slug=client_slug)
 
