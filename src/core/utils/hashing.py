@@ -28,3 +28,9 @@ async def verify_password(plain_password: str, hashed_password: str) -> bool:
         bool: True if the plain password matches the hashed password, False otherwise.
     """
     return pwd_context.verify(plain_password, hashed_password)
+
+async def verify_hash(plain_password: str, hashed_password: str) -> bool:
+    """
+    Verify a hash.
+    """
+    return pwd_context.verify(plain_password, hashed_password)

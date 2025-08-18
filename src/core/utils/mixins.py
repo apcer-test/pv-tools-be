@@ -12,8 +12,7 @@ class TimeStampMixin:
     """
     A mixin class to add automatic timestamp fields and audit fields.
 
-    Adds `created_at`, `updated_at`, `deleted_at` fields and audit fields
-    `created_by`, `updated_by`, `deleted_by` to a model.
+    Adds `created_at`, `updated_at`, `deleted_at` fields
     """
 
     created_at: Mapped[datetime] = mapped_column(
@@ -31,11 +30,11 @@ class UserMixin:
     """
     A mixin class to add audit fields for tracking who created, updated, and deleted records.
 
-    Adds `created_by`, `updated_by`, `deleted_by` fields that reference user UUIDs.
+    Adds `created_by`, `updated_by`, `deleted_by` fields that reference user ULIDs.
     This mixin should be used in combination with TimeStampMixin for complete audit trail.
     """
 
-    # Audit fields - these will reference user UUIDs
+    # Audit fields - these will reference user ULIDs
     created_by: Mapped[str | None] = mapped_column(
         ForeignKey("users.id"), nullable=True, comment="User ID who created this record"
     )

@@ -1,6 +1,6 @@
 """Case models module."""
 
-from typing import List, Optional
+from typing import TYPE_CHECKING, List, Optional
 
 from sqlalchemy import JSON, ForeignKey, Integer, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -9,12 +9,15 @@ from apps.case.types.component_types import ComponentType
 from core.db import Base
 from core.utils.mixins import TimeStampMixin, ULIDPrimaryKeyMixin
 
+if TYPE_CHECKING:
+    from apps.clients.models.clients import Clients
+
 
 class CaseNumberConfiguration(Base, ULIDPrimaryKeyMixin, TimeStampMixin):
     """Configuration for case number generation patterns."""
 
     __tablename__ = "case_number_configurations"
-
+    client_id: Mapped[str] = mapped_column(ForeignKey("clients.id"), nullable=False)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     separator: Mapped[str] = mapped_column(String(10), default="-")
     is_active: Mapped[bool] = mapped_column(default=True)
@@ -29,6 +32,9 @@ class CaseNumberConfiguration(Base, ULIDPrimaryKeyMixin, TimeStampMixin):
     )
     cases: Mapped[List["Case"]] = relationship(
         "Case", back_populates="config", cascade="all, delete-orphan"
+    )
+    client: Mapped["Clients"] = relationship(
+        "Clients", back_populates="case_number_configurations"
     )
 
     def __repr__(self) -> str:

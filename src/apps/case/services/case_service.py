@@ -79,12 +79,16 @@ class CaseService:
         self.session = session
 
     async def _check_components_exist(
-        self, components: List[CaseNumberComponentCreate], separator: str | None
+        self,
+        client_id: str,
+        components: List[CaseNumberComponentCreate],
+        separator: str | None,
     ) -> bool:
         """Check if a configuration with the same components and separator already exists"""
         # Get all configurations with their components
         configs = await self.session.scalars(
-            select(CaseNumberConfiguration).options(
+            select(CaseNumberConfiguration)
+            .options(
                 selectinload(CaseNumberConfiguration.components).options(
                     load_only(
                         CaseNumberComponent.id,
@@ -95,6 +99,7 @@ class CaseService:
                     )
                 )
             )
+            .where(CaseNumberConfiguration.client_id == client_id)
         )
 
         # Check each configuration's components
@@ -107,23 +112,28 @@ class CaseService:
 
         return False
 
-    async def _deactivate_current_active_config(self) -> None:
+    async def _deactivate_current_active_config(self, client_id: str) -> None:
         """Deactivate the currently active configuration"""
         await self.session.execute(
             update(CaseNumberConfiguration)
-            .where(CaseNumberConfiguration.is_active == True)  # noqa: E712
+            .where(
+                CaseNumberConfiguration.is_active == True,
+                CaseNumberConfiguration.client_id == client_id,
+            )  # noqa: E712
             .values(is_active=False)
         )
 
-    async def set_configuration_active(self, config_id: str) -> CaseNumberConfiguration:
+    async def set_configuration_active(
+        self, client_id: str, config_id: str
+    ) -> CaseNumberConfiguration:
         """Set a configuration as active and deactivate others"""
         # Check if configuration exists
-        config = await self.get_configuration(config_id)
+        config = await self.get_configuration(client_id, config_id)
         if not config:
             raise ConfigurationNotFoundError
 
         # Deactivate all configurations
-        await self._deactivate_current_active_config()
+        await self._deactivate_current_active_config(client_id)
 
         # Set the specified configuration as active
         config.is_active = True
@@ -132,21 +142,24 @@ class CaseService:
         return config
 
     async def create_configuration(
-        self, config: CaseNumberConfigurationCreate
+        self, client_id: str, config: CaseNumberConfigurationCreate
     ) -> CaseNumberConfiguration:
         """Create a new case number configuration"""
         # Check for duplicate components along with separator
-        if await self._check_components_exist(config.components, config.separator):
+        if await self._check_components_exist(
+            client_id, config.components, config.separator
+        ):
             raise DuplicateConfigComponentsError
 
         # Generate configuration name
         config_name = _generate_config_name(config.components, config.separator or "")
 
         # Deactivate current active configuration
-        await self._deactivate_current_active_config()
+        await self._deactivate_current_active_config(client_id)
 
         # Create configuration (set as active)
         config_obj = CaseNumberConfiguration(
+            client_id=client_id,
             name=config_name,
             separator=config.separator or "",  # Use empty string for single component
             is_active=True,  # New configuration is always active
@@ -186,7 +199,7 @@ class CaseService:
         )
 
     async def get_configuration(
-        self, config_id: str
+        self, client_id: str, config_id: str
     ) -> Optional[CaseNumberConfiguration]:
         """Get a case number configuration by ID"""
         return await self.session.scalar(
@@ -202,11 +215,14 @@ class CaseService:
                     )
                 )
             )
-            .where(CaseNumberConfiguration.id == config_id)
+            .where(
+                CaseNumberConfiguration.id == config_id,
+                CaseNumberConfiguration.client_id == client_id,
+            )
         )
 
     async def list_configurations(
-        self, is_active: Optional[bool] = None
+        self, client_id: str, is_active: Optional[bool] = None
     ) -> List[CaseNumberConfiguration]:
         """List configurations with optional active status filter.
 
@@ -216,16 +232,20 @@ class CaseService:
         Returns:
             List of configurations matching the filter
         """
-        query = select(CaseNumberConfiguration).options(
-            selectinload(CaseNumberConfiguration.components).options(
-                load_only(
-                    CaseNumberComponent.id,
-                    CaseNumberComponent.component_type,
-                    CaseNumberComponent.size,
-                    CaseNumberComponent.prompt,
-                    CaseNumberComponent.ordering,
+        query = (
+            select(CaseNumberConfiguration)
+            .options(
+                selectinload(CaseNumberConfiguration.components).options(
+                    load_only(
+                        CaseNumberComponent.id,
+                        CaseNumberComponent.component_type,
+                        CaseNumberComponent.size,
+                        CaseNumberComponent.prompt,
+                        CaseNumberComponent.ordering,
+                    )
                 )
             )
+            .where(CaseNumberConfiguration.client_id == client_id)
         )
 
         if is_active is not None:
@@ -420,7 +440,7 @@ class CaseService:
         return response.scalar_one_or_none()
 
     async def update_configuration(
-        self, config_id: str, config: CaseNumberConfigurationCreate
+        self, client_id: str, config_id: str, config: CaseNumberConfigurationCreate
     ) -> CaseNumberConfiguration:
         """Update an existing case number configuration.
 
@@ -437,7 +457,7 @@ class CaseService:
             CannotModifyActiveConfigError: If trying to modify active config
         """
         # Get existing configuration with components
-        existing_config = await self.get_configuration(config_id)
+        existing_config = await self.get_configuration(client_id, config_id)
         if not existing_config:
             raise ConfigurationNotFoundError
 

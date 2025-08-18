@@ -43,7 +43,6 @@ class ExtractionAuditModel(Base, ULIDPrimaryKeyMixin, TimeStampMixin):
     step_id: Mapped[str | None] = mapped_column(ForeignKey("fallback_step.id"))
     meta_data: Mapped[dict | None] = mapped_column(JSON)
 
-    # Document intake tracking for retry functionality
     document_intake_id: Mapped[str | None] = mapped_column(
         ForeignKey("document_intake_history.id"), nullable=True
     )
@@ -71,7 +70,6 @@ class ExtractionAuditModel(Base, ULIDPrimaryKeyMixin, TimeStampMixin):
 
     agent: Mapped["ExtractionAgentModel"] = relationship("ExtractionAgentModel")
 
-    # Relationship for document intake history
     document_intake: Mapped["DocumentIntakeHistory"] = relationship(
         "DocumentIntakeHistory", back_populates="extraction_audits"
     )

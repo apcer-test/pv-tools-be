@@ -1,0 +1,52 @@
+from pydantic import Field, validator
+from typing import Optional
+from apps.media.schemas.request import MediaRequest
+from core.utils import CamelCaseModel
+
+
+class CreateClientRequest(CamelCaseModel):
+    """Schema for creating a new client."""
+    
+    name: str = Field(..., min_length=1, max_length=128, description="Name of the client")
+    code: str = Field(..., min_length=1, max_length=16, description="Unique code for the client")
+    media: Optional[MediaRequest] = Field(None, description="Media file information")
+    is_active: bool = Field(True, description="Whether the client is active")
+
+    @validator('code')
+    def validate_code(cls, v):
+        """Validate that code contains only alphanumeric characters and hyphens."""
+        if not v.replace('-', '').replace('_', '').isalnum():
+            raise ValueError('Code must contain only alphanumeric characters, hyphens, and underscores')
+        return v.upper()
+
+
+class UpdateClientRequest(CamelCaseModel):
+    """Schema for updating an existing client."""
+    
+    name: Optional[str] = Field(None, min_length=1, max_length=128, description="Name of the client")
+    code: Optional[str] = Field(None, min_length=1, max_length=16, description="Unique code for the client")
+    description: Optional[str] = Field(None, max_length=255, description="Description of the client")
+    meta_data: Optional[dict] = Field(None, description="Additional metadata for the client")
+    media: Optional[MediaRequest] = Field(None, description="Media file information")
+    is_active: Optional[bool] = Field(None, description="Whether the client is active")
+    reason: str = Field(..., description="Reason for updating the client")
+
+    @validator('code')
+    def validate_code(cls, v):
+        """Validate that code contains only alphanumeric characters and hyphens."""
+        if v is not None:
+            if not v.replace('-', '').replace('_', '').isalnum():
+                raise ValueError('Code must contain only alphanumeric characters, hyphens, and underscores')
+            return v.upper()
+        return v
+
+
+class ListClientsRequest(CamelCaseModel):
+    """Schema for listing clients with filters and pagination."""
+    
+    page: int = Field(1, ge=1, description="Page number")
+    page_size: int = Field(10, ge=1, le=100, description="Number of items per page")
+    search: Optional[str] = Field(None, description="Search term for name, code, or description")
+    is_active: Optional[bool] = Field(None, description="Filter by active status")
+    sort_by: Optional[str] = Field(None, description="Field to sort by")
+    sort_order: str = Field("desc", description="Sort order (asc or desc)")

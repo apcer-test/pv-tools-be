@@ -10,14 +10,12 @@ from apps.mail_box_config.schemas import (
     MailBoxConfigResponse,
 )
 from apps.mail_box_config.services.mail_box_config import MailBoxService
-from core.auth import AdminHasPermission
 from core.utils import BaseResponse
 from core.utils.schema import SuccessResponse
 
 router = APIRouter(
     prefix="/{tenant_id}/mail-box",
     tags=["Mail Box"],
-    dependencies=[Depends(AdminHasPermission())],
 )
 
 

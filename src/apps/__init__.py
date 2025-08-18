@@ -21,12 +21,23 @@ from apps.mail_box_config.models import (
 )
 from apps.master_modules.models import LookupModel, LookupValuesModel
 from apps.tenant.models import Tenant, TenantUsers
-from apps.user.models.user import UserModel
+from apps.users.models.user import Users
+from apps.document_intake.models.document_intake import DocumentIntakeHistory
 from core.db import Base
+
+from apps.roles.models.roles import Roles
+from apps.modules.models.modules import Modules
+from apps.permissions.models.permissions import Permissions
+from apps.clients.models.clients import Clients
+from apps.media.models.media import Media
 
 __all__ = [
     "Base",
-    "UserModel",
+    "Users",
+    "Roles",
+    "Modules",
+    "Permissions",
+    "Clients",
     "LLMProviderModel",
     "LLMModel",
     "LLMCredentialModel",
@@ -41,6 +52,7 @@ __all__ = [
     "TenantUsers",
     "MicrosoftCredentialsConfig",
     "MicrosoftMailBoxConfig",
+    "Media",
     "LookupModel",
     "LookupValuesModel",
     "Case",

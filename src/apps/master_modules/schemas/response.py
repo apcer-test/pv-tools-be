@@ -5,7 +5,6 @@ class LookupResponse(BaseModel):
     id: str
     name: str
     slug: str
-    is_active: bool
 
 
 class CodeListLookupValueResponse(BaseModel):

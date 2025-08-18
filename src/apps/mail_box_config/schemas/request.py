@@ -1,8 +1,9 @@
 from datetime import date
 
-from pydantic import EmailStr, field_validator
+from pydantic import EmailStr, field_validator, model_validator
 
 from apps.mail_box_config.exceptions import EndDateException, StartDateException
+from core.common_helpers import validate_string_fields
 from core.types import FrequencyType, Providers
 from core.utils.schema import CamelCaseModel
 
@@ -50,3 +51,15 @@ class BaseMailBoxPollingConfigRequest(CamelCaseModel):
 
     company_email: EmailStr
     subject_line: str | None = None
+
+
+class EncryptedRequest(CamelCaseModel):
+    """
+    request model for encrypted data
+    """
+
+    encrypted_data: str
+    encrypted_key: str
+    iv: str
+
+    _validate_string_fields = model_validator(mode="before")(validate_string_fields)
