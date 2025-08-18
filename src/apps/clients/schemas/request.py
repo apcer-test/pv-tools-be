@@ -1,6 +1,7 @@
-from pydantic import Field, validator
+from pydantic import Field, model_validator, validator
 from typing import Optional
 from apps.media.schemas.request import MediaRequest
+from core.common_helpers import validate_string_fields
 from core.utils import CamelCaseModel
 
 
@@ -12,6 +13,8 @@ class CreateClientRequest(CamelCaseModel):
     media: MediaRequest = Field(..., description="Media file information")
     is_active: bool = Field(True, description="Whether the client is active")
 
+    _validate_string_fields = model_validator(mode="before")(validate_string_fields)
+ 
     @validator('code')
     def validate_code(cls, v):
         """Validate that code contains only alphanumeric characters and hyphens."""
@@ -36,6 +39,8 @@ class UpdateClientRequest(CamelCaseModel):
     media: MediaRequest = Field(..., description="Media file information")
     is_active: Optional[bool] = Field(None, description="Whether the client is active")
     reason: str = Field(..., description="Reason for updating the client")
+
+    _validate_string_fields = model_validator(mode="before")(validate_string_fields)
 
     @validator('code')
     def validate_code(cls, v):
