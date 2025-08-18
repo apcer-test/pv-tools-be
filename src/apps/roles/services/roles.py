@@ -564,41 +564,6 @@ class RoleService:
 
         return role_response
 
-    async def delete_role(self, role_id: str, client_id: str | None = None, user_id: str | None = None) -> SuccessResponse:
-        """Delete a role by its slug.
-
-        Args:
-            role_id (str): The role id to delete.
-
-        Returns:
-            SuccessResponse: Success message.
-
-        Raises:
-            RoleNotFoundError: If the role is not found.
-            RoleAssignedFoundError: If the role is assigned to users.
-        """
-
-        # Check if role is assigned to any users
-        if await self.session.scalar(
-            select(UserRoleLink).where(
-                and_(
-                    UserRoleLink.role_id == role_id,
-                    UserRoleLink.client_id == client_id,
-                )
-            )
-        ):
-            raise RoleAssignedFoundError
-
-        async with self.session.begin_nested():
-            role = await self.session.get(Roles, role_id)
-            if not role:
-                raise RoleNotFoundError
-
-            role.deleted_at = datetime.now(UTC).replace(tzinfo=None)
-            role.deleted_by = user_id
-
-        return SuccessResponse(message=RoleMessage.ROLE_DELETED)
-
     async def change_role_status(self, role_id: str, current_user_id: str) -> RoleStatusResponse:
         """
         Change the status of a role.

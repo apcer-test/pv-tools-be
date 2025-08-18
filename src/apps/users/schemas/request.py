@@ -43,7 +43,6 @@ class CreateUserRequest(BaseModel):
     last_name: str
     phone: str
     email: EmailStr
-    reporting_manager_id: str | None = None
 
     @field_validator("email", mode="before")
     @classmethod
@@ -66,7 +65,6 @@ class UpdateUserRequest(BaseModel):
     last_name: str | None = None
     phone: str | None = None
     email: EmailStr | None = None
-    reporting_manager_id: str | None = None
     reason: str  # Required for update operations
 
     @field_validator("email", mode="before")

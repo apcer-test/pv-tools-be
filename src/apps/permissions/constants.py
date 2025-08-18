@@ -7,7 +7,6 @@ class PermissionMessage(StrEnum):
     PERMISSION_ASSIGNED_FOUND = (
         "Permission assigned to user.You are Not allow to delete"
     )
-    PERMISSION_DELETED = "Permission deleted successfully"
     INVALID_MODULE_PERMISSION = "Invalid Permission For Module"
 
 

@@ -7,3 +7,23 @@ class MediaType(StrEnum):
     IMAGE = "IMAGE"
     DOCUMENT = "DOCUMENT"
     UNKNOWN = "UNKNOWN"
+
+image_extensions = [
+    ".jpg",
+    ".jpeg",
+    ".png",
+    ".gif"
+    ".bmp",
+    ".svg",
+    ".webp",
+    ".heic"
+]
+
+document_extensions = [
+    ".pdf",
+    ".doc",
+    ".docx",
+    ".txt"
+    ".rtf",
+    ".odt"
+]

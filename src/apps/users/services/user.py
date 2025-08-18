@@ -1,6 +1,5 @@
 """Services for Users."""
 
-from collections import defaultdict
 import copy
 from datetime import datetime, UTC
 from typing import Annotated, Any
@@ -15,14 +14,12 @@ from sqlalchemy.orm import load_only, selectinload
 
 from apps.clients.models.clients import Clients
 from apps.modules.models.modules import Modules
-from apps.modules.schemas.response import ModuleResponse
 from apps.roles.execeptions import RoleNotFoundError
 from apps.roles.models import Roles
 from apps.roles.models.roles import RoleModulePermissionLink
 from apps.roles.schemas.response import ModuleBasicResponse
 from apps.roles.services import RoleService
 from apps.users.constants import (
-    UserMessage,
     UserSortBy,
 )
 from apps.users.exceptions import (
@@ -46,7 +43,6 @@ from apps.users.schemas.response import (
     AssignUserClientsResponse,
     UserClientAssignmentResponse,
 )
-from typing import Annotated
 
 from fastapi import Depends
 from sqlalchemy import select
@@ -57,13 +53,6 @@ from apps.users.exceptions import EmailNotFoundError, UserNotFoundException
 from apps.users.models.user import Users
 from core.common_helpers import create_tokens
 from core.db import db_session
-from config import settings
-from core.db import db_session, redis
-from core.utils.datetime_utils import get_utc_now
-from core.utils.resolve_context_ids import get_context_ids_from_keys
-from core.utils.schema import SuccessResponse
-from core.auth import access, refresh
-from core.common_helpers import create_tokens
 from config import settings
 from fastapi.responses import RedirectResponse
 
@@ -241,7 +230,6 @@ class UserService:
             last_name=user.last_name,
             email=user.email,
             phone=user.phone,
-            reporting_manager_id=user.reporting_manager_id,
             is_active=user.is_active,
             created_at=user.created_at,
         )
@@ -252,7 +240,6 @@ class UserService:
         last_name: str,
         phone: str,
         email: str,
-        reporting_manager_id: str | None = None,
         user_id: str | None = None,
     ) -> CreateUserResponse:
         """
@@ -263,7 +250,6 @@ class UserService:
             last_name (str): The user's last name.
             phone (str): The user's phone number.
             email (str): The user's email address.
-            reporting_manager_id (str | None): The user's reporting manager ID.
             user_id (str | None): The ID of the user who is creating the user.
 
         Returns:
@@ -297,7 +283,6 @@ class UserService:
                 last_name=last_name,
                 phone=phone,
                 email=email.lower(),
-                reporting_manager_id=reporting_manager_id,
                 created_by=user_id,
                 updated_by=user_id,
             )
@@ -312,7 +297,6 @@ class UserService:
             last_name=user.last_name,
             email=user.email,
             phone=user.phone,
-            reporting_manager_id=user.reporting_manager_id,
             is_active=user.is_active,
             created_at=user.created_at,
         )
@@ -324,7 +308,6 @@ class UserService:
         last_name: str | None = None,
         phone: str | None = None,
         email: str | None = None,
-        reporting_manager_id: str | None = None,
         current_user_id: str | None = None,
     ) -> UpdateUserResponse:
         """
@@ -336,7 +319,6 @@ class UserService:
             last_name (str | None): The user's last name.
             phone (str | None): The user's phone number.
             email (str | None): The user's email address.
-            reporting_manager_id (str | None): The user's reporting manager ID.
             current_user_id (str | None): The ID of the user who is updating.
 
         Returns:
@@ -391,8 +373,6 @@ class UserService:
             user.phone = phone
         if email is not None:
             user.email = email.lower()
-        if reporting_manager_id is not None:
-            user.reporting_manager_id = reporting_manager_id
 
         user.updated_by = current_user_id
 
@@ -405,7 +385,6 @@ class UserService:
             last_name=user.last_name,
             email=user.email,
             phone=user.phone,
-            reporting_manager_id=user.reporting_manager_id,
             is_active=user.is_active,
             updated_at=user.updated_at,
             message="User updated successfully",
@@ -1066,7 +1045,6 @@ class UserService:
             created_at=user.created_at,
             updated_at=user.updated_at,
             is_active=user.is_active,
-            reporting_manager_id=user.reporting_manager_id,
             created_by=user.created_by,
             updated_by=user.updated_by,
         )

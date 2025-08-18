@@ -1,7 +1,7 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query, status
-from fastapi_pagination import Page, Params
+from fastapi_pagination import Page
 
 from apps.modules.constants import ModuleSortBy
 from apps.modules.schemas import ModuleResponse
@@ -21,7 +21,6 @@ router = APIRouter(
 )
 async def get_all_modules(
     service: Annotated[ModuleService, Depends()],
-    params: Annotated[Params, Depends()],
     user: Annotated[tuple[Users, str], Depends(current_user)],
     sort_by: Annotated[ModuleSortBy | None, Query()] = None,
     sort_type: Annotated[SortType | None, Query()] = None,
@@ -44,6 +43,6 @@ async def get_all_modules(
 
     return BaseResponse(
         data=await service.get_all_modules(
-            params=params, sort_by=sort_by, sort_type=sort_type, search=search
+            sort_by=sort_by, sort_type=sort_type, search=search
         )
     )

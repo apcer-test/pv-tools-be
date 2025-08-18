@@ -21,7 +21,6 @@ class Users(Base, ULIDPrimaryKeyMixin, TimeStampMixin, UserMixin):
         email (str): The user's email address (unique).
         phone (str | None): The user's phone number (unique).
         is_active (bool): The user's active status.
-        reporting_manager_id (str | None): The user's reporting manager id.
         description (str | None): The user's description.
         meta_data (dict | None): The user's metadata.
         clients (list): The user's clients.
@@ -36,8 +35,6 @@ class Users(Base, ULIDPrimaryKeyMixin, TimeStampMixin, UserMixin):
     email: Mapped[str] = mapped_column(String(64), unique=True, index=True, nullable=False)
     phone: Mapped[str | None] = mapped_column(String(16), nullable=True)
 
-    reporting_manager_id: Mapped[str | None] = mapped_column(ForeignKey("users.id", use_alter=True, ondelete="SET NULL"), nullable=True)
-    reporting_manager: Mapped["Users"] = relationship("Users", remote_side="[Users.id]", foreign_keys=[reporting_manager_id])
     description: Mapped[str | None] = mapped_column(String(255), nullable=True)
     meta_data: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     is_active: Mapped[bool] = mapped_column(default=True, server_default="True")

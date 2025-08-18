@@ -12,13 +12,13 @@ from apps.clients.schemas.response import (
     ClientResponse,
     ClientStatusResponse,
     CreateClientResponse,
-    DeleteClientResponse,
     GlobalClientResponse,
     UpdateClientResponse,
 )
 from apps.clients.services.clients import ClientService
 from apps.users.models.user import Users
 from apps.users.utils import current_user, permission_required
+from apps.clients.constants import ClientMessage
 from core.utils.schema import BaseResponse
 
 router = APIRouter(prefix="/clients", tags=["Clients"])
@@ -58,7 +58,7 @@ async def create_client(
 
     return BaseResponse(
         data=CreateClientResponse(
-            id=str(client.id), message="Client created successfully"
+            id=str(client.id), message=ClientMessage.CLIENT_CREATED
         )
     )
 
@@ -146,7 +146,7 @@ async def update_client(
     client = await service.update_client(client_id, client_data, user.get("user").id)
 
     return BaseResponse(
-        data=UpdateClientResponse(id=client.id, message="Client updated successfully")
+        data=UpdateClientResponse(id=client.id, message=ClientMessage.CLIENT_UPDATED)
     )
 
 

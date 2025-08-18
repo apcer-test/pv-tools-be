@@ -51,7 +51,6 @@ class CreateUserResponse(BaseModel):
     last_name: str
     email: str
     phone: str | None = None
-    reporting_manager_id: str | None = None
     is_active: bool
     created_at: datetime
 
@@ -69,7 +68,6 @@ class UpdateUserResponse(BaseModel):
     last_name: str
     email: str
     phone: str | None = None
-    reporting_manager_id: str | None = None
     is_active: bool
     updated_at: datetime
     message: str
@@ -121,7 +119,6 @@ class UserResponse(BaseModel):
     created_at: datetime
     updated_at: datetime | None
     is_active: bool
-    reporting_manager_id: str | None = None
     created_by: str | None = None
     updated_by: str | None = None
 
@@ -195,6 +192,5 @@ class UserSelfResponse(BaseModel):
     created_at: datetime
     updated_at: datetime | None
     is_active: bool
-    reporting_manager_id: str | None = None
     created_by: str | None = None
     updated_by: str | None = None

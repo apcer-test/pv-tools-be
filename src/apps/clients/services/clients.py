@@ -8,7 +8,7 @@ import os
 from pathlib import Path
 
 from apps.media.schemas.response import MediaResponse
-from apps.media.constants import MediaType
+from apps.media.constants import MediaType, image_extensions, document_extensions
 from core.db import db_session
 from core.exceptions import NotFoundError, ConflictError
 from apps.clients.models.clients import Clients
@@ -30,11 +30,6 @@ class ClientService:
     def _determine_file_type(self, file_path: str) -> str:
         """Determine file type based on file extension."""
         file_extension = Path(file_path).suffix.lower()
-        
-        # Image extensions
-        image_extensions = {'.jpg', '.jpeg', '.png', '.gif', '.bmp', '.svg', '.webp'}
-        # Document extensions
-        document_extensions = {'.pdf', '.doc', '.docx', '.txt', '.rtf', '.odt'}
         
         if file_extension in image_extensions:
             return MediaType.IMAGE
@@ -230,28 +225,6 @@ class ClientService:
         client.updated_by = user_id
         
         return client
-
-    async def delete_client(self, client_id: str, user_id: str) -> bool:
-        """
-        Delete a client.
-        
-        Args:
-            client_id: ID of the client to delete
-            user_id: ID of the user deleting the client
-            
-        Returns:
-            True if successful
-            
-        Raises:
-            NotFoundError: If client not found
-        """
-        client = await self.get_client_by_id(client_id)
-        
-        # Soft delete the client
-        client.deleted_at = func.now()
-        client.deleted_by = user_id
-                
-        return True
 
     async def list_clients(self, params: ListClientsRequest) -> ClientListResponse:
         """

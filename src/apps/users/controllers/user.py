@@ -230,7 +230,6 @@ async def create_user(
         - last_name (str): The user's last name.
         - phone (str): The user's phone number.
         - email (str): The user's email address.
-        - reporting_manager_id (str | None): The user's reporting manager ID.
 
     Returns:
         - BaseResponse[CreateUserResponse]: A response containing the created user's basic information.
@@ -270,7 +269,6 @@ async def update_user(
       - last_name (str | None): The user's last name.
       - phone (str | None): The user's phone number.
       - email (str | None): The user's email address.
-      - reporting_manager_id (str | None): The user's reporting manager ID.
       - reason (str): The reason for the update (required).
 
     Returns:

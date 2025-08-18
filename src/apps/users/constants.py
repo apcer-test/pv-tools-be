@@ -43,7 +43,6 @@ class UserMessage(StrEnum):
     INVALID_PHONE_NUMBER = "Invalid Phone Number"
     WEAK_PASSWORD = "Password is Weak"  # noqa: S105
     ACCOUNT_ALREADY_EXISTS = "Account Already exists"
-    USER_DELETED = "User deleted successfully"
     PHONE_NUMER_EXISTS = "Phone number already exists"
     USERNAME_EXISTS = "Username already exists"
     EMAIL_EXISTS = "Email already exists"
