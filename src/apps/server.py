@@ -22,7 +22,6 @@ from apps.master.controllers import master_router
 from apps.clients.controllers import clients_router
 from apps.roles.controllers import roles_router
 from apps.permissions.controllers import permissions_router
-from apps.user_type.controllers import user_type_router
 from apps.users.controllers import user_router
 from apps.modules.controllers import module_router
 from apps.master_modules.controllers import setup_router
@@ -62,7 +61,6 @@ def init_routers(_app: FastAPI) -> None:
     base_router.include_router(clients_router)
     base_router.include_router(roles_router)
     base_router.include_router(permissions_router)
-    base_router.include_router(user_type_router)
     base_router.include_router(module_router)
     base_router.include_router(setup_router)
     base_router.include_router(case_router)

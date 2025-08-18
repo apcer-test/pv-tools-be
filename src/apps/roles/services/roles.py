@@ -22,9 +22,8 @@ from apps.roles.execeptions import (
     RoleNotFoundError,
 )
 from apps.roles.models import RoleModulePermissionLink, Roles
-from apps.roles.schemas.response import BaseRoleResponse, RoleResponse, ModuleBasicResponse
+from apps.roles.schemas.response import BaseRoleResponse, RoleResponse, ModuleBasicResponse, RoleStatusResponse
 from apps.users.models.user import UserRoleLink
-from core.dependencies import verify_access_token
 from core.db import db_session
 from core.utils import logger
 from core.utils.schema import SuccessResponse
@@ -135,6 +134,7 @@ class RoleService:
             db=self.session,
             model=Roles,
             client_id=client_id,
+            slug=None,
         )
 
         async with self.session.begin_nested():
@@ -341,21 +341,37 @@ class RoleService:
                 modules=[],
             )
 
-        module_ids = [link.module_id for link in role_module_permission_links]
-        module_result = await self.session.scalars(
+        # Get all module IDs that have permissions for this role
+        direct_module_ids = [link.module_id for link in role_module_permission_links]
+        
+        # First, fetch all modules that have direct permission links
+        direct_modules_result = await self.session.scalars(
             select(Modules)
-            .where(
-                and_(
-                    Modules.id.in_(module_ids),
-                    Modules.deleted_at.is_(None),
-                )
-            )
-            .options(
-                selectinload(Modules.permissions), selectinload(Modules.child_modules)
-            )
+            .where(Modules.id.in_(direct_module_ids), Modules.deleted_at.is_(None))
+            .options(selectinload(Modules.permissions), selectinload(Modules.child_modules))
         )
-        modules = list(module_result)
-        if not modules:
+        direct_modules = list(direct_modules_result)
+        
+        # Get all parent module IDs from the direct modules
+        parent_module_ids = set()
+        for module in direct_modules:
+            if module.parent_module_id:
+                parent_module_ids.add(module.parent_module_id)
+        
+        # Fetch parent modules if they exist
+        parent_modules = []
+        if parent_module_ids:
+            parent_modules_result = await self.session.scalars(
+                select(Modules)
+                .where(Modules.id.in_(parent_module_ids), Modules.deleted_at.is_(None))
+                .options(selectinload(Modules.permissions), selectinload(Modules.child_modules))
+            )
+            parent_modules = list(parent_modules_result)
+        
+        # Combine all modules (direct + parent)
+        all_modules = direct_modules + parent_modules
+        
+        if not all_modules:
             return RoleResponse(
                 id=role_id,
                 name=role.name,
@@ -366,7 +382,7 @@ class RoleService:
             )
 
         nested_modules = self.build_module_tree(
-            modules, role_module_permission_links=role_module_permission_links
+            all_modules, role_module_permission_links=role_module_permission_links
         )
 
         return RoleResponse(
@@ -383,6 +399,10 @@ class RoleService:
         modules: list[Modules],
         role_module_permission_links: list[RoleModulePermissionLink],
     ) -> list[ModuleBasicResponse]:
+        """
+        Builds a hierarchical tree structure for modules, ensuring parent modules
+        are included even if only child modules have permissions.
+        """
         filtered_modules = copy.deepcopy(modules)
         allowed_permissions = {
             (link.module_id, link.permission_id)
@@ -402,22 +422,18 @@ class RoleService:
                 if (module.id, p.id) in allowed_permissions
             ]
 
-        roots = []
+        # First pass: Build parent-child relationships
         for module in filtered_modules:
-            # Only consider modules linked to the role (via role_module_permission_links)
-            if module.id not in {link.module_id for link in role_module_permission_links}:
-                continue
-
-            # Check if the module has a parent, if so, add it to its parent's child_modules list
             if module.parent_module_id:
                 parent = id_to_module.get(module.parent_module_id)
                 if parent:
                     parent.child_modules.append(module)
-                else:
-                    # If no parent found (parent is not in the current list), treat this as a root
-                    roots.append(module)
-            else:
-                # No parent module (this module is a root)
+
+        # Second pass: Find root modules (modules with no parent or parents not in the list)
+        roots = []
+        for module in filtered_modules:
+            # Check if this module is a root (no parent) or if its parent is not in our list
+            if not module.parent_module_id or module.parent_module_id not in id_to_module:
                 roots.append(module)
 
         return [ModuleBasicResponse.model_validate(m, from_attributes=True) for m in roots]
@@ -469,23 +485,49 @@ class RoleService:
                 for role in roles
             )
 
-        module_ids = [link.module_id for link in role_module_permission_links]
-        module_result = await self.session.scalars(
+        # Get all module IDs that have permissions for any of the roles
+        direct_module_ids = [link.module_id for link in role_module_permission_links]
+        
+        # First, fetch all modules that have direct permission links
+        direct_modules_result = await self.session.scalars(
             select(Modules)
             .where(
                 and_(
-                    Modules.id.in_(module_ids),
+                    Modules.id.in_(direct_module_ids),
                     Modules.deleted_at.is_(None),
                     Modules.client_id == client_id,
                 )
             )
-            .options(
-                selectinload(Modules.permissions), selectinload(Modules.child_modules)
-            )
+            .options(selectinload(Modules.permissions), selectinload(Modules.child_modules))
         )
-        modules = list(module_result)
+        direct_modules = list(direct_modules_result)
+        
+        # Get all parent module IDs from the direct modules
+        parent_module_ids = set()
+        for module in direct_modules:
+            if module.parent_module_id:
+                parent_module_ids.add(module.parent_module_id)
+        
+        # Fetch parent modules if they exist
+        parent_modules = []
+        if parent_module_ids:
+            parent_modules_result = await self.session.scalars(
+                select(Modules)
+                .where(
+                    and_(
+                        Modules.id.in_(parent_module_ids),
+                        Modules.deleted_at.is_(None),
+                        Modules.client_id == client_id,
+                    )
+                )
+                .options(selectinload(Modules.permissions), selectinload(Modules.child_modules))
+            )
+            parent_modules = list(parent_modules_result)
+        
+        # Combine all modules (direct + parent)
+        all_modules = direct_modules + parent_modules
 
-        if not modules:
+        if not all_modules:
             return role_response.extend(
                 RoleResponse(
                     id=role.id,
@@ -506,7 +548,7 @@ class RoleService:
             ]
 
             nested_modules = self.build_module_tree(
-                modules, role_module_permission_links_for_role
+                all_modules, role_module_permission_links_for_role
             )
 
             role_response.append(
@@ -556,3 +598,30 @@ class RoleService:
             role.deleted_by = user_id
 
         return SuccessResponse(message=RoleMessage.ROLE_DELETED)
+
+    async def change_role_status(self, role_id: str, current_user_id: str) -> RoleStatusResponse:
+        """
+        Change the status of a role.
+        """
+        role = await self.session.scalar(
+            select(Roles).where(
+                and_(
+                    Roles.id == role_id,
+                    Roles.deleted_at.is_(None),
+                )
+            )
+        )
+        if not role:
+            raise RoleNotFoundError
+
+        if role.is_active:
+            role.is_active = False
+        else:
+            role.is_active = True
+        role.updated_by = current_user_id
+        
+        return RoleStatusResponse(
+            id=role.id,
+            is_active=role.is_active,
+            message="Role status updated successfully",
+        )

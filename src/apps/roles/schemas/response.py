@@ -48,3 +48,12 @@ class RoleResponse(BaseRoleResponse):
     """role response for role operations."""
 
     modules: list[ModuleBasicResponse]
+
+
+class RoleStatusResponse(BaseModel):
+    """Role status response."""
+
+    id: str
+    is_active: bool
+    message: str
+

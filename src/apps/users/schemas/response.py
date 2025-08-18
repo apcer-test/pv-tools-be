@@ -5,6 +5,7 @@ from typing import Any
 
 from pydantic import BaseModel
 
+from apps.roles.schemas.response import ModuleBasicResponse
 from apps.users.constants import UserAuthAction
 
 
@@ -84,7 +85,6 @@ class UserClientAssignmentResponse(BaseModel):
 
     client_id: str
     role_id: str
-    user_type_id: str
     status: str  # "assigned" or "updated"
 
 
@@ -104,11 +104,7 @@ class PermissionResponse(BaseModel):
     key: str
 
 
-class UserTypeResponse(BaseModel):
-    """Response model for type information."""
 
-    id: str | None
-    name: str | None
 
 
 class UserResponse(BaseModel):
@@ -120,7 +116,6 @@ class UserResponse(BaseModel):
     email: str | None = None
     phone: str | None = None
     roles: list[RoleResponse] | None
-    user_types: list[UserTypeResponse] | None
     description: str | None = None
     meta_data: dict[str, Any] | None = None
     created_at: datetime
@@ -142,7 +137,6 @@ class UserAssignResponse(BaseModel):
     """Response model for user assign information."""
     
     role_name: str
-    user_type: str
     client_name: str
 
 
@@ -150,7 +144,6 @@ class UserAssignmentsResponse(BaseModel):
     """Response model for user assignments information."""
 
     role: RoleResponse | None
-    user_type: UserTypeResponse | None
     client: ClientResponse | None
 
 class ListUserResponse(BaseModel):
@@ -177,3 +170,31 @@ class UserStatusResponse(BaseModel):
     id: str
     is_active: bool
     message: str
+
+class UserSelfRoleResponse(BaseModel):
+    """Response model for user self role information."""
+
+    id: str
+    name: str
+    slug: str
+    description: str | None = None
+    role_metadata: dict[str, Any] | None = None
+    modules: list[ModuleBasicResponse] | None = None
+
+class UserSelfResponse(BaseModel):
+    """Response model for user self information."""
+
+    id: str
+    first_name: str
+    last_name: str
+    email: str | None = None
+    phone: str | None = None
+    roles: list[UserSelfRoleResponse] | None = None
+    description: str | None = None
+    user_metadata: dict[str, Any] | None = None
+    created_at: datetime
+    updated_at: datetime | None
+    is_active: bool
+    reporting_manager_id: str | None = None
+    created_by: str | None = None
+    updated_by: str | None = None

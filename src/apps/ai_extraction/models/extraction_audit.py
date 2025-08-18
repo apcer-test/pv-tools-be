@@ -43,10 +43,9 @@ class ExtractionAuditModel(Base, ULIDPrimaryKeyMixin, TimeStampMixin):
     step_id: Mapped[str | None] = mapped_column(ForeignKey("fallback_step.id"))
     meta_data: Mapped[dict | None] = mapped_column(JSON)
 
-    # Document intake tracking for retry functionality
-    # document_intake_id: Mapped[str | None] = mapped_column(
-    #     ForeignKey("document_intake_history.id"), nullable=True
-    # )
+    document_intake_id: Mapped[str | None] = mapped_column(
+        ForeignKey("document_intake_history.id"), nullable=True
+    )
 
     # Relationships
     doc_type: Mapped["DocTypeModel"] = relationship(
@@ -71,10 +70,9 @@ class ExtractionAuditModel(Base, ULIDPrimaryKeyMixin, TimeStampMixin):
 
     agent: Mapped["ExtractionAgentModel"] = relationship("ExtractionAgentModel")
 
-    # Relationship for document intake history
-    # document_intake: Mapped["DocumentIntakeHistory"] = relationship(
-    #     "DocumentIntakeHistory", back_populates="extraction_audits"
-    # )
+    document_intake: Mapped["DocumentIntakeHistory"] = relationship(
+        "DocumentIntakeHistory", back_populates="extraction_audits"
+    )
 
     def __repr__(self) -> str:
         """String representation of the extraction audit"""

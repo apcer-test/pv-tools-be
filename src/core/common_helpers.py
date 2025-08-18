@@ -18,7 +18,7 @@ import constants
 from apps.mail_box_config.models.credentials import MicrosoftCredentialsConfig
 from apps.mail_box_config.models.mail_box import MicrosoftMailBoxConfig
 from apps.tenant.models.models import Tenant
-from apps.user.exceptions import (
+from apps.users.exceptions import (
     EmptyDescriptionException,
     InvalidEmailException,
     InvalidEncryptedData,
@@ -33,13 +33,7 @@ from core.types import RoleType
 from core.utils import strong_password
 
 
-async def create_password():
-    """
-    Create a random password.
 
-    :return: A randomly generated password.
-    """
-    return secrets.token_urlsafe(15)
 
 
 async def create_tokens(user_id: str, client_slug: str) -> dict[str, str]:
@@ -121,49 +115,10 @@ async def decrypt(
         raise InvalidEncryptedData
 
 
-def validate_input_fields(
-    first_name: str, email: EmailStr, phone: str, password: str
-) -> None:
-    """
-    Validate email, phone, and password fields.
-
-    Args:
-        first_name (str): The user's first name.
-        email (EmailStr): The user's email address.
-        phone (str): The user's phone number.
-        password (str): The user's password.
-
-    Raises:
-        ValueError: If any of the fields are invalid.
-    """
-
-    if not re.match(EMAIL_REGEX, email):
-        raise InvalidEmailException
-
-    if not re.search(FIRST_NAME_REGEX, first_name, re.I):
-        raise ValueError(constants.INVALID + f"{first_name.replace('_', ' ')}")
-
-    if not re.match(PHONE_REGEX, phone, re.I):
-        raise InvalidPhoneFormatException
-
-    if not strong_password(password):
-        raise WeakPasswordException
 
 
-def validate_email(email: str) -> str | None:
-    """
-    Validate the format of an email address.
-    :param email: The email address to be validated.
-    :return: The validated email address.
-    """
 
-    if not re.match(constants.EMAIL_REGEX, email):
-        raise InvalidEmailException
 
-    if not isinstance(email, str) and email is not None:
-        raise InvalidEmailException
-
-    return email
 
 
 CIPHER = Fernet(settings.ENCRYPTION_KEY or "")

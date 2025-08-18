@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from apps.modules.models.modules import Modules
     from apps.permissions.models.permissions import Permissions
     from apps.roles.models.roles import Roles
-    from apps.user_type.models.user_type import UserType
+
     from apps.users.models.user import UserRoleLink, Users
 
 
@@ -45,9 +45,7 @@ class Clients(Base, ULIDPrimaryKeyMixin, TimeStampMixin, UserMixin):
         "Media", back_populates="clients", foreign_keys=[media_id]
     )
 
-    user_types: Mapped[List["UserType"]] = relationship(
-        "UserType", back_populates="client", cascade="all, delete-orphan"
-    )
+
 
     roles: Mapped[List["Roles"]] = relationship(
         "Roles", back_populates="client", cascade="all, delete-orphan"

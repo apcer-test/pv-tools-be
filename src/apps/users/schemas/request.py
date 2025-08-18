@@ -84,16 +84,14 @@ class UpdateUserRequest(BaseModel):
 
 
 class UserClientAssignment(BaseModel):
-    """Model for a single client assignment with role and user type."""
+    """Model for a single client assignment with role."""
 
     client_id: str
     role_id: str
-    user_type_id: str
 
 
 class AssignUserClientsRequest(BaseModel):
     """Request model for assigning clients, roles, and user types to a user."""
 
-    user_id: str
     assignments: list[UserClientAssignment]
 

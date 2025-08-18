@@ -1,3 +1,4 @@
+from datetime import UTC, datetime
 from typing import Annotated
 from sqlalchemy import select, and_, or_, func
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -13,7 +14,7 @@ from core.exceptions import NotFoundError, ConflictError
 from apps.clients.models.clients import Clients
 from apps.media.models.media import Media
 from apps.clients.schemas.request import CreateClientRequest, UpdateClientRequest, ListClientsRequest
-from apps.clients.schemas.response import ClientResponse, ClientListResponse, GlobalClientResponse
+from apps.clients.schemas.response import ClientResponse, ClientListResponse, ClientStatusResponse, GlobalClientResponse
 from fastapi_pagination.ext.sqlalchemy import paginate
 from fastapi_pagination import Params
 from core.utils.slug_utils import generate_unique_slug
@@ -332,4 +333,21 @@ class ClientService:
             updated_at=client.updated_at,
             created_by=client.created_by,
             updated_by=client.updated_by
+        )
+
+    async def change_client_status(self, client_id: str, current_user_id: str) -> ClientStatusResponse:
+        """
+        Change the status of a client.
+        """
+        client = await self.get_client_by_id(client_id)
+        if client.is_active:
+            client.is_active = False
+        else:
+            client.is_active = True
+        client.updated_by = current_user_id
+        
+        return ClientStatusResponse(
+            id=client.id,
+            is_active=client.is_active,
+            message="Client status updated successfully",
         )

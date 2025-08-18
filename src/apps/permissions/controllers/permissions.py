@@ -12,7 +12,6 @@ from apps.permissions.services.permissions import PermissionService
 from apps.users.models.user import Users
 from apps.users.utils import current_user
 from core.constants import SortType
-from core.dependencies import verify_access_token
 from core.utils.schema import BaseResponse, SuccessResponse
 
 router = APIRouter(
@@ -106,33 +105,4 @@ async def update_permission(
         data=await service.update_permission(
             permission_key=permission_key, **body.model_dump(), client_id=user.get("client_id"), user_id=user.get("user").id
         )
-    )
-
-
-@router.delete(
-    "/{permission_key}",
-    status_code=status.HTTP_200_OK,
-    name="delete permission using permission_key",
-)
-async def delete_permission(
-    permission_key: Annotated[int | str, Path()],
-    service: Annotated[PermissionService, Depends()],
-    user: Annotated[tuple[Users, str], Depends(current_user)],
-) -> BaseResponse[SuccessResponse]:
-    """
-    Delete a permission by its unique permission_key.
-
-    Args:
-      - permission_key (int | str): The unique identifier (ID or key) of the permission to delete.
-
-    Returns:
-      - BaseResponse[SuccessResponse]: A success message wrapped in a base response upon successful deletion.
-
-    Raises:
-      - PermissionNotFoundError: If no permission is found with the given key.
-      - PermissionAssignedFoundError: If a permission assigned to user found.
-    """
-
-    return BaseResponse(
-        data=await service.delete_permission(permission_key=permission_key, client_id=user.get("client_id"), user_id=user.get("user").id)
     )

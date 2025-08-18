@@ -31,7 +31,7 @@ class Roles(Base, ULIDPrimaryKeyMixin, TimeStampMixin, UserMixin):
     description: Mapped[str | None] = mapped_column(String(255), nullable=True)
     meta_data: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     client_id: Mapped[str] = mapped_column(ForeignKey("clients.id"), nullable=False)
-
+    is_active: Mapped[bool] = mapped_column(default=True, nullable=True)
     client: Mapped["Clients"] = relationship(
         "Clients", back_populates="roles", foreign_keys=[client_id]
     )

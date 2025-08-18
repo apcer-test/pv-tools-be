@@ -10,6 +10,7 @@ from apps.clients.schemas.request import (
 from apps.clients.schemas.response import (
     ClientListResponse,
     ClientResponse,
+    ClientStatusResponse,
     CreateClientResponse,
     DeleteClientResponse,
     GlobalClientResponse,
@@ -149,41 +150,6 @@ async def update_client(
     )
 
 
-@router.delete(
-    "/{client_id}",
-    status_code=status.HTTP_200_OK,
-    response_model=BaseResponse[DeleteClientResponse],
-    name="Delete Client",
-    description="Delete client (Access token required)",
-    dependencies=[Depends(permission_required(["clients"], ["client-management"]))],
-)
-async def delete_client(
-    service: Annotated[ClientService, Depends()],
-    user: Annotated[tuple[Users, str], Depends(current_user)],
-    client_id: str = Path(..., description="Client ID"),
-) -> BaseResponse[DeleteClientResponse]:
-    """
-    Delete a client.
-
-    This endpoint requires access token and performs a soft delete of the client.
-
-    Args:
-        client_id: ID of the client to delete
-        service: ClientService instance for business logic
-
-    Returns:
-        BaseResponse with deleted client ID and success message
-
-    Raises:
-        NotFoundError: If client not found
-    """
-    await service.delete_client(client_id, user.get("user").id)
-
-    return BaseResponse(
-        data=DeleteClientResponse(id=client_id, message="Client deleted successfully")
-    )
-
-
 @router.get(
     "/",
     status_code=status.HTTP_200_OK,
@@ -214,3 +180,35 @@ async def list_clients(
     clients = await service.list_clients(params=params)
 
     return BaseResponse(data=clients)
+
+
+@router.patch(
+    "/{client_id}/status",
+    name="Make client active/Inactive",
+    operation_id="change-client-status",
+    status_code=status.HTTP_200_OK,
+    dependencies=[Depends(permission_required(["clients"], ["client-management"]))],
+)
+async def change_client_status(
+    user: Annotated[tuple[Users, str], Depends(current_user)],
+    client_id: Annotated[str, Path()],
+    service: Annotated[ClientService, Depends()],
+) -> BaseResponse[ClientStatusResponse]:
+    """
+    Toggles the active status of a client by their ID.
+
+    Args:
+        - client_id (str): The ID of the client whose status is to be changed.
+
+    Returns:
+        - BaseResponse[ClientStatusResponse]: A response indicating
+        the client's updated status.
+
+    Raises:
+        - ClientNotFoundError: If no client with the provided ID is found.
+
+    """
+
+    return BaseResponse(
+        data=await service.change_client_status(client_id=client_id, current_user_id=user.get("user").id)
+    )

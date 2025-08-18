@@ -16,9 +16,3 @@ class ErrorMessage(StrEnum):
 class SortType(StrEnum):
     ASC = "ASC"
     DSC = "DSC"
-
-
-class AuthTokenType(StrEnum):
-    ACCESS = "access"
-    REFRESH = "refresh"
-    MFA = "mfa"

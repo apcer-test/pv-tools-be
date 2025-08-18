@@ -1,18 +1,16 @@
 from typing import Annotated
-from uuid import UUID
 
 from fastapi import Body, Depends, Path
 from fastapi import Request as FastAPIRequest
 from fastapi import status
 from fastapi.routing import APIRouter
 
-from apps.admin.schemas.request import EncryptedRequest
+from apps.mail_box_config.schemas.request import EncryptedRequest
 from apps.mail_box_config.services.configurations import MicrosoftCredentialsService
-from core.auth import AdminHasPermission
 from core.utils.schema import BaseResponse
 
 router = APIRouter(
-    tags=["Microsoft Credentials"], dependencies=[Depends(AdminHasPermission())]
+    tags=["Microsoft Credentials"]
 )
 
 

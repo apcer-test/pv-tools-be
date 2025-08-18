@@ -10,8 +10,6 @@ class UserSortBy(StrEnum):
     EMAIL_ASC = "email_asc"
     ROLE_ASC = "role_asc"
     ROLE_DESC = "role_desc"
-    USER_TYPE_DESC = "user_type_desc"
-    USER_TYPE_ASC = "user_type_asc"
     CREATED_AT_DESC = "created_at_desc"
     CREATED_AT_ASC = "created_at_asc"
 

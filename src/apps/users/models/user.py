@@ -8,7 +8,6 @@ from core.utils.mixins import TimeStampMixin, ULIDPrimaryKeyMixin, UserMixin
 
 if TYPE_CHECKING:
     from apps.roles.models import Roles
-    from apps.user_type.models.user_type import UserType
     from apps.clients.models.clients import Clients
     from apps.tenant.models.models import Tenant, TenantUsers
 
@@ -28,7 +27,6 @@ class Users(Base, ULIDPrimaryKeyMixin, TimeStampMixin, UserMixin):
         clients (list): The user's clients.
         roles (list): The user's roles.
         role_links (list): The user's role links.
-        user_types (list): The user's user types.
     """
 
     __tablename__ = "users"
@@ -48,13 +46,6 @@ class Users(Base, ULIDPrimaryKeyMixin, TimeStampMixin, UserMixin):
         secondary="user_role_link",
         primaryjoin="Users.id == UserRoleLink.user_id",
         secondaryjoin="UserRoleLink.client_id == Clients.id",
-        viewonly=True,
-    )
-
-    user_types: Mapped[List["UserType"]] = relationship(
-        secondary="user_role_link",
-        primaryjoin="Users.id == UserRoleLink.user_id",
-        secondaryjoin="UserRoleLink.user_type_id == UserType.id",
         viewonly=True,
     )
 
@@ -145,7 +136,6 @@ class UserRoleLink(Base, ULIDPrimaryKeyMixin, TimeStampMixin, UserMixin):
         client_id (str): The client id.
         user_id (str): The user id.
         role_id (str): The role id.
-        user_type_id (str | None): The user type id.
     """
 
     __tablename__ = "user_role_link"
@@ -153,7 +143,6 @@ class UserRoleLink(Base, ULIDPrimaryKeyMixin, TimeStampMixin, UserMixin):
     client_id: Mapped[str] = mapped_column(ForeignKey("clients.id", use_alter=True, ondelete="CASCADE"), nullable=False)
     user_id: Mapped[str] = mapped_column(ForeignKey("users.id", use_alter=True, ondelete="CASCADE"), nullable=False)
     role_id: Mapped[str] = mapped_column(ForeignKey("roles.id", use_alter=True, ondelete="CASCADE"), nullable=False)
-    user_type_id: Mapped[str | None] = mapped_column(ForeignKey("user_type.id", use_alter=True, ondelete="CASCADE"), nullable=True)
 
     user: Mapped["Users"] = relationship(
         back_populates="role_links", primaryjoin="UserRoleLink.user_id == Users.id"
@@ -164,6 +153,4 @@ class UserRoleLink(Base, ULIDPrimaryKeyMixin, TimeStampMixin, UserMixin):
     client: Mapped["Clients"] = relationship(
         "Clients", back_populates="user_role_links", foreign_keys=[client_id]
     )
-    user_type: Mapped["UserType"] = relationship(
-        "UserType", back_populates="user_role_links", foreign_keys=[user_type_id]
-    )
+

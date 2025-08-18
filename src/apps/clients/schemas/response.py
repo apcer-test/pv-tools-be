@@ -58,3 +58,12 @@ class DeleteClientResponse(CamelCaseModel):
     
     id: str = Field(..., description="ID of the deleted client")
     message: str = Field(..., description="Success message")
+
+
+class ClientStatusResponse(CamelCaseModel):
+    """Schema for client status response."""
+    
+    id: str = Field(..., description="ID of the client")
+    is_active: bool = Field(..., description="Whether the client is active")
+    message: str = Field(..., description="Success message")
+

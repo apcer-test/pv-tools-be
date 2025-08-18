@@ -14,23 +14,7 @@ from apps.users.models import UserRoleLink, Users
 from core.auth import access
 from core.constants import ErrorMessage
 from core.db import db_session
-from core.dependencies import verify_access_token
 from core.exceptions import BadRequestError, ForbiddenError, UnauthorizedError
-
-
-async def get_user_id_from_access_token(
-    token_claims: Annotated[dict[str, Any], Depends(verify_access_token)]
-) -> int:
-    """Fetch the user ID from the token claims.
-
-    :param token_claims: The token payload.
-    :return: The user ID.
-    """
-    user_id = token_claims.get("sub")
-    if not user_id:
-        raise UnauthorizedError(message=ErrorMessage.UNAUTHORIZED)
-
-    return int(user_id)
 
 
 async def current_user(

@@ -71,11 +71,11 @@ class DocumentIntakeHistory(Base, ULIDPrimaryKeyMixin, TimeStampMixin):
     )
 
     # Relationship for extraction audits
-    # extraction_audits: Mapped[List["ExtractionAuditModel"]] = relationship(
-    #     "ExtractionAuditModel",
-    #     back_populates="document_intake",
-    #     cascade="all, delete-orphan",
-    # )
+    extraction_audits: Mapped[List["ExtractionAuditModel"]] = relationship(
+        "ExtractionAuditModel",
+        back_populates="document_intake",
+        cascade="all, delete-orphan",
+    )
 
     def __repr__(self) -> str:
         """String representation of the document intake history"""

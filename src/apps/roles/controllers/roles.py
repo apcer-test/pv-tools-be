@@ -10,7 +10,7 @@ from fastapi_pagination import Page, Params
 
 from apps.roles.constants import RolesSortBy
 from apps.roles.schemas import BaseRoleResponse, CreateRoleRequest, UpdateRoleRequest
-from apps.roles.schemas.response import RoleResponse
+from apps.roles.schemas.response import RoleResponse, RoleStatusResponse
 from apps.roles.services import RoleService
 from apps.users.models.user import Users
 from apps.users.utils import current_user, permission_required
@@ -166,36 +166,33 @@ async def update_role(
     )
 
 
-@router.delete(
-    "/{role_id}",
+@router.patch(
+    "/{role_id}/status",
+    name="Make role active/Inactive",
+    operation_id="change-role-status",
     status_code=status.HTTP_200_OK,
-    name="delete role using role_id",
-    operation_id="delete-role",
     dependencies=[Depends(permission_required(["roles"], ["role-management"]))],
 )
-async def delete_role(
+async def change_role_status(
+    user: Annotated[tuple[Users, str], Depends(current_user)],
     role_id: Annotated[str, Path()],
     service: Annotated[RoleService, Depends()],
-    user: Annotated[tuple[Users, str], Depends(current_user)],
-) -> BaseResponse[SuccessResponse]:
+) -> BaseResponse[RoleStatusResponse]:
     """
-    Delete a role by its key.
+    Toggles the active status of a role by their ID.
 
     Args:
-      - role_slug (str): The unique identifier of the role (can be a numeric ID or a string slug).
+        - role_id (str): The ID of the role whose status is to be changed.
 
     Returns:
-      - BaseResponse[SuccessResponse]: A standardized success response indicating that the role was deleted.
+        - BaseResponse[RoleStatusResponse]: A response indicating
+        the role's updated status.
 
     Raises:
-      - RoleNotFoundError: If the role with the given key is not found.
-      - RoleAssignedFoundError: If the role is assigned to any users.
+        - RoleNotFoundError: If no role with the provided ID is found.
 
     """
+
     return BaseResponse(
-        data=await service.delete_role(
-            role_id=role_id,
-            client_id=user.get("client_id"),
-            user_id=user.get("user").id,
-        )
+        data=await service.change_role_status(role_id=role_id, current_user_id=user.get("user").id)
     )

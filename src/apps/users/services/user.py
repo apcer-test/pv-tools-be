@@ -1,6 +1,8 @@
 """Services for Users."""
 
 from collections import defaultdict
+import copy
+from datetime import datetime, UTC
 from typing import Annotated, Any
 
 from fastapi import Depends
@@ -12,13 +14,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import load_only, selectinload
 
 from apps.clients.models.clients import Clients
+from apps.modules.models.modules import Modules
 from apps.modules.schemas.response import ModuleResponse
 from apps.roles.execeptions import RoleNotFoundError
 from apps.roles.models import Roles
+from apps.roles.models.roles import RoleModulePermissionLink
+from apps.roles.schemas.response import ModuleBasicResponse
 from apps.roles.services import RoleService
-from apps.user_type.constants import UserTypeSortBy
-from apps.user_type.execeptions import UserTypeNotFoundError
-from apps.user_type.models import UserType
 from apps.users.constants import (
     UserMessage,
     UserSortBy,
@@ -38,8 +40,9 @@ from apps.users.schemas.response import (
     UpdateUserResponse,
     UserAssignmentsResponse,
     UserResponse,
+    UserSelfResponse,
+    UserSelfRoleResponse,
     UserStatusResponse,
-    UserTypeResponse,
     AssignUserClientsResponse,
     UserClientAssignmentResponse,
 )
@@ -50,7 +53,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.responses import RedirectResponse
 
-from apps.user.exceptions import EmailNotFoundError, UserNotFoundException
+from apps.users.exceptions import EmailNotFoundError, UserNotFoundException
 from apps.users.models.user import Users
 from core.common_helpers import create_tokens
 from core.db import db_session
@@ -99,8 +102,7 @@ class MicrosoftSSOService:
             user = await self.session.scalar(
                 select(Users)
                 .options(
-                    selectinload(Users.roles),
-                    selectinload(Users.user_types)
+                    selectinload(Users.roles)
                 )
                 .join(UserRoleLink, Users.id == UserRoleLink.user_id)
                 .where(
@@ -146,7 +148,6 @@ class UserService:
         phone: str | None = None,
         email: str | None = None,
         role_ids: list[str] | None = None,
-        user_type_id: str | None = None,
         description: str | None = None,
         user_metadata: dict | None = None,
         user_id: str | None = None,
@@ -159,7 +160,7 @@ class UserService:
           - phone (str | None): The phone number of the user.
           - email (str | None): The email address of the user.
           - role_ids (list[str] | None) : List of role IDs to assign to the user.
-          - user_type_id (str | None) : The Type ID of the user.
+
           - description (str | None): The description of the user.
           - meta_data (dict[str, Any] | None): The metadata of the user.
           - user_id (str | None): The ID of the user who is creating the user.
@@ -170,7 +171,6 @@ class UserService:
           - PhoneAlreadyExistsError: If the provided phone number already exists.
           - EmailAlreadyExistsError: If the provided email address already exists.
           - RoleNotFoundError: If any of the provided role IDs do not exist.
-          - UserTypeNotFoundError: If the provided type ID does not exist.
 
         """
 
@@ -209,21 +209,6 @@ class UserService:
             existing_roles = list(existing_roles_result)
             if len(existing_roles) != len(role_ids):
                 raise RoleNotFoundError
-
-        if user_type_id:
-            existing_usertype = await self.session.scalar(
-                select(UserType)
-                .options(load_only(UserType.id))
-                .where(
-                    and_(
-                        UserType.client_id == client_id,
-                        UserType.id == user_type_id,
-                        UserType.deleted_at.is_(None),
-                    )
-                )
-            )
-            if not existing_usertype:
-                raise UserTypeNotFoundError
 
         async with self.session.begin_nested():
             user = Users(
@@ -446,7 +431,6 @@ class UserService:
         Raises:
             UserNotFoundError: If no user with the provided ID is found.
             RoleNotFoundError: If any of the provided role IDs do not exist.
-            UserTypeNotFoundError: If any of the provided user type IDs do not exist.
         """
         # Check if user exists
         user = await self.session.scalar(
@@ -478,20 +462,6 @@ class UserService:
             if not role:
                 raise RoleNotFoundError
 
-            # Check if user type exists
-            user_type = await self.session.scalar(
-                select(UserType)
-                .options(load_only(UserType.id))
-                .where(
-                    and_(
-                        UserType.id == assignment.user_type_id,
-                        UserType.deleted_at.is_(None)
-                    )
-                )
-            )
-            if not user_type:
-                raise UserTypeNotFoundError
-
             # Check if assignment already exists
             existing_assignment = await self.session.scalar(
                 select(UserRoleLink)
@@ -500,7 +470,6 @@ class UserService:
                         UserRoleLink.user_id == user_id,
                         UserRoleLink.client_id == assignment.client_id,
                         UserRoleLink.role_id == assignment.role_id,
-                        UserRoleLink.user_type_id == assignment.user_type_id,
                         UserRoleLink.deleted_at.is_(None)
                     )
                 )
@@ -516,7 +485,6 @@ class UserService:
                     user_id=user_id,
                     client_id=assignment.client_id,
                     role_id=assignment.role_id,
-                    user_type_id=assignment.user_type_id,
                     created_by=current_user_id,
                     updated_by=current_user_id,
                 )
@@ -527,7 +495,6 @@ class UserService:
                 UserClientAssignmentResponse(
                     client_id=assignment.client_id,
                     role_id=assignment.role_id,
-                    user_type_id=assignment.user_type_id,
                     status=status,
                 )
             )
@@ -549,10 +516,9 @@ class UserService:
         user_ids: list[str] | None = None,
         search: str | None = None,
         role_slug: str | None = None,
-        user_type_slug: str | None = None,
         client_slug: str | None = None,
+        sortby: UserSortBy | None = None,
         is_active: bool | None = None,
-        sortby: UserTypeSortBy | None = None,
     ) -> Page[ListUserResponse]:
         """
         Retrieves a paginated list of users with optional filtering and sorting.
@@ -563,9 +529,8 @@ class UserService:
           - user_ids (list[str] | None): Optional list of user IDs to filter.
           - search (str | None): Optional filter by email address or phone number.
           - role_slug (str | None): Optional filter by user role.
-          - user_type_slug (str | None): Optional filter by user type.
           - is_active (bool | None): Optional filter by active status.
-          - sortby (UserTypeSortBy | None): Optional sorting field and direction.
+          - sortby (UserSortBy | None): Optional sorting field and direction.
 
         Returns:
           - Page[ListUserResponse]: A response containing the paginated list of users.
@@ -592,7 +557,6 @@ class UserService:
                     Users.updated_by,
                 ),
                 selectinload(Users.role_links).selectinload(UserRoleLink.role),
-                selectinload(Users.role_links).selectinload(UserRoleLink.user_type),
                 selectinload(Users.role_links).selectinload(UserRoleLink.client),
             )
             .where(Users.deleted_at.is_(None))
@@ -614,9 +578,6 @@ class UserService:
         if role_slug:
             query = query.join(UserRoleLink, Users.id == UserRoleLink.user_id).join(Roles, UserRoleLink.role_id == Roles.id).where(Roles.slug.ilike(f"%{role_slug}%"))
 
-        if user_type_slug:
-            query = query.join(UserRoleLink, Users.id == UserRoleLink.user_id).join(UserType, UserRoleLink.user_type_id == UserType.id).where(UserType.slug.ilike(f"%{user_type_slug}%"))
-
         if client_slug:
             query = query.join(UserRoleLink, Users.id == UserRoleLink.user_id).join(Clients, UserRoleLink.client_id == Clients.id).where(Clients.slug.ilike(f"%{client_slug}%"))
 
@@ -626,9 +587,6 @@ class UserService:
         if sortby in [UserSortBy.ROLE_DESC, UserSortBy.ROLE_ASC]:
             query = query.join(UserRoleLink, Users.id == UserRoleLink.user_id).join(Roles, UserRoleLink.role_id == Roles.id)
 
-        if sortby in [UserSortBy.USER_TYPE_DESC, UserSortBy.USER_TYPE_ASC]:
-            query = query.join(UserRoleLink, Users.id == UserRoleLink.user_id).join(UserType, UserRoleLink.user_type_id == UserType.id)
-
         sort_options = {
             UserSortBy.NAME_DESC: Users.first_name.desc(),
             UserSortBy.NAME_ASC: Users.first_name.asc(),
@@ -636,8 +594,6 @@ class UserService:
             UserSortBy.EMAIL_ASC: Users.email.asc(),
             UserSortBy.ROLE_DESC: Roles.name.desc(),
             UserSortBy.ROLE_ASC: Roles.name.asc(),
-            UserSortBy.USER_TYPE_DESC: UserType.name.desc(),
-            UserSortBy.USER_TYPE_ASC: UserType.name.asc(),
             UserSortBy.CREATED_AT_DESC: Users.created_at.desc(),
             UserSortBy.CREATED_AT_ASC: Users.created_at.asc(),
         }
@@ -656,7 +612,6 @@ class UserService:
                     if role_link.role and role_link.client:
                         assigns.append(UserAssignmentsResponse(
                             role=RoleResponse(id=role_link.role.id, name=role_link.role.name) if role_link.role else None,
-                            user_type=UserTypeResponse(id=role_link.user_type.id, name=role_link.user_type.name) if role_link.user_type else None,
                             client=ClientResponse(id=role_link.client.id, name=role_link.client.name) if role_link.client else None
                         ))
             
@@ -712,7 +667,6 @@ class UserService:
                     Users.updated_by,
                 ),
                 selectinload(Users.role_links).selectinload(UserRoleLink.role),
-                selectinload(Users.role_links).selectinload(UserRoleLink.user_type),
                 selectinload(Users.role_links).selectinload(UserRoleLink.client),
             )
             .where(
@@ -732,7 +686,6 @@ class UserService:
                 if role_link.role and role_link.client:
                     assigns.append(UserAssignmentsResponse(
                         role=RoleResponse(id=role_link.role.id, name=role_link.role.name) if role_link.role else None,
-                        user_type=UserTypeResponse(id=role_link.user_type.id, name=role_link.user_type.name) if role_link.user_type else None,
                         client=ClientResponse(id=role_link.client.id, name=role_link.client.name) if role_link.client else None
                     ))
         
@@ -752,14 +705,13 @@ class UserService:
             updated_by=user.updated_by,
         )
 
-    async def change_user_status(self, client_id: str, user_id: str) -> UserStatusResponse:
+    async def change_user_status(self, user_id: str, current_user_id: str) -> UserStatusResponse:
         """
         Toggles the active status of a user by their ID.
 
         Args:
-          - client_id (str): The client id. This is required.
           - user_id (str): The ID of the user whose status is to be changed.
-
+          - current_user_id (str): The ID of the current user.
         Returns:
           - Users: A response indicating the user's updated status.
 
@@ -791,6 +743,8 @@ class UserService:
             existing_user.is_active = False
         else:
             existing_user.is_active = True
+
+        existing_user.updated_by = current_user_id
 
         return UserStatusResponse(
             id=existing_user.id,
@@ -834,7 +788,6 @@ class UserService:
         email: EmailStr | None = None,
         phone: str | None = None,
         role_ids: list[str] | None = None,
-        user_type_id: str | None = None,
         description: str | None = None,
         user_metadata: dict[str, Any] | None = None,
     ) -> UpdateUserResponse:
@@ -847,7 +800,7 @@ class UserService:
           - phone (str | None): The phone number of the user.
           - email (str | None): The email address of the user.
           - role_ids (list[str] | None) : List of role IDs to assign to the user.
-          - user_type_id (str | None) : The Type ID of the user.
+
           - description (str | None): The description of the user.
 
         Returns:
@@ -858,7 +811,7 @@ class UserService:
           - PhoneAlreadyExistsError: If the provided phone number already exists.
           - EmailAlreadyExistsError: If the provided email address already exists.
           - RoleNotFoundError: If the provided role ID does not exist.
-          - UserTypeNotFoundError: If the provided user type ID does not exist.
+  
 
         """
         async with self.session.begin_nested():
@@ -928,20 +881,7 @@ class UserService:
                 await self._assign_user_roles(self.session, user_id, role_ids, client_id)
                 roles = existing_roles
 
-            if user_type_id:
-                existing_usertype = await self.session.scalar(
-                    select(UserType)
-                    .options(load_only(UserType.id))
-                    .where(
-                        and_(
-                            UserType.client_id == client_id,
-                            UserType.id == user_type_id,
-                            UserType.deleted_at.is_(None),
-                        )
-                    )
-                )
-                if not existing_usertype:
-                    raise UserTypeNotFoundError
+
 
             existing_user.phone = phone if phone is not None else existing_user.phone
             existing_user.email = email if email is not None else existing_user.email
@@ -965,57 +905,72 @@ class UserService:
                 message="User updated successfully",
             )
 
-    async def delete(self, client_id: str, user_id: str) -> SuccessResponse:
+    def build_module_tree(
+        self,
+        modules: list[Modules],
+        role_module_permission_links: list[RoleModulePermissionLink],
+    ) -> list[ModuleBasicResponse]:
         """
-        Deletes a user account by their ID.
+        Builds a hierarchical tree structure for modules, ensuring parent modules
+        are included even if only child modules have permissions.
+        """
+        filtered_modules = copy.deepcopy(modules)
+        allowed_permissions = {
+            (link.module_id, link.permission_id)
+            for link in role_module_permission_links
+        }
+
+        # Create a mapping of module id to the module object for easy lookup
+        id_to_module = {m.id: m for m in filtered_modules}
+
+        # For each module, filter its permissions based on the allowed permissions
+        for module in filtered_modules:
+            module.child_modules = []
+            # Get only permission IDs and names for the allowed permissions
+            module.permissions = [
+                {"id": p.id, "name": p.name}
+                for p in module.permissions
+                if (module.id, p.id) in allowed_permissions
+            ]
+
+        # First pass: Build parent-child relationships
+        for module in filtered_modules:
+            if module.parent_module_id:
+                parent = id_to_module.get(module.parent_module_id)
+                if parent:
+                    parent.child_modules.append(module)
+
+        # Second pass: Find root modules (modules with no parent or parents not in the list)
+        roots = []
+        for module in filtered_modules:
+            # Check if this module is a root (no parent) or if its parent is not in our list
+            if not module.parent_module_id or module.parent_module_id not in id_to_module:
+                roots.append(module)
+
+        return [ModuleBasicResponse.model_validate(m, from_attributes=True) for m in roots]
+
+
+    async def get_self(self, client_id: str, user_id: str) -> UserSelfResponse:
+        """
+        Retrieves the profile information of the currently authenticated user, 
+        including roles, modules, child modules, and permissions.
 
         Args:
-          - client_id (str): The client id. This is required.
-          - user_id (str): The ID of the user whose status is to be changed.
+        - client_id (str): The client id. This is required.
+        - user_id (str): The user id. This is required.
 
         Returns:
-          - SuccessResponse: A response indicating successful deletion of the user.
+        - UserResponse: A response containing the user's profile information with roles, modules, child modules, and permissions.
 
         Raises:
-          - UserNotFoundError: If no user with the provided username is found.
-        """
-        existing_user = await self.session.scalar(
-            select(Users)
-            .options(load_only(Users.id, Users.email, Users.phone))
-            .where(
-                and_(
-                    Users.id == user_id,
-                    Users.deleted_at.is_(None),
-                )
-            )
-        )
-        if not existing_user:
-            raise UserNotFoundError
-
-        existing_user.deleted_at = get_utc_now()
-
-        return SuccessResponse(message=UserMessage.USER_DELETED)
-
-    async def get_self(self, client_id: str, user_id: str) -> UserResponse:
-        """
-        Retrieves the profile information of the currently authenticated user.
-
-        Args:
-          - client_id (str): The client id. This is required.
-          - user_id (str): The user id. This is required.
-
-        Returns:
-          - UserResponse: A response containing the user's profile information.
-
-        Raises:
-          - UserNotFoundError: If no user with the provided username is found.
+        - UserNotFoundError: If no user with the provided user_id is found.
 
         """
 
+        # Fetch the user information along with related user types and roles
         user = await self.session.scalar(
             select(Users)
             .options(
-                selectinload(Users.user_types),
                 selectinload(Users.roles),
             )
             .where(
@@ -1025,9 +980,81 @@ class UserService:
         if not user:
             raise UserNotFoundError
 
-        roles = [RoleResponse(id=role.id, name=role.name) for role in user.roles]
+        # Fetch role-specific module permission links
+        role_module_permission_links = await self.session.scalars(
+            select(RoleModulePermissionLink)
+            .where(
+                RoleModulePermissionLink.role_id.in_([role.id for role in user.roles]),
+                RoleModulePermissionLink.client_id == client_id,
+            )
+        )
+        role_module_permission_links = role_module_permission_links.unique().all()
 
-        return UserResponse(
+        # Build the module tree for each role
+        role_data = []
+        for role in user.roles:
+            # Get the list of module ids for the role
+            role_module_links = [
+                link for link in role_module_permission_links if link.role_id == role.id
+            ]
+            if role_module_links:
+                # Get all module IDs that have permissions for this role
+                direct_module_ids = [link.module_id for link in role_module_links]
+                
+                # First, fetch all modules that have direct permission links
+                direct_modules_result = await self.session.scalars(
+                    select(Modules)
+                    .where(Modules.id.in_(direct_module_ids), Modules.deleted_at.is_(None))
+                    .options(selectinload(Modules.permissions), selectinload(Modules.child_modules))
+                )
+                direct_modules = list(direct_modules_result)
+                
+                # Get all parent module IDs from the direct modules
+                parent_module_ids = set()
+                for module in direct_modules:
+                    if module.parent_module_id:
+                        parent_module_ids.add(module.parent_module_id)
+                
+                # Fetch parent modules if they exist
+                parent_modules = []
+                if parent_module_ids:
+                    parent_modules_result = await self.session.scalars(
+                        select(Modules)
+                        .where(Modules.id.in_(parent_module_ids), Modules.deleted_at.is_(None))
+                        .options(selectinload(Modules.permissions), selectinload(Modules.child_modules))
+                    )
+                    parent_modules = list(parent_modules_result)
+                
+                # Combine all modules (direct + parent)
+                all_modules = direct_modules + parent_modules
+                
+                # Build the nested modules tree
+                nested_modules = self.build_module_tree(all_modules, role_module_permission_links=role_module_links)
+
+                role_data.append(
+                    UserSelfRoleResponse(
+                        id=role.id,
+                        name=role.name,
+                        slug=role.slug,
+                        description=role.description,
+                        role_metadata=role.meta_data,
+                        modules=nested_modules,  # Add modules with child modules and permissions
+                    )
+                )
+            else:
+                role_data.append(
+                    UserSelfRoleResponse(
+                        id=role.id,
+                        name=role.name,
+                        slug=role.slug,
+                        description=role.description,
+                        role_metadata=role.meta_data,
+                        modules=[],
+                    )
+                )
+
+        # Return the full user profile, including roles, modules, and other details
+        return UserSelfResponse(
             id=user.id,
             first_name=user.first_name,
             last_name=user.last_name,
@@ -1035,8 +1062,7 @@ class UserService:
             phone=user.phone,
             description=user.description,
             user_metadata=user.meta_data,
-            roles=roles,
-            user_types=[UserTypeResponse(id=user_type.id, name=user_type.name) for user_type in user.user_types] if user.user_types else [],
+            roles=role_data,
             created_at=user.created_at,
             updated_at=user.updated_at,
             is_active=user.is_active,

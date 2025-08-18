@@ -57,21 +57,7 @@ INSERT INTO permissions (id, name, slug, description, meta_data, client_id, crea
 VALUES ('{pid}', '{p["name"]}', '{p["slug"]}', NULL, NULL, '{client_id}', NOW(), NOW(), NULL);
 """
 
-# 3. User Types
-user_types = [
-    {"name": "User", "slug": slugify.slugify("User")},
-    {"name": "Manager", "slug": slugify.slugify("Manager")},
-    {"name": "Admin", "slug": slugify.slugify("Admin")},
-    {"name": "SuperAdmin", "slug": slugify.slugify("SuperAdmin")},
-]
-user_type_ids = {}
-for ut in user_types:
-    utid = str(ULID())
-    user_type_ids[ut["slug"]] = utid
-    user_management_sql += f"""
-INSERT INTO user_type (id, name, slug, description, meta_data, client_id, created_at, updated_at, deleted_at)
-VALUES ('{utid}', '{ut["name"]}', '{ut["slug"]}', NULL, NULL, '{client_id}', NOW(), NOW(), NULL);
-"""
+
 
 # 4. Roles
 roles = [
@@ -146,7 +132,6 @@ VALUES ('{link_id}', '{client_id}', '{role_id}', '{mod_id}', '{perm_id}', NOW(),
 
 # 8. Super Admin User
 user_id = str(ULID())
-user_type_id = user_type_ids["superadmin"]  # assign SuperAdmin
 user_management_sql += f"""
 INSERT INTO users (id, first_name, last_name, email, phone, description, meta_data, is_active, created_at, updated_at, deleted_at, created_by, updated_by, deleted_by)
 VALUES ('{user_id}', 'super', 'admin', 'jigarv@webelight.co.in', '+910000000000', NULL, NULL, TRUE, NOW(), NOW(), NULL, NULL, NULL, NULL);
@@ -155,15 +140,15 @@ VALUES ('{user_id}', 'super', 'admin', 'jigarv@webelight.co.in', '+910000000000'
 # 9. User Role Link
 user_role_link_id = str(ULID())
 user_management_sql += f"""
-INSERT INTO user_role_link (id, client_id, user_id, role_id, user_type_id, created_by, updated_by, deleted_by, created_at, updated_at, deleted_at)
-VALUES ('{user_role_link_id}', '{client_id}', '{user_id}', '{role_ids["super-admin"]}', '{user_type_id}', NULL, NULL, NULL, NOW(), NOW(), NULL);
+INSERT INTO user_role_link (id, client_id, user_id, role_id, created_by, updated_by, deleted_by, created_at, updated_at, deleted_at)
+VALUES ('{user_role_link_id}', '{client_id}', '{user_id}', '{role_ids["super-admin"]}', NULL, NULL, NULL, NOW(), NOW(), NULL);
 """
 
 # 10. Update created_by and updated_by in all tables
 user_management_sql += f"""
 UPDATE clients SET created_by = '{user_id}', updated_by = '{user_id}' WHERE id = '{client_id}';
 UPDATE permissions SET created_by = '{user_id}', updated_by = '{user_id}' WHERE client_id = '{client_id}';
-UPDATE user_type SET created_by = '{user_id}', updated_by = '{user_id}' WHERE client_id = '{client_id}';
+
 UPDATE roles SET created_by = '{user_id}', updated_by = '{user_id}' WHERE client_id = '{client_id}';
 UPDATE modules SET created_by = '{user_id}', updated_by = '{user_id}' WHERE client_id = '{client_id}';
 UPDATE module_permission_link SET created_by = '{user_id}', updated_by = '{user_id}' WHERE client_id = '{client_id}';

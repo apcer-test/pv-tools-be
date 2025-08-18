@@ -20,7 +20,7 @@ from apps.users.schemas.response import (
     CreateUserResponse,
     ListUserResponse,
     UpdateUserResponse,
-    UserResponse,
+    UserSelfResponse,
     UserStatusResponse,
 )
 from apps.users.services import MicrosoftSSOService, UserService
@@ -34,130 +34,6 @@ from core.utils.sso_client import SSOOAuthClient
 router = APIRouter(prefix="/users", tags=["User"])
 
 logger = logging.getLogger(__name__)
-
-
-@router.get(
-    "/self", status_code=status.HTTP_200_OK, name="Get Self", operation_id="get-Self"
-)
-async def get_self(
-    user: Annotated[tuple[Users, str], Depends(current_user)],
-    service: Annotated[UserService, Depends()],
-) -> BaseResponse[UserResponse]:
-    """
-    Retrieves the profile information of the currently authenticated user.
-
-    Args:
-        - client_slug (str): The client slug means client_id or name. This is required.
-
-    Returns:
-        - BaseResponse[UserResponse]: A response containing
-        the user's profile information.
-
-    Raises:
-        - UserNotFoundError: If no user with the provided username is found.
-
-    """
-
-    return BaseResponse(
-        data=await service.get_self(
-            client_id=user.get("client_id"), user_id=user.get("user").id
-        )
-    )
-
-
-@router.get(
-    "",
-    status_code=status.HTTP_200_OK,
-    name="Get all users",
-    operation_id="get-all-users",
-    dependencies=[Depends(permission_required(["user"], ["user-management"]))],
-)
-async def get_all_users(
-    param: Annotated[Params, Depends()],
-    service: Annotated[UserService, Depends()],
-    user: Annotated[tuple[Users, str], Depends(current_user)],
-    user_ids: Annotated[list[str] | None, Query()] = None,
-    search: Annotated[str | None, Query()] = None,
-    role: Annotated[str | None, Query()] = None,
-    user_type: Annotated[str | None, Query()] = None,
-    client: Annotated[str | None, Query()] = None,
-    is_active: Annotated[bool | None, Query()] = None,
-    sortby: Annotated[UserSortBy | None, Query()] = None,
-) -> BaseResponse[Page[ListUserResponse]]:
-    """
-    Retrieves a paginated list of users with optional filtering and sorting.
-
-    Args:
-      - client_slug (str): The client slug means client_id or name. This is required.
-      - param (Params): Pagination parameters including page number and size.
-      - user_ids (list[str] | None): Optional list of user IDs to filter.
-      - username (str | None): Optional filter by username.
-      - email (str | None): Optional filter by email address.
-      - phone (str | None): Optional filter by phone number.
-      - role (str | None): Optional filter by user role.
-      - type_name (str | None): Optional filter by user type.
-      - sub_type (str | None): Optional filter by user sub_type.
-      - is_active (bool | None): Optional filter by active status.
-      - sortby (UserSortBy | None): Optional sorting field and direction.
-
-    Returns:
-      - BaseResponse[Page[ListUserResponse]]: A paginated response containing
-        a list of users matching the provided criteria.
-
-    Raises:
-      - UserNotFoundError: If no user with the provided username is found.
-
-    """
-
-    return BaseResponse(
-        data=await service.get_all_users(
-            client_id=user.get("client_id"),
-            page_param=param,
-            user=user.get("user").id,
-            user_ids=user_ids,
-            search=search,
-            role_slug=role,
-            user_type_slug=user_type,
-            client_slug=client,
-            is_active=is_active,
-            sortby=sortby,
-        )
-    )
-
-
-@router.get(
-    "/{user_id}",
-    status_code=status.HTTP_200_OK,
-    name="Get user by id",
-    operation_id="get-user-by-id",
-    dependencies=[Depends(permission_required(["user"], ["user-management"]))],
-)
-async def get_user_by_id(
-    user: Annotated[tuple[Users, str], Depends(current_user)],
-    user_id: Annotated[str, Path()],
-    service: Annotated[UserService, Depends()],
-) -> BaseResponse[ListUserResponse]:
-    """
-    Retrieves detailed information about a specific user by their ID.
-
-    Args:
-      - client_slug (str): The client slug means client_id or name. This is required.
-      - user_id (str): The unique identifier of the user to retrieve.
-
-    Returns:
-      - BaseResponse[ListUserResponse]: A response containing the user's information.
-
-    Raises:
-      - UserNotFoundError: If no user with the provided username is found.
-
-    """
-
-    return BaseResponse(
-        data=await service.get_user_by_id(
-            client_id=user.get("client_id"), user_id=user_id
-        )
-    )
-
 
 @router.get(
     "/openid/login/{provider}/{client_id}",
@@ -183,7 +59,7 @@ async def login_by_provider(
                         "sso_auth_callback", provider=provider.value
                     )
                 else:
-                    redirect_uri = f"{settings.SOCIAL_AUTH_REDIRECT_URL}/{settings.SOCIAL_AUTH_ENDPOINT}/{provider}"
+                    redirect_uri = f"{settings.SOCIAL_AUTH_REDIRECT_URL}/{settings.SOCIAL_AUTH_ENDPOINT}/sso/{provider}"
                 redirect_uri = f"{redirect_uri}?client_slug={client_id}"
                 return (
                     await SSOOAuthClient(provider.value)
@@ -198,7 +74,7 @@ async def login_by_provider(
 
 
 @router.get(
-    "/{provider}",
+    "/sso/{provider}",
     status_code=status.HTTP_200_OK,
     name="sso_auth_callback",
     description="callback endpoint for auth using provider",
@@ -303,6 +179,35 @@ async def generate_code_callback(request: Request) -> RedirectResponse:
     """
     code = request.query_params.get("code")
     return RedirectResponse(url=settings.CODE_REDIRECT_URL + f"?code={code}")
+
+
+@router.get(
+    "/self", status_code=status.HTTP_200_OK, name="Get Self", operation_id="get-Self"
+)
+async def get_self(
+    user: Annotated[tuple[Users, str], Depends(current_user)],
+    service: Annotated[UserService, Depends()],
+) -> BaseResponse[UserSelfResponse]:
+    """
+    Retrieves the profile information of the currently authenticated user.
+
+    Args:
+        - client_slug (str): The client slug means client_id or name. This is required.
+
+    Returns:
+        - BaseResponse[UserSelfResponse]: A response containing
+        the user's profile information.
+
+    Raises:
+        - UserNotFoundError: If no user with the provided username is found.
+
+    """
+
+    return BaseResponse(
+        data=await service.get_self(
+            client_id=user.get("client_id"), user_id=user.get("user").id
+        )
+    )
 
 
 @router.post(
@@ -411,7 +316,7 @@ async def assign_user_clients(
     Raises:
         - UserNotFoundError: If no user with the provided ID is found.
         - RoleNotFoundError: If any of the provided role IDs do not exist.
-        - UserTypeNotFoundError: If any of the provided user type IDs do not exist.
+
 
     """
 
@@ -440,7 +345,6 @@ async def change_user_status(
     Toggles the active status of a user by their ID.
 
     Args:
-        - client_slug (str): The client slug means client_id or name. This is required.
         - user_id (str): The ID of the user whose status is to be changed.
 
     Returns:
@@ -453,38 +357,98 @@ async def change_user_status(
     """
 
     return BaseResponse(
-        data=await service.change_user_status(
-            client_id=user.get("client_id"), user_id=user_id
+        data=await service.change_user_status(user_id=user_id, current_user_id=user.get("user").id)
+    )
+
+
+@router.get(
+    "",
+    status_code=status.HTTP_200_OK,
+    name="Get all users",
+    operation_id="get-all-users",
+    dependencies=[Depends(permission_required(["user"], ["user-management"]))],
+)
+async def get_all_users(
+    param: Annotated[Params, Depends()],
+    service: Annotated[UserService, Depends()],
+    user: Annotated[tuple[Users, str], Depends(current_user)],
+    user_ids: Annotated[list[str] | None, Query()] = None,
+    search: Annotated[str | None, Query()] = None,
+    role: Annotated[str | None, Query()] = None,
+
+    client: Annotated[str | None, Query()] = None,
+    is_active: Annotated[bool | None, Query()] = None,
+    sortby: Annotated[UserSortBy | None, Query()] = None,
+) -> BaseResponse[Page[ListUserResponse]]:
+    """
+    Retrieves a paginated list of users with optional filtering and sorting.
+
+    Args:
+      - client_slug (str): The client slug means client_id or name. This is required.
+      - param (Params): Pagination parameters including page number and size.
+      - user_ids (list[str] | None): Optional list of user IDs to filter.
+      - username (str | None): Optional filter by username.
+      - email (str | None): Optional filter by email address.
+      - phone (str | None): Optional filter by phone number.
+      - role (str | None): Optional filter by user role.
+      - type_name (str | None): Optional filter by user type.
+      - sub_type (str | None): Optional filter by user sub_type.
+      - is_active (bool | None): Optional filter by active status.
+      - sortby (UserSortBy | None): Optional sorting field and direction.
+
+    Returns:
+      - BaseResponse[Page[ListUserResponse]]: A paginated response containing
+        a list of users matching the provided criteria.
+
+    Raises:
+      - UserNotFoundError: If no user with the provided username is found.
+
+    """
+
+    return BaseResponse(
+        data=await service.get_all_users(
+            client_id=user.get("client_id"),
+            page_param=param,
+            user=user.get("user").id,
+            user_ids=user_ids,
+            search=search,
+            role_slug=role,
+            client_slug=client,
+            is_active=is_active,
+            sortby=sortby,
         )
     )
 
 
-@router.delete(
+@router.get(
     "/{user_id}",
     status_code=status.HTTP_200_OK,
-    name="delete user",
-    operation_id="delete-user",
+    name="Get user by id",
+    operation_id="get-user-by-id",
     dependencies=[Depends(permission_required(["user"], ["user-management"]))],
 )
-async def delete_user(
+async def get_user_by_id(
     user: Annotated[tuple[Users, str], Depends(current_user)],
     user_id: Annotated[str, Path()],
     service: Annotated[UserService, Depends()],
-) -> BaseResponse[SuccessResponse]:
+) -> BaseResponse[ListUserResponse]:
     """
-    Deletes a user account by their ID.
+    Retrieves detailed information about a specific user by their ID.
 
     Args:
-        - client_slug (str): The client slug means client_id or name. This is required.
-        - user_id (str): The ID of the user whose status is to be changed.
+      - client_slug (str): The client slug means client_id or name. This is required.
+      - user_id (str): The unique identifier of the user to retrieve.
 
     Returns:
-        - BaseResponse[SuccessResponse]: A response indicating successful deletion of
-        the user.
+      - BaseResponse[ListUserResponse]: A response containing the user's information.
 
     Raises:
-        - UserNotFoundError: If no user with the provided username is found.
+      - UserNotFoundError: If no user with the provided username is found.
+
     """
+
     return BaseResponse(
-        data=await service.delete(client_id=user.get("client_id"), user_id=user_id)
+        data=await service.get_user_by_id(
+            client_id=user.get("client_id"), user_id=user_id
+        )
     )
