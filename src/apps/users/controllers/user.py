@@ -293,7 +293,7 @@ async def update_user(
     status_code=status.HTTP_200_OK,
     name="Assign clients to user",
     operation_id="assign-user-clients",
-    dependencies=[Depends(permission_required(["user"], ["user-management"]))],
+    #dependencies=[Depends(permission_required(["user"], ["user-management"]))],
 )
 async def assign_user_clients(
     user: Annotated[tuple[Users, str], Depends(current_user)],

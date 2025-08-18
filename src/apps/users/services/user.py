@@ -397,7 +397,7 @@ class UserService:
         current_user_id: str | None = None,
     ) -> AssignUserClientsResponse:
         """
-        Assigns clients, roles, and user types to a user.
+        Assigns clients and roles to a user by replacing all existing assignments with new ones.
 
         Args:
             user_id (str): The ID of the user to assign clients to.
@@ -410,6 +410,7 @@ class UserService:
         Raises:
             UserNotFoundError: If no user with the provided ID is found.
             RoleNotFoundError: If any of the provided role IDs do not exist.
+            ValueError: If duplicate client assignments are found.
         """
         # Check if user exists
         user = await self.session.scalar(
@@ -424,8 +425,12 @@ class UserService:
         if not user:
             raise UserNotFoundError
 
-        assignment_results = []
+        # Check for duplicate client assignments
+        client_ids = [assignment.client_id for assignment in assignments]
+        if len(client_ids) != len(set(client_ids)):
+            raise ValueError("Duplicate client assignments are not allowed. Each client can only be assigned once per user.")
 
+        # Validate all roles exist before making any changes
         for assignment in assignments:
             # Check if role exists
             role = await self.session.scalar(
@@ -441,40 +446,38 @@ class UserService:
             if not role:
                 raise RoleNotFoundError
 
-            # Check if assignment already exists
-            existing_assignment = await self.session.scalar(
-                select(UserRoleLink)
-                .where(
-                    and_(
-                        UserRoleLink.user_id == user_id,
-                        UserRoleLink.client_id == assignment.client_id,
-                        UserRoleLink.role_id == assignment.role_id,
-                        UserRoleLink.deleted_at.is_(None)
-                    )
+        # Remove all existing assignments for this user
+        existing_assignments = await self.session.scalars(
+            select(UserRoleLink)
+            .where(
+                and_(
+                    UserRoleLink.user_id == user_id,
+                    UserRoleLink.deleted_at.is_(None)
                 )
             )
+        )
+        existing_assignments = list(existing_assignments)
+        
+        for existing_assignment in existing_assignments:
+            await self.session.delete(existing_assignment)
 
-            if existing_assignment:
-                # Update existing assignment
-                existing_assignment.updated_by = current_user_id
-                status = "updated"
-            else:
-                # Create new assignment
-                new_assignment = UserRoleLink(
-                    user_id=user_id,
-                    client_id=assignment.client_id,
-                    role_id=assignment.role_id,
-                    created_by=current_user_id,
-                    updated_by=current_user_id,
-                )
-                self.session.add(new_assignment)
-                status = "assigned"
-
+        # Create new assignments based on the payload
+        assignment_results = []
+        for assignment in assignments:
+            new_assignment = UserRoleLink(
+                user_id=user_id,
+                client_id=assignment.client_id,
+                role_id=assignment.role_id,
+                created_by=current_user_id,
+                updated_by=current_user_id,
+            )
+            self.session.add(new_assignment)
+            
             assignment_results.append(
                 UserClientAssignmentResponse(
                     client_id=assignment.client_id,
                     role_id=assignment.role_id,
-                    status=status,
+                    status="assigned",
                 )
             )
 
@@ -932,26 +935,22 @@ class UserService:
     async def get_self(self, client_id: str, user_id: str) -> UserSelfResponse:
         """
         Retrieves the profile information of the currently authenticated user, 
-        including roles, modules, child modules, and permissions.
+        including only the role for the specific client they're logged into.
 
         Args:
         - client_id (str): The client id. This is required.
         - user_id (str): The user id. This is required.
 
         Returns:
-        - UserResponse: A response containing the user's profile information with roles, modules, child modules, and permissions.
+        - UserResponse: A response containing the user's profile information with only the client-specific role.
 
         Raises:
         - UserNotFoundError: If no user with the provided user_id is found.
-
         """
 
-        # Fetch the user information along with related user types and roles
+        # Fetch the user information
         user = await self.session.scalar(
             select(Users)
-            .options(
-                selectinload(Users.roles),
-            )
             .where(
                 Users.id == user_id,
             )
@@ -959,26 +958,38 @@ class UserService:
         if not user:
             raise UserNotFoundError
 
-        # Fetch role-specific module permission links
-        role_module_permission_links = await self.session.scalars(
-            select(RoleModulePermissionLink)
+        # Fetch only the role for the specific client
+        user_role_link = await self.session.scalar(
+            select(UserRoleLink)
+            .options(
+                selectinload(UserRoleLink.role)
+            )
             .where(
-                RoleModulePermissionLink.role_id.in_([role.id for role in user.roles]),
-                RoleModulePermissionLink.client_id == client_id,
+                and_(
+                    UserRoleLink.user_id == user_id,
+                    UserRoleLink.client_id == client_id,
+                    UserRoleLink.deleted_at.is_(None)
+                )
             )
         )
-        role_module_permission_links = role_module_permission_links.unique().all()
 
-        # Build the module tree for each role
-        role_data = []
-        for role in user.roles:
-            # Get the list of module ids for the role
-            role_module_links = [
-                link for link in role_module_permission_links if link.role_id == role.id
-            ]
-            if role_module_links:
+        role_data = None
+        if user_role_link and user_role_link.role:
+            # Get role-specific module permission links for this client
+            role_module_permission_links = await self.session.scalars(
+                select(RoleModulePermissionLink)
+                .where(
+                    and_(
+                        RoleModulePermissionLink.role_id == user_role_link.role.id,
+                        RoleModulePermissionLink.client_id == client_id,
+                    )
+                )
+            )
+            role_module_permission_links = list(role_module_permission_links)
+
+            if role_module_permission_links:
                 # Get all module IDs that have permissions for this role
-                direct_module_ids = [link.module_id for link in role_module_links]
+                direct_module_ids = [link.module_id for link in role_module_permission_links]
                 
                 # First, fetch all modules that have direct permission links
                 direct_modules_result = await self.session.scalars(
@@ -1008,43 +1019,29 @@ class UserService:
                 all_modules = direct_modules + parent_modules
                 
                 # Build the nested modules tree
-                nested_modules = self.build_module_tree(all_modules, role_module_permission_links=role_module_links)
+                nested_modules = self.build_module_tree(all_modules, role_module_permission_links=role_module_permission_links)
 
-                role_data.append(
-                    UserSelfRoleResponse(
-                        id=role.id,
-                        name=role.name,
-                        slug=role.slug,
-                        description=role.description,
-                        role_metadata=role.meta_data,
-                        modules=nested_modules,  # Add modules with child modules and permissions
-                    )
+                role_data = UserSelfRoleResponse(
+                    id=user_role_link.role.id,
+                    name=user_role_link.role.name,
+                    slug=user_role_link.role.slug,
+                    modules=nested_modules,
                 )
             else:
-                role_data.append(
-                    UserSelfRoleResponse(
-                        id=role.id,
-                        name=role.name,
-                        slug=role.slug,
-                        description=role.description,
-                        role_metadata=role.meta_data,
-                        modules=[],
-                    )
+                role_data = UserSelfRoleResponse(
+                    id=user_role_link.role.id,
+                    name=user_role_link.role.name,
+                    slug=user_role_link.role.slug,
+                    modules=[],
                 )
 
-        # Return the full user profile, including roles, modules, and other details
+        # Return the full user profile, including only the client-specific role
         return UserSelfResponse(
             id=user.id,
             first_name=user.first_name,
             last_name=user.last_name,
             email=user.email,
             phone=user.phone,
-            description=user.description,
-            user_metadata=user.meta_data,
-            roles=role_data,
-            created_at=user.created_at,
-            updated_at=user.updated_at,
+            role=role_data,
             is_active=user.is_active,
-            created_by=user.created_by,
-            updated_by=user.updated_by,
         )
