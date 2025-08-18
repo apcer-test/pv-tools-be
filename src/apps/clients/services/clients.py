@@ -114,6 +114,7 @@ class ClientService:
         )
         
         self.session.add(client)
+        await self.session.flush()
         
         return client
 
@@ -262,7 +263,7 @@ class ClientService:
             else:
                 query = query.order_by(sort_field.asc())
         else:
-            query = query.order_by(Clients.created_at.desc())
+            query = query.order_by(Clients.name.asc())
         
         # Apply pagination
         pagination_params = Params(page=params.page, size=params.page_size)

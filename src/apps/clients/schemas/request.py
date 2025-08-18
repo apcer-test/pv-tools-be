@@ -22,12 +22,6 @@ class CreateClientRequest(CamelCaseModel):
             raise ValueError('Code must contain only alphanumeric characters, hyphens, and underscores')
         return v.upper()
 
-    @validator('name')
-    def validate_name(cls, v):
-        """Validate that name is not empty."""
-        if v is not None and not v.strip():
-            raise ValueError('Name is required')
-        return v
 
 class UpdateClientRequest(CamelCaseModel):
     """Schema for updating an existing client."""
@@ -49,13 +43,6 @@ class UpdateClientRequest(CamelCaseModel):
             if not v.replace('-', '').replace('_', '').isalnum():
                 raise ValueError('Code must contain only alphanumeric characters, hyphens, and underscores')
             return v.upper()
-        return v
-
-    @validator('name')
-    def validate_name(cls, v):
-        """Validate that name is not empty."""
-        if v is not None and not v.strip():
-            raise ValueError('Name is required')
         return v
 
 
