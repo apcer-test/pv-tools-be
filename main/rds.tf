@@ -21,7 +21,7 @@ locals {
 # Custom RDS Parameter Group with configurable SSL
 resource "aws_db_parameter_group" "rds_parameter_group" {
   count  = var.create_rds ? 1 : 0
-  family = var.rds_engine == "postgres" ? "postgres16" : "mysql8.0"
+  family = var.rds_engine == "postgres" ? "postgres17" : "mysql8.0"
   name   = "${var.project_name}-db-params-${var.env}"
 
   parameter {

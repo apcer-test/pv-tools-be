@@ -60,9 +60,9 @@ resource "aws_iam_role" "ecs_task_role" {
   }
 }
 
-# X-Ray permissions for ECS task role
+# X-Ray permissions for ECS task role (Disabled for dev environment)
 resource "aws_iam_role_policy" "ecs_task_role_xray_policy" {
-  count = var.create_ecs_ecosystem ? 1 : 0
+  count = false ? 1 : 0
   name  = "${var.project_name}-ecs-task-role-xray-policy-${var.env}"
   role  = aws_iam_role.ecs_task_role[0].id
 

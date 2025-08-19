@@ -279,6 +279,13 @@ resource "aws_iam_policy" "iam_policy" {
           ]
           Effect   = "Allow"
           Resource = "arn:aws:codepipeline:${var.region}:${var.account_id}:${var.project_name}-*"
+        },
+        {
+          Action = [
+            "codestar-connections:UseConnection"  # Use CodeStar connections for GitHub/GitLab
+          ]
+          Effect   = "Allow"
+          Resource = "arn:aws:codestar-connections:${var.region}:${var.account_id}:connection/*"
         }
       ] : [],
 

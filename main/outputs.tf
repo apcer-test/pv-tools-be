@@ -6,15 +6,12 @@ output "s3_bucket_arns" {
   }
 }
 
-output "admin_bucket_arn" {
-  description = "ARN of the admin S3 bucket"
-  value = try(module.s3["admin_bucket"].bucket_arn, "")
+output "frontend_bucket_arn" {
+  description = "ARN of the frontend S3 bucket"
+  value = try(module.s3["frontend_bucket"].bucket_arn, "")
 }
 
-output "media_bucket_arn" {
-  description = "ARN of the media S3 bucket"
-  value = try(module.s3["media_bucket"].bucket_arn, "")
-}
+
 
 output "env_bucket_arn" {
   description = "ARN of the environment S3 bucket"
@@ -34,25 +31,19 @@ output "cloudfront_distribution_arns" {
   )
 }
 
-output "admin_cloudfront_arn" {
-  description = "ARN of the admin CloudFront distribution"
-  value = try(module.cloudfront_s3["admin-cloudfront"].cloudfront_distribution_arn, "")
+output "frontend_cloudfront_arn" {
+  description = "ARN of the frontend CloudFront distribution"
+  value = try(module.cloudfront_s3["frontend-cloudfront"].cloudfront_distribution_arn, "")
 }
 
-output "media_cloudfront_arn" {
-  description = "ARN of the media CloudFront distribution"
-  value = try(module.cloudfront_s3["media-cloudfront"].cloudfront_distribution_arn, "")
-}
+
 
 output "api_cloudfront_arn" {
   description = "ARN of the API CloudFront distribution"
   value = try(module.cloudfront_ecs["service1-cloudfront"].cloudfront_distribution_arn, "")
 }
 
-output "notification_cloudfront_arn" {
-  description = "ARN of the notification CloudFront distribution"
-  value = try(module.cloudfront_ecs["service4-cloudfront"].cloudfront_distribution_arn, "")
-}
+
 
 # CloudFront Domain Names
 output "cloudfront_domain_names" {
@@ -67,15 +58,12 @@ output "cloudfront_domain_names" {
   )
 }
 
-output "admin_cloudfront_domain" {
-  description = "Domain name of the admin CloudFront distribution"
-  value = try(module.cloudfront_s3["admin-cloudfront"].cloudfront_distribution_domain_name, "")
+output "frontend_cloudfront_domain" {
+  description = "Domain name of the frontend CloudFront distribution"
+  value = try(module.cloudfront_s3["frontend-cloudfront"].cloudfront_distribution_domain_name, "")
 }
 
-output "media_cloudfront_domain" {
-  description = "Domain name of the media CloudFront distribution"
-  value = try(module.cloudfront_s3["media-cloudfront"].cloudfront_distribution_domain_name, "")
-}
+
 
 # S3 Bucket Names
 output "s3_bucket_names" {
@@ -85,15 +73,12 @@ output "s3_bucket_names" {
   }
 }
 
-output "admin_bucket_name" {
-  description = "Name of the admin S3 bucket"
-  value = try(module.s3["admin_bucket"].bucket_name, "")
+output "frontend_bucket_name" {
+  description = "Name of the frontend S3 bucket"
+  value = try(module.s3["frontend_bucket"].bucket_name, "")
 }
 
-output "media_bucket_name" {
-  description = "Name of the media S3 bucket"
-  value = try(module.s3["media_bucket"].bucket_name, "")
-}
+
 
 # ElastiCache Redis Outputs
 output "redis_replication_group_id" {

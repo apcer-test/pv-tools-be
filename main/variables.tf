@@ -53,6 +53,7 @@ variable "services" {
     repository_path      = optional(string, "")  # Full GitLab repository path (e.g., "webelight/api-backend-service")
     repository_branch    = optional(string, "main")
     bucket_path          = optional(string, "")  # S3 env bucket path for this service (e.g., "microservices/api/dev")
+    env_bucket_path      = optional(string, "")  # Environment-specific S3 bucket path for this service (e.g., "api/dev")
     compute_type         = optional(string, "BUILD_GENERAL1_SMALL")  # CodeBuild compute type
     
     # CloudFront Configuration (ALB origin)
@@ -435,11 +436,15 @@ variable "version_control_type" {
 #   sensitive   = true
 # }
 
-variable "gitlab_self_hosted_url" {
-  description = "URL for self-hosted GitLab instance"
+# GitHub configuration
+variable "github_token" {
+  description = "GitHub Personal Access Token for CodePipeline connections"
   type        = string
   default     = ""
+  sensitive   = true
 }
+
+
 
 # EC2 Bastion variables
 variable "create_bastion" {

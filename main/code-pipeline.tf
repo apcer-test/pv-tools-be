@@ -123,7 +123,7 @@ locals {
       ecs_build_project_name    = "${var.project_name}-${service.container_name}-ecs-${var.env}"
       cloudfront_project_name   = ""
       s3_bucket_name           = ""
-      env_file_s3_path         = service.bucket_path
+      env_file_s3_path         = service.env_bucket_path
       
       # ECS configuration
       container_name    = service.container_name
@@ -156,7 +156,7 @@ locals {
         },
         {
           name  = "BUCKET_PATH"
-          value = service.bucket_path
+          value = service.env_bucket_path
         },
         {
           name  = "REGION"

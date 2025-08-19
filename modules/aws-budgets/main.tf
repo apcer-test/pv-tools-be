@@ -14,11 +14,11 @@ resource "aws_budgets_budget" "main" {
   time_unit         = var.budget_time_unit
 
   # Cost filters to scope the budget
-  dynamic "cost_filters" {
+  dynamic "cost_filter" {
     for_each = var.cost_filters
     content {
-      name   = cost_filters.key
-      values = cost_filters.value
+      name   = cost_filter.key
+      values = cost_filter.value
     }
   }
 
@@ -52,7 +52,11 @@ resource "aws_cloudwatch_metric_alarm" "budget_alarm" {
   } : {}
 
   alarm_name          = "${var.project_name}-${var.env}-budget-${each.value.threshold}${each.value.threshold_type}-alarm"
-  comparison_operator = each.value.comparison_operator
+  comparison_operator = lookup({
+    "GREATER_THAN" = "GreaterThanThreshold",
+    "LESS_THAN" = "LessThanThreshold",
+    "EQUAL_TO" = "LessThanOrEqualToThreshold"
+  }, each.value.comparison_operator, "GreaterThanThreshold")
   evaluation_periods  = var.alarm_evaluation_periods
   metric_name         = "EstimatedCharges"
   namespace           = "AWS/Billing"

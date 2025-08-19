@@ -1,9 +1,9 @@
 # AWS Cognito Configuration
 # Creates User Pool and Identity Pool for authentication
 
-# Cognito Module
+# Cognito Module (Disabled for dev environment)
 module "cognito" {
-  count  = var.create_cognito ? 1 : 0
+  count  = false ? 1 : 0
   source = "../modules/cognito"
 
   create_user_pool       = true

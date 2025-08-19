@@ -1,9 +1,9 @@
 # Security Configuration
 # Creates AWS Config, GuardDuty, WAF, Inspector, and Security Hub
 
-# Security Module
+# Security Module (Disabled for dev environment)
 module "security" {
-  count  = var.create_security ? 1 : 0
+  count  = false ? 1 : 0
   source = "../modules/security"
 
   create_aws_config = true

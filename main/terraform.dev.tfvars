@@ -1,21 +1,19 @@
-# =============================================================================
-# APCER Development Environment Configuration
-# =============================================================================
+# ===================================================
+# APCER-PV-TOOL Development Environment Configuration
+# ===================================================
 
 # Environment Configuration
 environment = "dev"
-project_name = "apcer"
+project_name = "apcer-pv-tool"
 region = "eu-west-2"
 
 # VPC Configuration
 cidr = "10.10.0.0/16"
-azs = ["eu-west-2a", "eu-west-2b", "eu-west-2c"]
-private_subnets = ["10.10.1.0/24", "10.10.2.0/24", "10.10.3.0/24"]
-public_subnets = ["10.10.101.0/24", "10.10.102.0/24", "10.10.103.0/24"]
+availability_zones = ["eu-west-2a", "eu-west-2b", "eu-west-2c"]
 
-# =============================================================================
+# =============================
 # CORE INFRASTRUCTURE SERVICES
-# =============================================================================
+# =============================
 
 # VPC
 create_vpc = true
@@ -23,75 +21,96 @@ create_vpc = true
 # Application Load Balancer
 create_alb = true
 alb_internal = false
-alb_enable_deletion_protection = false
+alb_enable_deletion_protection = true
 
-# =============================================================================
+# ===================
 # COMPUTE SERVICES
-# =============================================================================
+# ===================
 
 # ECS Fargate
 create_ecs = true
-ecs_cluster_name = "apcer-dev-cluster"
-ecs_services = {
+ecs_cluster_name = "apcer-pv-tool-dev-cluster"
+services = {
   service1 = {
-    name = "apcer-api-dev"
-    cpu = 128
-    memory = 256
-    desired_count = 1
-    max_count = 2
-    min_count = 1
-    container_port = 3000
-    health_check_path = "/health"
-    enable_xray = false
- 
-  }
-  service4 = {
-    name = "apcer-notification-svc-dev"
-    cpu = 128
-    memory = 256
-    desired_count = 1
-    max_count = 2
-    min_count = 1
-    container_port = 3001
-    health_check_path = "/health"
-    enable_xray = false
-    # Environment variables will be fetched from .env files via CodePipeline from S3
+    container_name      = "api"
+    container_port      = 8000
+    cpu                 = 480
+    memory              = 768
+    domain              = "api-dev.webelight.co.in"  # Updated domain for dev environment
+    command             = ["/bin/sh", "-c", "python main.py migrate && python main.py run"]
+    health_check_path   = "/healthcheck"
+    repository_path     = "APCER-Life-Sciences-Inc/pv-tool-be"  # GitHub repository path
+    repository_branch   = "main"
+    env_bucket_path     = "api/dev"
+    compute_type        = "BUILD_GENERAL1_SMALL"
+    create_cloudfront   = true
+    enable_xray         = true
+    xray_daemon_cpu    = 32
+    xray_daemon_memory = 256
   }
 }
-
 # EC2 Bastion Host
 create_ec2_bastion = true
 bastion_instance_type = "t3.micro"
-bastion_key_name = "apcer-dev-bastion"
+bastion_key_name = "apcer-pv-tool-dev-bastion"
 
-# =============================================================================
+# =================
 # STORAGE SERVICES
-# =============================================================================
+# =================
 
 # S3 Buckets
 create_s3 = true
 s3_buckets = {
-  admin = {
-    name = "apcer-admin-dev"
+  frontend = {
+    name = "apcer-pv-tool-frontend-dev"
     versioning = true
     encryption = true
     public_access_block = true
     cors_configuration = true
+    cors_rules = [
+      {
+        allowed_headers = ["*"]
+        allowed_methods = ["GET", "HEAD", "OPTIONS"]
+        allowed_origins = ["*"]
+        expose_headers = ["ETag", "Content-Length"]
+        max_age_seconds = 3600
+      }
+    ]
     lifecycle_rules = {
       delete_after_days = 90
     }
     enable_oac = true
     create = true
     create_codepipeline = true
-    repository_path = "admin"
-    build_commands = ["npm install", "npm run build"]
-    deploy_commands = ["aws s3 sync dist/ s3://apcer-admin-dev --delete"]
+    repository_path = "frontend"
+  }
+}
+
+# Frontend Configuration (for CodePipeline)
+frontends = {
+  frontend = {
+    service_name         = "frontend"
+    domain              = "frontend-dev.webelight.co.in"  # Update with your domain
+    repository_path     = "APCER-Life-Sciences-Inc/pv-tool-fe"  # GitHub repository path
+    repository_branch   = "main"
+    bucket_path         = "frontend/dev"
+    node_version        = "20.9.0"
+    build_commands      = [
+      "npm install",
+      "npm run build"
+    ]
+    install_commands    = []
+    compute_type        = "BUILD_GENERAL1_SMALL"
+    create_codepipeline = true
+    create             = true
+    enable_oac         = true
+    create_cloudfront  = true
   }
 }
 
 # ECR (Container Registry)
 create_ecr = true
-ecr_repositories = ["apcer-api-dev", "apcer-notification-svc-dev"]
+ecr_repositories = ["apcer-api-dev"]
 
 # =============================================================================
 # DATABASE SERVICES
@@ -99,30 +118,24 @@ ecr_repositories = ["apcer-api-dev", "apcer-notification-svc-dev"]
 
 # RDS PostgreSQL
 create_rds = true
-rds_instance_class = "db.t3.micro"
+rds_instance_class = "db.t3.medium"
 rds_allocated_storage = 20
 rds_max_allocated_storage = 100
 rds_multi_az = false
 rds_backup_retention_period = 7
 rds_backup_window = "03:00-04:00"
 rds_maintenance_window = "sun:04:00-sun:05:00"
-rds_deletion_protection = false
+rds_deletion_protection = true
 rds_skip_final_snapshot = true
-rds_engine_version = "14.10"
-rds_database_name = "apcer_dev"
+rds_engine_version = "17.4"
+rds_database_name = "apcer_pv_tool_dev"
 rds_username = "apcer_admin"
 # Password will be managed by AWS Secrets Manager
 rds_manage_master_user_secret = true
-rds_master_user_secret_kms_key_id = ""  # Leave empty to use default AWS managed key
+rds_master_user_secret_kms_key_id = null  # Leave null to use default AWS managed key
 
-# ElastiCache Redis
-create_elasticache = true
-elasticache_node_type = "cache.t3.micro"
-elasticache_num_cache_nodes = 1
-elasticache_parameter_group_family = "redis7"
-elasticache_engine_version = "7.0"
-elasticache_port = 6379
-elasticache_auth_token = ""  # Leave empty for dev
+# ElastiCache Redis (Disabled for now - confirm with backend dev)
+create_elasticache = false
 
 # =============================================================================
 # CONTENT DELIVERY
@@ -131,21 +144,10 @@ elasticache_auth_token = ""  # Leave empty for dev
 # CloudFront
 create_cloudfront = true
 cloudfront_price_class = "PriceClass_100"
-cloudfront_acm_certificate_arn = "arn:aws:acm:us-east-1:123456789012:certificate/your-cert-id"  # Update with your cert ARN (must be in us-east-1 for CloudFront)
-
-# =============================================================================
-# SECURITY SERVICES
-# =============================================================================
-
-# Security Groups (Centralized)
-create_security_groups = true
-
-# =============================================================================
-# MONITORING & OBSERVABILITY
-# =============================================================================
-
-# CloudWatch
-create_cloudwatch = true
+# IMPORTANT: Replace with your actual ACM certificate ARN from us-east-1 region
+# The certificate must be valid and cover your domain names (e.g., *.apcer-pv-tool.com)
+# You can create one in AWS Console or use AWS CLI: aws acm list-certificates --region us-east-1
+cloudfront_acm_certificate_arn = "arn:aws:acm:us-east-1:912106457730:certificate/8b8ae7bb-b1ee-42a3-bd10-b6c72c7936e1"  # Example: "arn:aws:acm:us-east-1:123456789012:certificate/your-actual-cert-id"
 
 # =============================================================================
 # CI/CD SERVICES
@@ -154,16 +156,20 @@ create_cloudwatch = true
 # CodePipeline
 create_codepipelines = true
 version_control_type = "github"
-gitlab_token = ""
-gitlab_self_hosted_url = ""
+# GitHub Personal Access Token for CodePipeline connections
+# Create one at: https://github.com/settings/tokens
+# Required scopes: repo, admin:repo_hook
+github_token = "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"  # Add your GitHub Personal Access Token here
 
 # CodeBuild
 create_codebuild = true
 
-
 # =============================================================================
 # DISABLED SERVICES
 # =============================================================================
+
+# AWS Backup (Disabled for dev)
+create_aws_backup = false
 
 # WAF (Disabled)
 create_waf = false
@@ -186,8 +192,40 @@ create_synthetics = false
 # AWS X-Ray (Disabled)
 create_xray = false
 
-# AWS Budgets (Disabled)
-create_aws_budgets = false
+# AWS Budgets (Enabled for dev)
+create_aws_budgets = true
+
+# AWS Budgets Configuration
+aws_budgets = {
+  budget_type = "COST"
+  budget_limit_amount = "200"
+  budget_limit_unit = "USD"
+  budget_time_unit = "MONTHLY"
+  cost_filters = {}
+  budget_notifications = [
+    {
+      comparison_operator        = "GREATER_THAN"
+      threshold                  = 80
+      threshold_type             = "PERCENTAGE"
+      notification_type          = "ACTUAL"
+      subscriber_email_addresses = ["dev-team@your-company.com"]  # Update with actual email
+      subscriber_sns_topic_arns  = []
+    },
+    {
+      comparison_operator        = "GREATER_THAN"
+      threshold                  = 100
+      threshold_type             = "PERCENTAGE"
+      notification_type          = "ACTUAL"
+      subscriber_email_addresses = ["dev-team@your-company.com"]  # Update with actual email
+      subscriber_sns_topic_arns  = []
+    }
+  ]
+  create_budget_alarm = true
+  alarm_evaluation_periods = 1
+  alarm_period = 86400
+  create_sns_topic = true
+  subscriber_email_addresses = ["dev-team@your-company.com"]  # Update with actual email
+}
 
 # Cognito (Disabled)
 create_cognito = false
@@ -201,7 +239,7 @@ create_cloudtrail = false
 
 tags = {
   Environment = "dev"
-  Project     = "apcer"
+  Project     = "apcer-pv-tool"
   Owner       = "dev-team"
   CostCenter  = "development"
   ManagedBy   = "terraform"
