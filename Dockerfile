@@ -1,14 +1,13 @@
 FROM python:3.11-alpine as builder
 
-RUN --mount=type=cache,target=/var/cache/apk,sharing=shared \
-    apk add build-base libffi-dev
+RUN apk add build-base libffi-dev
 
 COPY ./alembic.ini ./poetry.lock ./pyproject.toml /code/
 COPY ./.env /code/.env
 COPY ./src /code
 
 WORKDIR /code
-RUN --mount=type=cache,target=/root/.cache,sharing=shared \
+RUN pip install --upgrade pip &&\
     pip install --no-cache-dir pip==23.3.1 &&\
     pip install --no-cache-dir poetry==1.6.1 &&\
     poetry export -f requirements.txt --output requirements.txt --without-hashes &&\
