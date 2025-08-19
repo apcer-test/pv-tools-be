@@ -15,7 +15,7 @@ router = APIRouter(
 
 
 @router.patch(
-    "/{tenant_id}/microsoft-credentials",
+    "/microsoft-credentials",
     status_code=status.HTTP_200_OK,
     name="Update Microsoft Credentials",
     description="This endpoint updates microsoft credentials.",
@@ -23,7 +23,6 @@ router = APIRouter(
 )
 async def update_microsoft_credentials(
     request: FastAPIRequest,
-    tenant_id: Annotated[str, Path()],
     body: Annotated[EncryptedRequest, Body()],
     service: Annotated[MicrosoftCredentialsService, Depends()],
 ) -> BaseResponse:
@@ -38,20 +37,19 @@ async def update_microsoft_credentials(
     """
     return BaseResponse(
         data=await service.update_microsoft_credentials(
-            request=request, tenant_id=tenant_id, **body.model_dump(exclude_unset=True)
+            request=request, **body.model_dump(exclude_unset=True)
         )
     )
 
 
 @router.get(
-    "/{tenant_id}/microsoft-credentials",
+    "/microsoft-credentials",
     status_code=status.HTTP_200_OK,
     name="Get Tenant Configurations",
     description="This endpoint retrieves microsoft credentials.",
     operation_id="get_microsoft_credentials",
 )
 async def get_microsoft_credentials(
-    tenant_id: Annotated[str, Path()],
     service: Annotated[MicrosoftCredentialsService, Depends()],
 ) -> BaseResponse:
     """Get microsoft credentials.
@@ -63,5 +61,5 @@ async def get_microsoft_credentials(
         SuccessResponse: Configuration details in JSON format.
     """
     return BaseResponse(
-        data=await service.get_microsoft_credentials(tenant_id=tenant_id)
+        data=await service.get_microsoft_credentials()
     )

@@ -57,9 +57,8 @@ def build_outlook_filter(
 
 
 def fetch_email_outlook(
-    client_id: str,
+    microsoft_client_id: str,
     client_secret: str,
-    microsoft_tenant_id: str,
     company_emails: list[str],
     subject_lines: list[str],
     password: str,
@@ -70,7 +69,7 @@ def fetch_email_outlook(
     """Fetch emails from Outlook based on configured filters.
 
     Args:
-        client_id: Microsoft app client ID
+        microsoft_client_id: Microsoft app client ID
         client_secret: Microsoft app client secret
         microsoft_tenant_id: Microsoft tenant ID
         company_emails: List of company email addresses to filter
@@ -91,7 +90,7 @@ def fetch_email_outlook(
             return []
 
         access_token = generate_access_token(
-            password, client_id, client_secret, microsoft_tenant_id
+            password, microsoft_client_id, client_secret
         )
 
         url = f"{settings.MICROSOFT_GRAPH_URL}/mailFolders/Inbox/messages"

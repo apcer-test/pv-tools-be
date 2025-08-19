@@ -39,15 +39,11 @@ class MailBoxService:
 
     async def add_mail_box_config(
         self,
-        tenant_id: str,
+        client_id: str,
         recipient_email: str,
         app_password: str,
         provider: Providers,
         frequency: FrequencyType,
-        start_date: date,
-        end_date: date,
-        company_emails: list[str] = [],
-        subject_lines: list[str] = [],
     ) -> MicrosoftMailBoxConfig:
         """This method adds mail box configuration to the database."""
         token_expiry = None
@@ -61,70 +57,47 @@ class MailBoxService:
             raise MailBoxAlreadyConfigured
 
         if provider == Providers.MICROSOFT and app_password:
-
             (
-                client_id,
+                microsoft_client_id,
                 redirect_uri,
                 client_secret,
                 refresh_token_validity_days,
-                microsoft_tenant_id,
-            ) = await fetch_outlook_settings(tenant_id=tenant_id)
+            ) = await fetch_outlook_settings()
             app_password = await generate_refresh_token(
                 app_password,
-                client_id,
+                microsoft_client_id,
                 redirect_uri,
                 client_secret,
                 refresh_token_validity_days,
-                microsoft_tenant_id,
             )
             token_expiry = datetime.now() + timedelta(int(refresh_token_validity_days))
 
             mail_box_config = MicrosoftMailBoxConfig.create(
-                tenant_id=tenant_id,
+                client_id=client_id,
                 recipient_email=recipient_email,
                 app_password=app_password,
                 provider=provider,
                 frequency=frequency,
-                start_date=start_date,
-                end_date=end_date,
                 app_password_expired_at=token_expiry,
-                company_emails=company_emails,
-                subject_lines=subject_lines,
             )
             self.session.add(mail_box_config)
 
-            if start_date:
-                if mail_box_config.start_date == start_date:
-                    mail_box_config.start_date = start_date
-                    await revoke_running_task(mail_box_config.id)
-                    task_id = str(ULID())
-                    await redis.set(name=str(mail_box_config.id), value=task_id)
-                    current_date_time = datetime.now(UTC).replace(tzinfo=None)
-                    if start_date == current_date_time.date():
-                        eta = current_date_time + timedelta(seconds=5)
-
-                    else:
-                        current_date_time = datetime.now(UTC).replace(tzinfo=None)
-                        start_date_datetime = datetime(
-                            year=start_date.year,
-                            month=start_date.month,
-                            day=start_date.day,
-                            hour=current_date_time.hour,
-                            minute=current_date_time.minute,
-                            second=current_date_time.second,
-                            tzinfo=None,
-                        )
-                        eta = start_date_datetime
-                    additional_filter = None
-                    pooling_mail_box.apply_async(
-                        eta=eta,
-                        task_id=task_id,
-                        args=[mail_box_config.id, frequency, additional_filter],
-                    )
+            # Start polling immediately after configuration
+            await revoke_running_task(mail_box_config.id)
+            task_id = str(ULID())
+            await redis.set(name=str(mail_box_config.id), value=task_id)
+            
+            # Schedule task to start in 5 seconds
+            eta = datetime.now(UTC).replace(tzinfo=None) + timedelta(seconds=5)
+            pooling_mail_box.apply_async(
+                eta=eta,
+                task_id=task_id,
+                args=[mail_box_config.id, frequency],
+            )
             return mail_box_config
 
     async def get_mail_box_config(
-        self, mail_box_config_id: UUID, tenant_id: UUID
+        self, mail_box_config_id: str, client_id: str
     ) -> MicrosoftMailBoxConfig | dict:
         """Get the configuration for the user"""
         mail_box_config = await self.session.scalar(
@@ -135,16 +108,13 @@ class MailBoxService:
                     MicrosoftMailBoxConfig.app_password,
                     MicrosoftMailBoxConfig.app_password_expired_at,
                     MicrosoftMailBoxConfig.provider,
-                    MicrosoftMailBoxConfig.start_date,
-                    MicrosoftMailBoxConfig.end_date,
                     MicrosoftMailBoxConfig.frequency,
-                    MicrosoftMailBoxConfig.company_emails,
-                    MicrosoftMailBoxConfig.subject_lines,
+                    MicrosoftMailBoxConfig.last_execution,
                 )
             )
             .where(
                 MicrosoftMailBoxConfig.id == mail_box_config_id,
-                MicrosoftMailBoxConfig.tenant_id == tenant_id,
+                MicrosoftMailBoxConfig.client_id == client_id,
             )
         )
         if not mail_box_config:
@@ -153,32 +123,28 @@ class MailBoxService:
         return mail_box_config
 
     async def get_mail_box_config_list(
-        self, tenant_id: UUID, page_params: Params
+        self, client_id: str, page_params: Params
     ) -> list[MicrosoftMailBoxConfig]:
-        """Get the list of mail box configurations for the tenant"""
+        """Get the list of mail box configurations for the client"""
         query = (
             select(MicrosoftMailBoxConfig)
-            .where(MicrosoftMailBoxConfig.tenant_id == tenant_id)
+            .where(MicrosoftMailBoxConfig.client_id == client_id)
             .order_by(MicrosoftMailBoxConfig.updated_at.desc())
         )
         return await paginate(self.session, query, page_params)
 
     async def update_mail_box_config(
         self,
-        mail_box_config_id: UUID,
-        tenant_id: UUID,
+        mail_box_config_id: str,
+        client_id: str,
         app_password: str | None = None,
         provider: Providers | None = None,
         frequency: FrequencyType | None = None,
-        start_date: date | None = None,
-        end_date: date | None = None,
-        company_emails: list[str] = [],
-        subject_lines: list[str] = [],
     ):
         """Update the configuration for the user"""
         mail_box_config = await self.session.scalar(
             select(MicrosoftMailBoxConfig).where(
-                MicrosoftMailBoxConfig.tenant_id == tenant_id,
+                MicrosoftMailBoxConfig.client_id == client_id,
                 MicrosoftMailBoxConfig.id == mail_box_config_id,
             )
         )
@@ -193,8 +159,7 @@ class MailBoxService:
                 redirect_uri,
                 client_secret,
                 refresh_token_validity_days,
-                microsoft_tenant_id,
-            ) = await fetch_outlook_settings(tenant_id=tenant_id)
+            ) = await fetch_outlook_settings()
 
             app_password = await generate_refresh_token(
                 app_password,
@@ -202,7 +167,6 @@ class MailBoxService:
                 redirect_uri,
                 client_secret,
                 refresh_token_validity_days,
-                microsoft_tenant_id,
             )
             refresh_token_exp = datetime.now(UTC).replace(tzinfo=None) + timedelta(
                 days=float(refresh_token_validity_days)  # type: ignore
@@ -219,57 +183,26 @@ class MailBoxService:
                 mail_box_config.frequency = frequency
                 reschedule_task = True
 
-        if start_date:
-            if mail_box_config.start_date != start_date:
-                mail_box_config.start_date = start_date
-                reschedule_task = True
-
-        if end_date:
-            if mail_box_config.end_date != end_date:
-                mail_box_config.end_date = end_date
-
-        if company_emails:
-            mail_box_config.company_emails = company_emails
-
-        if subject_lines:
-            mail_box_config.subject_lines = subject_lines
-
         if reschedule_task:
             await revoke_running_task(mail_box_config.id)
-            task_id = str(uuid4())
+            task_id = str(ULID())
             await redis.set(name=str(mail_box_config.id), value=task_id)
 
-            now = datetime.now(UTC).replace(tzinfo=None)
-            if start_date is None:
-                start_date = mail_box_config.start_date
-            if start_date <= now.date():
-                eta = now + timedelta(seconds=5)
-            else:
-                eta = datetime(
-                    year=start_date.year if start_date else mail_box_config.start_date,
-                    month=(
-                        start_date.month if start_date else mail_box_config.start_date
-                    ),
-                    day=start_date.day if start_date else mail_box_config.start_date,
-                    hour=now.hour,
-                    minute=now.minute,
-                    second=now.second,
-                    tzinfo=None,
-                )
-            additional_filter = None
+            # Schedule task to start in 5 seconds
+            eta = datetime.now(UTC).replace(tzinfo=None) + timedelta(seconds=5)
             pooling_mail_box.apply_async(
                 eta=eta,
                 task_id=task_id,
-                args=[mail_box_config.id, frequency, additional_filter],
+                args=[mail_box_config.id, frequency],
             )
 
         return mail_box_config
 
-    async def delete_mail_box_config(self, tenant_id: UUID, mail_box_config_id: UUID):
+    async def delete_mail_box_config(self, client_id: str, mail_box_config_id: str):
         """Delete the mail box configuration"""
         mail_box_config = await self.session.scalar(
             select(MicrosoftMailBoxConfig).where(
-                MicrosoftMailBoxConfig.tenant_id == tenant_id,
+                MicrosoftMailBoxConfig.client_id == client_id,
                 MicrosoftMailBoxConfig.id == mail_box_config_id,
             )
         )

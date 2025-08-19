@@ -9,20 +9,29 @@ from sentry_sdk.integrations.redis import RedisIntegration
 from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
 from ulid import ULID
 
-from apps.mail_box_config.helper import revoke_running_task
 from config import settings
 from core.common_helpers import (
     capture_exception,
     fetch_mail_box_config,
     fetch_outlook_settings,
-    get_last_execution_date,
-    get_tenant_data,
+    revoke_running_task,
 )
 from core.db import redis
 from core.exceptions import CustomException
 from core.types import FrequencyType, Providers
-from core.utils.celery_config import celery_app
 from core.utils.email_utils import fetch_email_outlook, logger
+
+
+celery_app = Celery(
+    "tasks", broker=settings.CELERY_BROKER_URL, backend=settings.CELERY_RESULT_BACKEND
+)
+
+celery_app.conf.update(task_ignore_result=True, worker_prefetch_multiplier=1)
+
+celery_app.conf.task_routes = {
+    "core.utils.celery_worker.pooling_mail_box": "main-queue"
+}
+
 
 if settings.ACTIVATE_WORKER_SENTRY is True:
 
@@ -371,65 +380,44 @@ def pooling_mail_box(
         mail_box_config = asyncio.get_event_loop().run_until_complete(
             fetch_mail_box_config(mail_box_config_id)
         )
-        tenant = asyncio.get_event_loop().run_until_complete(
-            get_tenant_data(mail_box_config.tenant_id)
-        )
-        secret_key = tenant.secret_key
 
         if not mail_box_config:
             asyncio.get_event_loop().run_until_complete(
                 revoke_running_task(mail_box_config_id)
             )
             return
-        current_time = datetime.now(UTC).replace(tzinfo=None)
-        end_date = mail_box_config.end_date
+        
         provider = mail_box_config.provider
         password = mail_box_config.app_password
         email = mail_box_config.recipient_email
-        end_date = datetime.combine(end_date, time.min)
+        
+        print(f"MailBox: {email}")
+        
+        last_execution_date = mail_box_config.last_execution
+        if last_execution_date is None:
+            last_execution_date = mail_box_config.created_at
 
-        print(f"Current time: {current_time}, End date: {end_date}")
-        print(f"MailBox :{email}")
-        if current_time >= end_date:
+        if provider == Providers.MICROSOFT:
+            (
+                client_id,
+                redirect_uri,
+                client_secret,
+                refresh_token_validity_days,
+            ) = asyncio.get_event_loop().run_until_complete(
+                fetch_outlook_settings()
+            )
+            list_of_items = fetch_email_outlook(
+                client_id=client_id,
+                client_secret=client_secret,
+                password=password,
+                last_execution_date=last_execution_date,
+                app_password_expiry=mail_box_config.app_password_expired_at,
+            )
+            # No further action required for now after fetching emails
             print(
-                f"End date reached for mail_box_config_id: {mail_box_config.id}. Stopping task."
+                f"Fetched {len(list_of_items)} email(s) from mailbox, no further action taken."
             )
             return
-        last_execution_date = asyncio.get_event_loop().run_until_complete(
-            get_last_execution_date(mail_box_config_id=mail_box_config_id)
-        )
-        if last_execution_date is None:
-            last_execution_date = datetime.combine(mail_box_config.start_date, time.min)
-        company_emails = mail_box_config.company_emails
-        subject_lines = mail_box_config.subject_lines
-
-        if len(company_emails) >= 1:
-            if provider == Providers.MICROSOFT:
-                (
-                    client_id,
-                    redirect_uri,
-                    client_secret,
-                    refresh_token_validity_days,
-                    microsoft_tenant_id,
-                ) = asyncio.get_event_loop().run_until_complete(
-                    fetch_outlook_settings(mail_box_config.tenant_id)
-                )
-                list_of_items = fetch_email_outlook(
-                    client_id=client_id,
-                    client_secret=client_secret,
-                    microsoft_tenant_id=microsoft_tenant_id,
-                    password=password,
-                    last_execution_date=last_execution_date,
-                    company_emails=company_emails,
-                    subject_lines=subject_lines,
-                    additional_filter=additional_filter,
-                    app_password_expiry=mail_box_config.app_password_expired_at,
-                )
-                # No further action required for now after fetching emails
-                print(
-                    f"Fetched {len(list_of_items)} email(s) from mailbox, no further action taken."
-                )
-                return
 
             polling_session_id = str(ULID())
 

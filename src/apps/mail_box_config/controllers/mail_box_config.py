@@ -14,7 +14,7 @@ from core.utils import BaseResponse
 from core.utils.schema import SuccessResponse
 
 router = APIRouter(
-    prefix="/{tenant_id}/mail-box",
+    prefix="/{client_id}/mail-box",
     tags=["Mail Box"],
 )
 
@@ -27,7 +27,7 @@ router = APIRouter(
     operation_id="create_mail_box_config",
 )
 async def configure_mail_box(
-    tenant_id: Annotated[str, Path()],
+    client_id: Annotated[str, Path()],
     request: Annotated[CreateUpdateMailBoxConfigRequest, Body()],
     service: Annotated[MailBoxService, Depends()],
 ) -> BaseResponse[CreateUpdateMailBoxConfigResponse]:
@@ -39,7 +39,7 @@ async def configure_mail_box(
     """
     return BaseResponse(
         data=await service.add_mail_box_config(
-            tenant_id=tenant_id, **request.model_dump()
+            client_id=client_id, **request.model_dump()
         )
     )
 
@@ -52,7 +52,7 @@ async def configure_mail_box(
     status_code=status.HTTP_200_OK,
 )
 async def update_mail_box_configurations(
-    tenant_id: Annotated[str, Path()],
+    client_id: Annotated[str, Path()],
     mail_box_config_id: Annotated[UUID, Path()],
     request: Annotated[CreateUpdateMailBoxConfigRequest, Body()],
     service: Annotated[MailBoxService, Depends()],
@@ -65,7 +65,7 @@ async def update_mail_box_configurations(
     """
     return BaseResponse(
         data=await service.update_mail_box_config(
-            tenant_id=tenant_id,
+            client_id=client_id,
             mail_box_config_id=mail_box_config_id,
             **request.model_dump()
         )

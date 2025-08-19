@@ -16,3 +16,8 @@ class ErrorMessage(StrEnum):
 class SortType(StrEnum):
     ASC = "ASC"
     DSC = "DSC"
+
+CONTENT_TYPE = "application/x-www-form-urlencoded"
+GRANT_TYPE = "authorization_code"
+ACCESS_TOKEN_SCOPE = "openid profile offline_access email Mail.Read"
+ACCESS_TOKEN_GRANT_TYPE = "refresh_token"

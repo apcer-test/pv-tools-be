@@ -7,11 +7,10 @@ from config import settings
 
 async def generate_refresh_token(
     app_password: str,
-    client_id: str,
+    microsoft_client_id: str,
     redirect_uri: str,
     client_secret: str,
     refresh_token_validity_days: int,
-    microsoft_tenant_id: str,
 ) -> str:
     """Function to generate refresh token using app password
     :param app_password: app password of the user
@@ -22,11 +21,11 @@ async def generate_refresh_token(
     :return: refresh token
     """
     base_url = settings.MICROSOFT_BASE_URL
-    url = f"{base_url}/{microsoft_tenant_id}/oauth2/v2.0/token"
+    url = f"{base_url}/common/oauth2/v2.0/token"
     print(url)
     headers = {"Content-Type": constants.CONTENT_TYPE}
     data = {
-        "client_id": client_id,
+        "client_id": microsoft_client_id,
         "scope": settings.MICROSOFT_SCOPE,
         "code": app_password,
         "grant_type": constants.GRANT_TYPE,
@@ -63,14 +62,14 @@ async def generate_refresh_token(
 
 
 def generate_access_token(
-    password: str, client_id: str, client_secret: str, microsoft_tenant_id: str
+    password: str, microsoft_client_id: str, client_secret: str
 ) -> str:
     """Function to generate access token using refresh token"""
     headers = {"Content-Type": constants.CONTENT_TYPE}
     base_url = settings.MICROSOFT_BASE_URL
-    url = f"{base_url}/{microsoft_tenant_id}/oauth2/v2.0/token"
+    url = f"{base_url}/common/oauth2/v2.0/token"
     input_data = {
-        "client_id": client_id,
+        "client_id": microsoft_client_id,
         "scope": constants.ACCESS_TOKEN_SCOPE,
         "refresh_token": f"{password}",
         "grant_type": constants.ACCESS_TOKEN_GRANT_TYPE,

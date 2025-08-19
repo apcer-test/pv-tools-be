@@ -28,13 +28,10 @@ from apps.users.exceptions import (
 from config import settings
 from constants.regex import EMAIL_REGEX, FIRST_NAME_REGEX, PHONE_REGEX
 from core.auth import access, refresh
-from core.db import async_session
+from core.db import async_session, redis
 from core.types import RoleType
 from core.utils import strong_password
-
-
-
-
+from core.utils.celery_worker import celery_app
 
 async def create_tokens(user_id: str, client_slug: str) -> dict[str, str]:
     """
@@ -172,16 +169,14 @@ async def get_last_execution_date(mail_box_config_id: str) -> datetime | None | 
     return last_execution
 
 
-async def fetch_outlook_settings(tenant_id: str):
-    """:param tenant_id:
+async def fetch_outlook_settings():
+    """Fetch outlook settings from the database.
     :return:
     """
     async with async_session() as session:
         async with session.begin():
             result = await session.scalar(
-                select(MicrosoftCredentialsConfig.config).where(
-                    MicrosoftCredentialsConfig.tenant_id == tenant_id
-                )
+                select(MicrosoftCredentialsConfig.config)
             )
             result = await decryption(result)
 
@@ -189,14 +184,12 @@ async def fetch_outlook_settings(tenant_id: str):
             redirect_uri = result.get("redirect_uri")
             client_secret = result.get("client_secret")
             refresh_token_validity_days = result.get("refresh_token_validity_days")
-            microsoft_tenant_id = result.get("tenant_id")
 
         return (
             client_id,
             redirect_uri,
             client_secret,
             refresh_token_validity_days,
-            microsoft_tenant_id,
         )
 
 
@@ -230,3 +223,11 @@ def compute_batch_size(cols: int) -> int:
     MAX_PARAMS = constants.MAX_PARAMS
     SAFETY = constants.SAFETY
     return max(1, min(constants.MAX_BATCH_SIZE, (MAX_PARAMS - SAFETY) // max(1, cols)))
+
+async def revoke_running_task(mail_box_config_id: str) -> None:
+    """Revokes a running Celery task associated with the given bank ID."""
+    running_task_id = await redis.get(mail_box_config_id)
+    if running_task_id is not None:
+        celery_app.control.revoke(
+            running_task_id, terminate=True, signal=constants.SIGKILL
+        )

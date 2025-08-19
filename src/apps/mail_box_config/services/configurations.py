@@ -69,7 +69,6 @@ class MicrosoftCredentialsService:
     async def update_microsoft_credentials(
         self,
         request: FastAPIRequest,
-        tenant_id: str,
         encrypted_data: str,
         encrypted_key: str,
         iv: str,
@@ -94,9 +93,7 @@ class MicrosoftCredentialsService:
         new_settings_data = json.loads(decrypted_data)
 
         tenant_settings = await self.session.scalar(
-            select(MicrosoftCredentialsConfig).where(
-                MicrosoftCredentialsConfig.tenant_id == tenant_id
-            )
+            select(MicrosoftCredentialsConfig)
         )
 
         if not tenant_settings:
@@ -105,7 +102,7 @@ class MicrosoftCredentialsService:
             ).decode("utf-8")
 
             tenant_settings = MicrosoftCredentialsConfig.create(
-                tenant_id=tenant_id, config=encrypted_settings
+                config=encrypted_settings
             )
             self.session.add(tenant_settings)
 
@@ -126,7 +123,7 @@ class MicrosoftCredentialsService:
 
         return merged_settings
 
-    async def get_microsoft_credentials(self, tenant_id: str) -> dict:
+    async def get_microsoft_credentials(self) -> dict:
         """Retrieve tenant settings from the database.
 
         Args:
@@ -137,9 +134,7 @@ class MicrosoftCredentialsService:
             dict: Tenant settings stored in the database.
         """
         tenant_settings = await self.session.scalar(
-            select(MicrosoftCredentialsConfig).where(
-                MicrosoftCredentialsConfig.tenant_id == tenant_id
-            )
+            select(MicrosoftCredentialsConfig)
         )
         if not tenant_settings:
             return {}
