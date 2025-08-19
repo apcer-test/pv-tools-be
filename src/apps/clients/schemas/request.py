@@ -1,6 +1,7 @@
-from pydantic import Field, validator
+from pydantic import Field, model_validator, validator
 from typing import Optional
 from apps.media.schemas.request import MediaRequest
+from core.common_helpers import validate_string_fields
 from core.utils import CamelCaseModel
 
 
@@ -9,9 +10,11 @@ class CreateClientRequest(CamelCaseModel):
     
     name: str = Field(..., min_length=1, max_length=128, description="Name of the client")
     code: str = Field(..., min_length=1, max_length=16, description="Unique code for the client")
-    media: Optional[MediaRequest] = Field(None, description="Media file information")
+    media: MediaRequest = Field(..., description="Media file information")
     is_active: bool = Field(True, description="Whether the client is active")
 
+    _validate_string_fields = model_validator(mode="before")(validate_string_fields)
+ 
     @validator('code')
     def validate_code(cls, v):
         """Validate that code contains only alphanumeric characters and hyphens."""
@@ -23,13 +26,15 @@ class CreateClientRequest(CamelCaseModel):
 class UpdateClientRequest(CamelCaseModel):
     """Schema for updating an existing client."""
     
-    name: Optional[str] = Field(None, min_length=1, max_length=128, description="Name of the client")
-    code: Optional[str] = Field(None, min_length=1, max_length=16, description="Unique code for the client")
+    name: str = Field(..., min_length=1, max_length=128, description="Name of the client")
+    code: str = Field(..., min_length=1, max_length=16, description="Unique code for the client")
     description: Optional[str] = Field(None, max_length=255, description="Description of the client")
     meta_data: Optional[dict] = Field(None, description="Additional metadata for the client")
-    media: Optional[MediaRequest] = Field(None, description="Media file information")
+    media: MediaRequest = Field(..., description="Media file information")
     is_active: Optional[bool] = Field(None, description="Whether the client is active")
     reason: str = Field(..., description="Reason for updating the client")
+
+    _validate_string_fields = model_validator(mode="before")(validate_string_fields)
 
     @validator('code')
     def validate_code(cls, v):

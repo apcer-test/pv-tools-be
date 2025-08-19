@@ -174,8 +174,6 @@ class UserSelfRoleResponse(BaseModel):
     id: str
     name: str
     slug: str
-    description: str | None = None
-    role_metadata: dict[str, Any] | None = None
     modules: list[ModuleBasicResponse] | None = None
 
 class UserSelfResponse(BaseModel):
@@ -186,11 +184,5 @@ class UserSelfResponse(BaseModel):
     last_name: str
     email: str | None = None
     phone: str | None = None
-    roles: list[UserSelfRoleResponse] | None = None
-    description: str | None = None
-    user_metadata: dict[str, Any] | None = None
-    created_at: datetime
-    updated_at: datetime | None
+    role: UserSelfRoleResponse | None = None
     is_active: bool
-    created_by: str | None = None
-    updated_by: str | None = None

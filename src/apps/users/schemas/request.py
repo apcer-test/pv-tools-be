@@ -1,14 +1,15 @@
 """Request Schema for creating,updating,login operations of user."""
 
-from typing import Any
+from typing import Any, Optional
 
-from pydantic import BaseModel, EmailStr, field_validator, model_validator
+from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator
 
 from apps.users.exceptions import (
     PhoneOrEmailRequiredError,
     PhoneRequiredError,
     UserMfaCodeRequiredError,
 )
+from core.common_helpers import validate_string_fields
 from core.utils.phone_validator import validate_and_format_phone_number
 
 
@@ -39,10 +40,12 @@ class LoginRequest(BaseModel):
 class CreateUserRequest(BaseModel):
     """Request model for creating a user."""
 
-    first_name: str
-    last_name: str
-    phone: str
-    email: EmailStr
+    first_name: str = Field(..., min_length=1, max_length=30, description="First name of the user")
+    last_name: str = Field(..., min_length=1, max_length=30, description="Last name of the user")
+    phone: Optional[str] = Field(None, min_length=1, max_length=16, description="Phone number of the user")
+    email: EmailStr = Field(..., description="Email of the user")
+
+    _validate_string_fields = model_validator(mode="before")(validate_string_fields)
 
     @field_validator("email", mode="before")
     @classmethod
@@ -61,11 +64,11 @@ class CreateUserRequest(BaseModel):
 class UpdateUserRequest(BaseModel):
     """Request model for updating a user."""
 
-    first_name: str | None = None
-    last_name: str | None = None
-    phone: str | None = None
-    email: EmailStr | None = None
-    reason: str  # Required for update operations
+    first_name: str = Field(..., min_length=1, max_length=30, description="First name of the user")
+    last_name: str = Field(..., min_length=1, max_length=30, description="Last name of the user")
+    phone: Optional[str] = Field(None, min_length=1, max_length=16, description="Phone number of the user")
+    email: EmailStr = Field(..., description="Email of the user")
+    reason: str = Field(..., description="Reason for updating the user")
 
     @field_validator("email", mode="before")
     @classmethod
@@ -79,6 +82,8 @@ class UpdateUserRequest(BaseModel):
         if _v:
             return validate_and_format_phone_number(_v)
         return None
+
+    _validate_string_fields = model_validator(mode="before")(validate_string_fields)
 
 
 class UserClientAssignment(BaseModel):
