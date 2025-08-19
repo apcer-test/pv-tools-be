@@ -9,10 +9,13 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm.attributes import flag_modified
 
+import constants
 from apps.mail_box_config.models import MicrosoftCredentialsConfig
+from apps.users.exceptions import InvalidRequestException
 from config import settings
 from core.common_helpers import decrypt
 from core.db import db_session
+from core.utils.schema import SuccessResponse
 
 
 class MicrosoftCredentialsService:
@@ -67,12 +70,7 @@ class MicrosoftCredentialsService:
         return result
 
     async def update_microsoft_credentials(
-        self,
-        request: FastAPIRequest,
-        tenant_id: str,
-        encrypted_data: str,
-        encrypted_key: str,
-        iv: str,
+        self, request: FastAPIRequest, encrypted_data: str, encrypted_key: str, iv: str
     ) -> dict:
         """Update microsoft credentials in the database.
 
@@ -93,11 +91,35 @@ class MicrosoftCredentialsService:
         )
         new_settings_data = json.loads(decrypted_data)
 
-        tenant_settings = await self.session.scalar(
-            select(MicrosoftCredentialsConfig).where(
-                MicrosoftCredentialsConfig.tenant_id == tenant_id
+        # Validate required keys
+        required_keys = [
+            "client_id",
+            "tenant_id",
+            "redirect_uri",
+            "client_secret",
+            "refresh_token_validity_days",
+            "reason",
+        ]
+        missing_keys = [k for k in required_keys if k not in new_settings_data]
+        if missing_keys:
+            raise InvalidRequestException
+
+        # Print reason and remove it from settings
+        print(f"Update reason: {new_settings_data.get('reason')}")
+        new_settings_data.pop("reason", None)  # Remove reason, don't store it
+
+        # Validate refresh_token_validity_days is a number
+        refresh_token_validity = new_settings_data.get("refresh_token_validity_days")
+        if not (
+            isinstance(refresh_token_validity, (int, float))
+            or (
+                isinstance(refresh_token_validity, str)
+                and refresh_token_validity.isdigit()
             )
-        )
+        ):
+            raise InvalidRequestException
+
+        tenant_settings = await self.session.scalar(select(MicrosoftCredentialsConfig))
 
         if not tenant_settings:
             encrypted_settings = self.cipher.encrypt(
@@ -105,7 +127,7 @@ class MicrosoftCredentialsService:
             ).decode("utf-8")
 
             tenant_settings = MicrosoftCredentialsConfig.create(
-                tenant_id=tenant_id, config=encrypted_settings
+                config=encrypted_settings
             )
             self.session.add(tenant_settings)
 
@@ -124,9 +146,27 @@ class MicrosoftCredentialsService:
         tenant_settings.config = encrypted_updated_settings
         flag_modified(tenant_settings, "config")
 
-        return merged_settings
+        return SuccessResponse(
+            message=constants.MICROSOFT_CREDENTIALS_UPDATED_SUCCESSFULLY
+        )
 
-    async def get_microsoft_credentials(self, tenant_id: str) -> dict:
+    def _mask_sensitive_value(self, value: str) -> str:
+        """Mask a sensitive value showing only last 4 characters.
+
+        Args:
+            value: The string to mask
+
+        Returns:
+            Masked string with only last 4 characters visible
+        """
+        if not value or len(value) <= 4:
+            return value
+
+        visible_chars = value[-4:]
+        masked_length = len(value) - 4
+        return "*" * masked_length + visible_chars
+
+    async def get_microsoft_credentials(self) -> dict:
         """Retrieve tenant settings from the database.
 
         Args:
@@ -134,17 +174,23 @@ class MicrosoftCredentialsService:
             user_id (UUID): The user's unique identifier.
 
         Returns:
-            dict: Tenant settings stored in the database.
+            dict: Tenant settings stored in the database with sensitive data masked.
         """
-        tenant_settings = await self.session.scalar(
-            select(MicrosoftCredentialsConfig).where(
-                MicrosoftCredentialsConfig.tenant_id == tenant_id
-            )
-        )
+        tenant_settings = await self.session.scalar(select(MicrosoftCredentialsConfig))
         if not tenant_settings:
             return {}
+
         settings_data = json.loads(
             self.cipher.decrypt(tenant_settings.config).decode("utf-8")
         )
 
-        return settings_data
+        # Mask sensitive fields
+        masked_data = settings_data.copy()
+        sensitive_fields = ["client_id", "redirect_uri", "client_secret"]
+
+        for field in sensitive_fields:
+            if field in masked_data:
+                masked_data[field] = self._mask_sensitive_value(masked_data[field])
+
+        masked_data.pop("reason", None)
+        return masked_data
