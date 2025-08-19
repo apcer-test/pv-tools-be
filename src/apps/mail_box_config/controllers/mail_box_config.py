@@ -38,7 +38,7 @@ async def configure_mail_box(
     """
     return BaseResponse(
         data=await service.add_mail_box_config(
-            client_id=user.get("client").id, **request.model_dump()
+            client_id=user.get("client_id"), **request.model_dump()
         )
     )
 
@@ -64,7 +64,7 @@ async def update_mail_box_configurations(
     """
     return BaseResponse(
         data=await service.update_mail_box_config(
-            client_id=user.get("client").id,
+            client_id=user.get("client_id"),
             mail_box_config_id=mail_box_config_id,
             **request.model_dump()
         )
@@ -90,7 +90,7 @@ async def update_mail_box_configurations_status(
     """
     return BaseResponse(
         data=await service.update_mail_box_config_status(
-            client_id=user.get("client").id, mail_box_config_id=mail_box_config_id
+            client_id=user.get("client_id"), mail_box_config_id=mail_box_config_id
         )
     )
 
@@ -114,7 +114,7 @@ async def get_mail_box_config_list(
     """
     return BaseResponse(
         data=await service.get_mail_box_config_list(
-            client_id=user.get("client").id, page_params=page_params
+            client_id=user.get("client_id"), page_params=page_params
         )
     )
 
@@ -138,6 +138,6 @@ async def get_mail_box_configurations_by_id(
     """
     return BaseResponse(
         data=await service.get_mail_box_config(
-            mail_box_config_id=mail_box_config_id, client_id=user.get("client").id
+            mail_box_config_id=mail_box_config_id, client_id=user.get("client_id")
         )
     )
