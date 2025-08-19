@@ -1,5 +1,3 @@
-from typing import Optional
-
 from pydantic import BaseModel
 
 from core.types import MeddraCondition, MeddraLevel, MeddraOrderBy, MeddraSoctype
@@ -12,8 +10,8 @@ class MeddraListSearchRequest(BaseModel):
 
     version_id: int
     level: MeddraLevel
-    levelcode: Optional[str] = None
-    term: Optional[str] = None
+    levelcode: str | None = None
+    term: str | None = None
     condition: MeddraCondition
     orderby: MeddraOrderBy
     soctype: MeddraSoctype

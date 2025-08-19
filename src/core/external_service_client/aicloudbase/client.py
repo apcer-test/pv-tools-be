@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List
 
 import httpx
 from fastapi import status
@@ -81,8 +81,8 @@ class AICBClient:
         level: str,
         username: str,
         password: str,
-        levelcode: Optional[str] = None,
-        term: Optional[str] = None,
+        levelcode: str | None = None,
+        term: str | None = None,
         condition: str = "startswith",
         orderby: str = "Code",
         soctype: str = "Y",
