@@ -28,19 +28,15 @@
       "8": "Never reset sequence",
       "9": "Company unit identifier",
       "10": "Owner unit identifier"
-    },
-    "lookup_types": {
-      "CODELIST": "code-list",
-      "NFLIST": "nf-list"
-    },
-    "frequency_type": {
+    }
+  },
+  "frequency_type": {
       "DAILY": "DAILY",
       "WEEKLY": "WEEKLY",
       "MONTHLY": "MONTHLY",
       "SECONDLY30": "SECONDLY30",
       "SECONDLY60": "SECONDLY60"
-    }
-  },
+    },
   "lookup_types": {
     "CODELIST": "code-list",
     "NFLIST": "nf-list"
