@@ -1,37 +1,37 @@
 """Response Model for rolemodel."""
 
-from typing import Any, List
+from typing import Any
 
-from pydantic import BaseModel
+from core.utils.schema import CamelCaseModel
 
 
-class UserBasicInfo(BaseModel):
+class UserBasicInfo(CamelCaseModel):
     """Basic user information for role responses."""
-    
+
     id: str
     name: str
 
 
-class PermissionBasicInfo(BaseModel):
+class PermissionBasicInfo(CamelCaseModel):
     """Basic permission information for role responses."""
-    
+
     id: str
     name: str
 
 
-class ModuleBasicResponse(BaseModel):
+class ModuleBasicResponse(CamelCaseModel):
     """Basic module response with permission IDs only."""
-    
+
     id: str
     name: str
     slug: str
     description: str | None = None
     module_metadata: dict[str, Any] | None = None
     child_modules: list["ModuleBasicResponse"] = []
-    permissions: List[PermissionBasicInfo] = []
+    permissions: list[PermissionBasicInfo] = []
 
 
-class BaseRoleResponse(BaseModel):
+class BaseRoleResponse(CamelCaseModel):
     """role response for role operations."""
 
     id: str
@@ -39,20 +39,19 @@ class BaseRoleResponse(BaseModel):
     slug: str
     description: str | None = None
     role_metadata: dict[str, Any] | None = None
-    users: List[UserBasicInfo] = []
+    users: list[UserBasicInfo] = []
     is_active: bool
 
 
-class RoleResponse(BaseRoleResponse):
+class RoleResponse(CamelCaseModel):
     """role response for role operations."""
 
     modules: list[ModuleBasicResponse]
 
 
-class RoleStatusResponse(BaseModel):
+class RoleStatusResponse(CamelCaseModel):
     """Role status response."""
 
     id: str
     is_active: bool
     message: str
-

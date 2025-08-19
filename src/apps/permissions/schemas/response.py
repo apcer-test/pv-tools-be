@@ -1,9 +1,11 @@
 from typing import Any
 
-from pydantic import BaseModel
+from core.utils.schema import CamelCaseModel
 
 
-class BasePermissionResponse(BaseModel):
+class BasePermissionResponse(CamelCaseModel):
+    """Base permission response model."""
+
     id: str
     name: str
     slug: str | None = None
@@ -11,26 +13,35 @@ class BasePermissionResponse(BaseModel):
     permission_metadata: dict[str, Any] | None = None
     client_id: str | None = None
 
-class ListPermissionResponse(BaseModel):
+
+class ListPermissionResponse(CamelCaseModel):
+    """List permission response model."""
+
     id: str
     name: str
     permissions: dict | None = None
 
 
-class PermissionResponse(BaseModel):
+class PermissionResponse(CamelCaseModel):
+    """Permission response model."""
+
     id: str
     name: str
     description: str | None = None
     permission_metadata: dict[str, Any] | None = None
 
 
-class AssignPermissionResponse(BaseModel):
+class AssignPermissionResponse(CamelCaseModel):
+    """Assign permission response model."""
+
     id: str
     name: str
     permission_keys: dict
 
 
-class AssignPermissionListResponse(BaseModel):
+class AssignPermissionListResponse(CamelCaseModel):
+    """Assign permission list response model."""
+
     id: str
     parent_module: str
     modules: list[AssignPermissionResponse]

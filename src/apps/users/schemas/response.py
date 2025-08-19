@@ -3,20 +3,19 @@
 from datetime import datetime
 from typing import Any
 
-from pydantic import BaseModel
-
 from apps.roles.schemas.response import ModuleBasicResponse
 from apps.users.constants import UserAuthAction
+from core.utils.schema import CamelCaseModel
 
 
-class RoleResponse(BaseModel):
+class RoleResponse(CamelCaseModel):
     """Response model for role information."""
 
     id: str | None
     name: str | None
 
 
-class LoginResponse(BaseModel):
+class LoginResponse(CamelCaseModel):
     """Response model for user login."""
 
     access_token: str | None
@@ -30,20 +29,20 @@ class LoginResponse(BaseModel):
     message: str | None = None
 
 
-class UserLoginResponse(BaseModel):
+class UserLoginResponse(CamelCaseModel):
     """Response model for user login."""
 
     message: str
     access_token: str
 
 
-class RefreshTokenResponse(BaseModel):
+class RefreshTokenResponse(CamelCaseModel):
     """Response model for refreshing an access token."""
 
     access_token: str
 
 
-class CreateUserResponse(BaseModel):
+class CreateUserResponse(CamelCaseModel):
     """Response model containing information about a created user."""
 
     id: str
@@ -60,7 +59,7 @@ class CreateUserResponse(BaseModel):
         from_attributes = True
 
 
-class UpdateUserResponse(BaseModel):
+class UpdateUserResponse(CamelCaseModel):
     """Response model for updated user's information."""
 
     id: str
@@ -78,7 +77,7 @@ class UpdateUserResponse(BaseModel):
         from_attributes = True
 
 
-class UserClientAssignmentResponse(BaseModel):
+class UserClientAssignmentResponse(CamelCaseModel):
     """Response model for a single client assignment."""
 
     client_id: str
@@ -86,7 +85,7 @@ class UserClientAssignmentResponse(BaseModel):
     status: str  # "assigned" or "updated"
 
 
-class AssignUserClientsResponse(BaseModel):
+class AssignUserClientsResponse(CamelCaseModel):
     """Response model for user client assignment operation."""
 
     user_id: str
@@ -94,7 +93,7 @@ class AssignUserClientsResponse(BaseModel):
     message: str
 
 
-class PermissionResponse(BaseModel):
+class PermissionResponse(CamelCaseModel):
     """Response model for permission information."""
 
     id: str
@@ -102,10 +101,7 @@ class PermissionResponse(BaseModel):
     key: str
 
 
-
-
-
-class UserResponse(BaseModel):
+class UserResponse(CamelCaseModel):
     """Response model for getting information of self."""
 
     id: str
@@ -123,27 +119,28 @@ class UserResponse(BaseModel):
     updated_by: str | None = None
 
 
-class ClientResponse(BaseModel):
+class ClientResponse(CamelCaseModel):
     """Response model for client information."""
 
     id: str
     name: str
 
 
-class UserAssignResponse(BaseModel):
+class UserAssignResponse(CamelCaseModel):
     """Response model for user assign information."""
-    
+
     role_name: str
     client_name: str
 
 
-class UserAssignmentsResponse(BaseModel):
+class UserAssignmentsResponse(CamelCaseModel):
     """Response model for user assignments information."""
 
     role: RoleResponse | None
     client: ClientResponse | None
 
-class ListUserResponse(BaseModel):
+
+class ListUserResponse(CamelCaseModel):
     """Response model for getting user's information."""
 
     id: str
@@ -161,14 +158,15 @@ class ListUserResponse(BaseModel):
     updated_at: datetime | None
 
 
-class UserStatusResponse(BaseModel):
+class UserStatusResponse(CamelCaseModel):
     """Response model for user status information."""
 
     id: str
     is_active: bool
     message: str
 
-class UserSelfRoleResponse(BaseModel):
+
+class UserSelfRoleResponse(CamelCaseModel):
     """Response model for user self role information."""
 
     id: str
@@ -176,7 +174,8 @@ class UserSelfRoleResponse(BaseModel):
     slug: str
     modules: list[ModuleBasicResponse] | None = None
 
-class UserSelfResponse(BaseModel):
+
+class UserSelfResponse(CamelCaseModel):
     """Response model for user self information."""
 
     id: str

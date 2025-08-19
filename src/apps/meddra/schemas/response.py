@@ -1,7 +1,7 @@
-from pydantic import BaseModel
+from core.utils.schema import CamelCaseModel
 
 
-class MeddraVersion(BaseModel):
+class MeddraVersion(CamelCaseModel):
     """
     Response schema for MedDRA version.
     """
@@ -12,7 +12,7 @@ class MeddraVersion(BaseModel):
     database: str | None = None
 
 
-class MeddraTerm(BaseModel):
+class MeddraTerm(CamelCaseModel):
     """
     Response schema for MedDRA term.
     """
@@ -27,7 +27,7 @@ class MeddraTerm(BaseModel):
     database: str | None = None
 
 
-class MeddraDetailNode(BaseModel):
+class MeddraDetailNode(CamelCaseModel):
     """
     Response schema for MedDRA detail node.
     """
