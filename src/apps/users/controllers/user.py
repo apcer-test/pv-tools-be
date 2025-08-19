@@ -5,8 +5,8 @@ from typing import Annotated
 
 from authlib.integrations.base_client.errors import OAuthError
 from fastapi import APIRouter, Body, Depends, Path, Query, Request, status
-from fastapi.responses import RedirectResponse
 from fastapi_pagination import Page, Params
+from starlette.responses import RedirectResponse
 
 from apps.users.constants import UserSortBy
 from apps.users.models.user import Users
@@ -28,12 +28,13 @@ from apps.users.utils import current_user, permission_required
 from config import AppEnvironment, settings
 from constants.config import MICROSOFT_GENERATE_CODE_SCOPE
 from core.types import Providers
-from core.utils.schema import BaseResponse, SuccessResponse
+from core.utils.schema import BaseResponse
 from core.utils.sso_client import SSOOAuthClient
 
 router = APIRouter(prefix="/users", tags=["User"])
 
 logger = logging.getLogger(__name__)
+
 
 @router.get(
     "/openid/login/{provider}/{client_id}",
@@ -131,22 +132,30 @@ async def auth(
                     logger.error(
                         f"OAuth error during Microsoft callback: {str(oauth_error)}"
                     )
-                    return RedirectResponse(url=settings.UI_LOGIN_SCREEN)
+                    return RedirectResponse(
+                        url=f"{settings.LOGIN_REDIRECT_URL_ERROR}?error=Error in Microsoft callback"
+                    )
                 except Exception as e:
                     logger.error(
                         f"Unexpected error during Microsoft callback: {str(e)}"
                     )
-                    return RedirectResponse(url=settings.UI_LOGIN_SCREEN)
+                    return RedirectResponse(
+                        url=f"{settings.LOGIN_REDIRECT_URL_ERROR}?error=Error in Microsoft callback"
+                    )
                 finally:
                     # Clean up session
                     request.session.clear()
 
             case _:
                 logger.warning(f"Unsupported provider in callback: {provider}")
-                return RedirectResponse(url=settings.UI_LOGIN_SCREEN)
+                return RedirectResponse(
+                    url=f"{settings.LOGIN_REDIRECT_URL_ERROR}?error=Unsupported provider in callback"
+                )
     except Exception as e:
         logger.error(f"Global error in auth callback: {str(e)}")
-        return RedirectResponse(url=settings.UI_LOGIN_SCREEN)
+        return RedirectResponse(
+            url=f"{settings.LOGIN_REDIRECT_URL_ERROR}?error=Global error in auth callback"
+        )
 
 
 @router.get(
@@ -241,9 +250,7 @@ async def create_user(
     """
 
     return BaseResponse(
-        data=await service.create_user(
-            **body.model_dump(), user_id=user.get("user").id
-        )
+        data=await service.create_user(**body.model_dump(), user_id=user.get("user").id)
     )
 
 
@@ -355,7 +362,9 @@ async def change_user_status(
     """
 
     return BaseResponse(
-        data=await service.change_user_status(user_id=user_id, current_user_id=user.get("user").id)
+        data=await service.change_user_status(
+            user_id=user_id, current_user_id=user.get("user").id
+        )
     )
 
 
@@ -373,7 +382,6 @@ async def get_all_users(
     user_ids: Annotated[list[str] | None, Query()] = None,
     search: Annotated[str | None, Query()] = None,
     role: Annotated[str | None, Query()] = None,
-
     client: Annotated[str | None, Query()] = None,
     is_active: Annotated[bool | None, Query()] = None,
     sortby: Annotated[UserSortBy | None, Query()] = None,

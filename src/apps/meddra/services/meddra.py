@@ -10,10 +10,10 @@ from apps.meddra.schemas.request import (
 )
 from apps.meddra.schemas.response import MeddraDetailNode, MeddraTerm, MeddraVersion
 from config import settings
+from core.constants import RedisTTL
 from core.db import db_session, redis
 from core.external_service_client.aicloudbase.client import AICBClient
 from core.utils.redis_key_utils import RedisKeyConfig
-from src.core.constants import RedisTTL
 
 
 class MeddraService:
