@@ -114,6 +114,7 @@ class ClientService:
         )
         
         self.session.add(client)
+        await self.session.flush()
         
         return client
 
@@ -237,7 +238,7 @@ class ClientService:
             Paginated list of clients
         """
         # For list clients, only return id, name, and code
-        query = select(Clients.id, Clients.name, Clients.code).where(Clients.deleted_at.is_(None))
+        query = select(Clients.id, Clients.name, Clients.code, Clients.is_active).where(Clients.deleted_at.is_(None))
         
         # Apply filters
         if params.is_active is not None:
@@ -262,7 +263,7 @@ class ClientService:
             else:
                 query = query.order_by(sort_field.asc())
         else:
-            query = query.order_by(Clients.created_at.desc())
+            query = query.order_by(Clients.name.asc())
         
         # Apply pagination
         pagination_params = Params(page=params.page, size=params.page_size)
@@ -281,7 +282,8 @@ class ClientService:
         return {
             "id": client.id,
             "name": client.name,
-            "code": client.code
+            "code": client.code,
+            "is_active": client.is_active
         }
 
     def _to_response(self, client: Clients) -> ClientResponse:

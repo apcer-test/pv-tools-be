@@ -9,7 +9,6 @@ async def get_existing_slugs(
     base_slug: str,
     db: Session,
     model: type,
-    client_id: str | None = None,
     existing_id: str | None = None,
 ) -> set[str]:
     """
@@ -27,8 +26,6 @@ async def get_existing_slugs(
         model.slug.like(f"{base_slug}%"), model.deleted_at.is_(None)
     )
 
-    if client_id:
-        stmt = stmt.where(model.client_id == client_id)
     if existing_id:
         stmt = stmt.where(model.id != existing_id)
 
@@ -40,7 +37,6 @@ async def generate_unique_slug(
     text: str,
     db: Session,
     model: type,
-    client_id: str | None = None,
     existing_id: str | None = None,
 ) -> str:
     """
@@ -56,7 +52,7 @@ async def generate_unique_slug(
     """
     base_slug = slugify(text)
     existing_slugs = await get_existing_slugs(
-        base_slug, db, model, client_id, existing_id
+        base_slug, db, model, existing_id
     )
 
     unique_slug = base_slug
@@ -72,7 +68,6 @@ async def validate_unique_slug(
     slug: str,
     db: Session,
     model: type,
-    client_id: str | None = None,
 ) -> set[str]:
     """
     Check if the given slug already exists in the database.
@@ -81,15 +76,11 @@ async def validate_unique_slug(
         slug (str): The base slug to check for existing variations.
         db (AsyncSession): The async database session.
         model (type): The SQLAlchemy model containing the slug field.
-        client_id (str | None): Optional client ID to filter results.
 
     Raises:
         ValueError: If the slug already exists.
     """
     stmt = select(model.slug).where(model.slug == slug, model.deleted_at.is_(None))
-
-    if client_id:
-        stmt = stmt.where(model.client_id == client_id)
 
     result = await db.execute(stmt)
     existing_slug = result.scalar()
@@ -104,7 +95,6 @@ async def validate_and_generate_slug(
     db: Session,
     model: type,
     slug: str | None,
-    client_id: str | None = None,
 ) -> str:
     """
     Validate an existing slug (if provided) and generate a unique one if needed.
@@ -114,7 +104,6 @@ async def validate_and_generate_slug(
         name (str): The name to generate a slug from if no slug is provided.
         db (AsyncSession): The async database session.
         model (type): The SQLAlchemy model containing the slug field.
-        client_id (str): The client ID for filtering unique slugs.
 
     Returns:
         str: A validated or newly generated unique slug.
@@ -126,11 +115,10 @@ async def validate_and_generate_slug(
             slug,
             db=db,
             model=model,
-            client_id=client_id,
         )
         return slug  # If valid, return it immediately
 
     # Otherwise, generate a unique slug from the name
     return await generate_unique_slug(
-        name, db=db, model=model, client_id=client_id
+        name, db=db, model=model
     )

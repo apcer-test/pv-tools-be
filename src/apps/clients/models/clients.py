@@ -9,10 +9,6 @@ from core.utils.mixins import TimeStampMixin, ULIDPrimaryKeyMixin, UserMixin
 if TYPE_CHECKING:
     from apps.case.models.case import CaseNumberConfiguration
     from apps.media.models.media import Media
-    from apps.modules.models.modules import Modules
-    from apps.permissions.models.permissions import Permissions
-    from apps.roles.models.roles import Roles
-
     from apps.users.models.user import UserRoleLink, Users
 
 
@@ -43,20 +39,6 @@ class Clients(Base, ULIDPrimaryKeyMixin, TimeStampMixin, UserMixin):
 
     media: Mapped["Media"] = relationship(
         "Media", back_populates="clients", foreign_keys=[media_id]
-    )
-
-
-
-    roles: Mapped[List["Roles"]] = relationship(
-        "Roles", back_populates="client", cascade="all, delete-orphan"
-    )
-
-    modules: Mapped[List["Modules"]] = relationship(
-        "Modules", back_populates="client", cascade="all, delete-orphan"
-    )
-
-    permissions: Mapped[List["Permissions"]] = relationship(
-        "Permissions", back_populates="client", cascade="all, delete-orphan"
     )
 
     users: Mapped[List["Users"]] = relationship(
