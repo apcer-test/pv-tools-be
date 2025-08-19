@@ -11,10 +11,6 @@ region = "eu-west-2"
 cidr = "10.10.0.0/16"
 availability_zones = ["eu-west-2a", "eu-west-2b", "eu-west-2c"]
 
-# =============================
-# CORE INFRASTRUCTURE SERVICES
-# =============================
-
 # VPC
 create_vpc = true
 
@@ -23,9 +19,6 @@ create_alb = true
 alb_internal = false
 alb_enable_deletion_protection = true
 
-# ===================
-# COMPUTE SERVICES
-# ===================
 
 # ECS Fargate
 create_ecs = true
@@ -54,9 +47,6 @@ create_ec2_bastion = true
 bastion_instance_type = "t3.micro"
 bastion_key_name = "apcer-pv-tool-dev-bastion"
 
-# =================
-# STORAGE SERVICES
-# =================
 
 # S3 Buckets
 create_s3 = true
@@ -112,10 +102,6 @@ frontends = {
 create_ecr = true
 ecr_repositories = ["apcer-api-dev"]
 
-# =============================================================================
-# DATABASE SERVICES
-# =============================================================================
-
 # RDS PostgreSQL
 create_rds = true
 rds_instance_class = "db.t3.medium"
@@ -164,9 +150,9 @@ github_token = "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"  # Add your GitHub Per
 # CodeBuild
 create_codebuild = true
 
-# =============================================================================
+# ===================
 # DISABLED SERVICES
-# =============================================================================
+# ===================
 
 # AWS Backup (Disabled for dev)
 create_aws_backup = false
