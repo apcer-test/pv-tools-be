@@ -596,6 +596,7 @@ class SetupService:
     async def update_codelist_lookup_value(
         self,
         lookup_value_id: str,
+        reason: str,
         name: str | None = None,
         e2b_code_r2: str | None = None,
         e2b_code_r3: str | None = None,
@@ -617,6 +618,7 @@ class SetupService:
     async def update_nflist_lookup_value(
         self,
         lookup_value_id: str,
+        reason: str,
         name: str | None = None,
         is_active: bool | None = None,
     ) -> SuccessResponse:
