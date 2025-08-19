@@ -9,7 +9,7 @@ WORKDIR /code
 COPY pyproject.toml poetry.lock ./
 
 # Install Poetry and export requirements
-RUN pip install --no-cache-dir pip==23.3.1 poetry==1.6.1 \
+RUN pip install --no-cache-dir pip==23.3.1 poetry==1.8.3 \
  && poetry export -f requirements.txt --output requirements.txt --without-hashes
 
 # Install project dependencies into a separate folder
