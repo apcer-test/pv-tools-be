@@ -7,7 +7,8 @@ COPY ./.env /code/.env
 COPY ./src /code
 
 WORKDIR /code
-RUN pip install --no-cache-dir pip==23.3.1 \
+RUN pip install --upgrade pip \
+    pip install --no-cache-dir pip==23.3.1 &&\
     pip install --no-cache-dir poetry==1.6.1 &&\
     poetry export -f requirements.txt --output requirements.txt --without-hashes &&\
     pip install --no-cache-dir -r requirements.txt &&\
