@@ -1,16 +1,17 @@
 """Services for Users."""
 
 import copy
+import json
 from typing import Annotated, Any
 
-from fastapi import Depends
+from fastapi import Depends, status
 from fastapi_pagination import Page, Params
 from fastapi_pagination.ext.sqlalchemy import paginate
 from pydantic import EmailStr
 from sqlalchemy import and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import load_only, selectinload
-from starlette.responses import RedirectResponse
+from starlette.responses import JSONResponse, RedirectResponse
 
 from apps.clients.models.clients import Clients
 from apps.modules.models.modules import Modules
@@ -44,9 +45,12 @@ from apps.users.schemas.response import (
     UserStatusResponse,
 )
 from config import settings
+from constants.messages import INVALID_TOKEN, SUCCESS, UNAUTHORIZED
+from core.auth import access
 from core.common_helpers import create_tokens
-from core.db import db_session
-from core.exceptions import UnauthorizedError
+from core.db import db_session, redis
+from core.exceptions import InvalidJWTTokenException, UnauthorizedError
+from core.utils.hashing import Hash
 from core.utils.set_cookies import create_user_token_caching
 
 
@@ -933,3 +937,101 @@ class UserService:
             role=role_data,
             is_active=user.is_active,
         )
+
+    async def refresh_token(
+        self, token: dict, refresh_token: str | None
+    ) -> JSONResponse:
+        """
+        Refreshes the access token for an admin user.
+
+        Args:
+            token (dict): A dictionary containing user information, typically including the user ID.
+            refresh_token (str | None): The refresh token to be included in the response, if any.
+
+        Returns:
+            JSONResponse: A response object containing the new access and refresh tokens,
+                          along with a success status and HTTP 200 OK code.
+
+        """
+
+        refresh_token_key = Hash.make(refresh_token)
+        cached_refresh_token = await redis.get(refresh_token_key)
+        if not cached_refresh_token:
+            raise UnauthorizedError(message=UNAUTHORIZED)
+
+        if token:
+            user_id = token.get("id")
+            client_slug = token.get("client_id")
+            user = await self.session.scalar(
+                select(Users)
+                .options(load_only(Users.id, Users.is_active))
+                .where(Users.id == user_id)
+            )
+
+            if not user or not user.is_active:
+                raise UnauthorizedError(message=UNAUTHORIZED)
+
+            access_token = access.encode(
+                payload={"id": str(user_id), "client_id": client_slug},
+                expire_period=int(settings.ACCESS_TOKEN_EXP),
+            )
+            res = {"access_token": access_token, "refresh_token": refresh_token}
+            data = {"status": SUCCESS, "code": status.HTTP_200_OK, "data": res}
+            response = JSONResponse(content=data)
+
+            hashed_user_id = Hash.make("uid:" + str(user_id) + ":" + client_slug)
+            old_access_token = json.loads(cached_refresh_token).get("access_token")
+            old_access_token_key = Hash.make(old_access_token)
+            cached_access_token = await redis.get(old_access_token_key)
+            if cached_access_token:
+                await redis.delete(old_access_token_key)
+
+            new_access_token_key = Hash.make(access_token)
+            tokens_dumped_data = json.dumps(res)
+            await redis.set(
+                name=hashed_user_id,
+                value=tokens_dumped_data,
+                ex=settings.ACCESS_TOKEN_EXP,
+            )
+            await redis.set(
+                name=new_access_token_key,
+                value=tokens_dumped_data,
+                ex=settings.ACCESS_TOKEN_EXP,
+            )
+            await redis.set(
+                name=refresh_token_key,
+                value=tokens_dumped_data,
+                ex=settings.REFRESH_TOKEN_EXP,
+            )
+
+            return response
+
+        raise InvalidJWTTokenException(INVALID_TOKEN)
+
+    async def logout(self, access_token: str) -> None:
+        """
+        Logout
+        """
+        key = Hash.make(access_token)
+        exist_token = await redis.get(key)
+        if not exist_token:
+            raise UnauthorizedError(message=UNAUTHORIZED)
+
+        token = access.decode(access_token)
+        user_id = token.get("id")
+        client_slug = token.get("client_id")
+
+        user_obj = await self.session.scalar(
+            select(Users).options(load_only(Users.id)).where(Users.id == user_id)
+        )
+        if not user_obj:
+            raise UnauthorizedError(message=UNAUTHORIZED)
+
+        hashed_user_id = Hash.make("uid:" + str(user_id) + ":" + client_slug)
+
+        await redis.delete(hashed_user_id)
+
+        refresh_token = json.loads(exist_token).get("refresh_token")
+
+        await redis.delete(key)
+        await redis.delete(Hash.make(refresh_token))

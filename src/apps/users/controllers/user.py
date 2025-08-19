@@ -5,8 +5,10 @@ from typing import Annotated
 
 from authlib.integrations.base_client.errors import OAuthError
 from fastapi import APIRouter, Body, Depends, Path, Query, Request, status
+from fastapi.security import HTTPAuthorizationCredentials
+from fastapi.security import HTTPBearer as HttpBearer
 from fastapi_pagination import Page, Params
-from starlette.responses import RedirectResponse
+from starlette.responses import JSONResponse, RedirectResponse
 
 from apps.users.constants import UserSortBy
 from apps.users.models.user import Users
@@ -28,8 +30,9 @@ from apps.users.utils import current_user, permission_required
 from config import AppEnvironment, settings
 from constants.config import MICROSOFT_GENERATE_CODE_SCOPE
 from core.types import Providers
-from core.utils.schema import BaseResponse
+from core.utils.schema import BaseResponse, SuccessResponse
 from core.utils.sso_client import SSOOAuthClient
+from src.core.auth import refresh
 
 router = APIRouter(prefix="/users", tags=["User"])
 
@@ -217,6 +220,57 @@ async def get_self(
             client_id=user.get("client_id"), user_id=user.get("user").id
         )
     )
+
+
+@router.post(
+    "/refresh",
+    status_code=status.HTTP_200_OK,
+    name="Refresh Token",
+    description="Refresh Token",
+    operation_id="user_refresh_token",
+)
+async def refresh_token_handler(
+    token: Annotated[dict, Depends(refresh)],
+    service: Annotated[UserService, Depends()],
+    refresh_token: Annotated[
+        HTTPAuthorizationCredentials, Depends(HttpBearer(auto_error=False))
+    ],
+) -> JSONResponse:
+    """
+    Refresh the admin access token.
+
+    Args:
+        token (dict): User information from the admin_refresh dependency.
+        service (AuthService): AuthService instance from dependency injection.
+        refresh_token (str | None): Refresh token from the "adminRefreshToken" cookie.
+
+    Returns:
+        JSONResponse: Response with the new access and refresh tokens.
+    """
+    response = await service.refresh_token(token, refresh_token.credentials)
+    return response
+
+
+@router.post(
+    "/logout",
+    status_code=status.HTTP_200_OK,
+    name="User Logout",
+    description="User logout",
+    operation_id="User_logout",
+    dependencies=[Depends(current_user)],
+)
+async def logout(
+    service: Annotated[UserService, Depends()],
+    access_token: Annotated[
+        HTTPAuthorizationCredentials, Depends(HttpBearer(auto_error=False))
+    ],
+) -> BaseResponse[SuccessResponse]:
+    """
+    Logout endpoint.
+    :return: Success response.
+    """
+    await service.logout(access_token.credentials)
+    return BaseResponse(data=SuccessResponse())
 
 
 @router.post(
