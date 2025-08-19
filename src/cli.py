@@ -634,7 +634,7 @@ def worker() -> None:
         loglevel="INFO",
         logfile="logs/application.log",
         task_events=True,
-        pool="prefork",
+        pool=settings.WORKER_POOL,
         autoscale="5,0",
     )
     _worker.start()

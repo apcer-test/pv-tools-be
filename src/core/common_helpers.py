@@ -1,7 +1,5 @@
 import base64
 import json
-import re
-import secrets
 from datetime import datetime, timedelta, timezone
 
 import sentry_sdk
@@ -11,27 +9,17 @@ from cryptography.hazmat.primitives import padding as crypto_padding
 from cryptography.hazmat.primitives.asymmetric import padding as asym_padding
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-from pydantic import EmailStr
 from sqlalchemy import select
 
 import constants
 from apps.mail_box_config.models.credentials import MicrosoftCredentialsConfig
 from apps.mail_box_config.models.mail_box import MicrosoftMailBoxConfig
 from apps.tenant.models.models import Tenant
-from apps.users.exceptions import (
-    EmptyDescriptionException,
-    InvalidEmailException,
-    InvalidEncryptedData,
-    InvalidPhoneFormatException,
-    WeakPasswordException,
-)
+from apps.users.exceptions import EmptyDescriptionException, InvalidEncryptedData
 from config import settings
-from constants.regex import EMAIL_REGEX, FIRST_NAME_REGEX, PHONE_REGEX
 from core.auth import access, refresh
-from core.db import async_session, redis
-from core.types import RoleType
-from core.utils import strong_password
-from core.utils.celery_worker import celery_app
+from core.db import async_session
+
 
 async def create_tokens(user_id: str, client_slug: str) -> dict[str, str]:
     """
@@ -43,10 +31,12 @@ async def create_tokens(user_id: str, client_slug: str) -> dict[str, str]:
     :return: A dictionary containing access-token and refresh-token.
     """
     access_token = access.encode(
-        payload={"id": str(user_id), "client_id": client_slug}, expire_period=int(settings.ACCESS_TOKEN_EXP)
+        payload={"id": str(user_id), "client_id": client_slug},
+        expire_period=int(settings.ACCESS_TOKEN_EXP),
     )
     refresh_token = refresh.encode(
-        payload={"id": str(user_id), "client_id": client_slug}, expire_period=int(settings.REFRESH_TOKEN_EXP)
+        payload={"id": str(user_id), "client_id": client_slug},
+        expire_period=int(settings.REFRESH_TOKEN_EXP),
     )
 
     return {"access_token": access_token, "refresh_token": refresh_token}
@@ -112,12 +102,6 @@ async def decrypt(
         raise InvalidEncryptedData
 
 
-
-
-
-
-
-
 CIPHER = Fernet(settings.ENCRYPTION_KEY or "")
 
 
@@ -175,9 +159,7 @@ async def fetch_outlook_settings():
     """
     async with async_session() as session:
         async with session.begin():
-            result = await session.scalar(
-                select(MicrosoftCredentialsConfig.config)
-            )
+            result = await session.scalar(select(MicrosoftCredentialsConfig.config))
             result = await decryption(result)
 
             client_id = result.get("client_id")
@@ -185,12 +167,7 @@ async def fetch_outlook_settings():
             client_secret = result.get("client_secret")
             refresh_token_validity_days = result.get("refresh_token_validity_days")
 
-        return (
-            client_id,
-            redirect_uri,
-            client_secret,
-            refresh_token_validity_days,
-        )
+        return (client_id, redirect_uri, client_secret, refresh_token_validity_days)
 
 
 def capture_exception(e: Exception) -> None:
@@ -214,6 +191,26 @@ async def fetch_mail_box_config(mail_box_config_id) -> MicrosoftMailBoxConfig:
     return result
 
 
+async def update_last_execution_date(
+    mail_box_config_id: str, execution_date: datetime
+) -> None:
+    """Update the last execution date for a mail box configuration.
+
+    Args:
+        mail_box_config_id: ID of the mail box configuration
+        execution_date: The datetime to set as last execution
+    """
+    async with async_session() as session:
+        async with session.begin():
+            mail_box_config = await session.scalar(
+                select(MicrosoftMailBoxConfig).where(
+                    MicrosoftMailBoxConfig.id == mail_box_config_id
+                )
+            )
+            if mail_box_config:
+                mail_box_config.last_execution = execution_date
+
+
 def compute_batch_size(cols: int) -> int:
     """
     Compute the batch size for a given number of columns.
@@ -223,11 +220,3 @@ def compute_batch_size(cols: int) -> int:
     MAX_PARAMS = constants.MAX_PARAMS
     SAFETY = constants.SAFETY
     return max(1, min(constants.MAX_BATCH_SIZE, (MAX_PARAMS - SAFETY) // max(1, cols)))
-
-async def revoke_running_task(mail_box_config_id: str) -> None:
-    """Revokes a running Celery task associated with the given bank ID."""
-    running_task_id = await redis.get(mail_box_config_id)
-    if running_task_id is not None:
-        celery_app.control.revoke(
-            running_task_id, terminate=True, signal=constants.SIGKILL
-        )

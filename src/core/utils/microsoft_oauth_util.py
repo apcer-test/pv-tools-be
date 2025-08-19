@@ -1,8 +1,14 @@
 import httpx
 
-import constants
 from apps.mail_box_config.exceptions import InvalidTokenException
 from config import settings
+from constants.messages import (
+    ACCESS_TOKEN_GRANT_TYPE,
+    ACCESS_TOKEN_SCOPE,
+    CONTENT_TYPE,
+    GRANT_TYPE,
+    REFRESH_TOKEN_SCOPE,
+)
 
 
 async def generate_refresh_token(
@@ -23,12 +29,12 @@ async def generate_refresh_token(
     base_url = settings.MICROSOFT_BASE_URL
     url = f"{base_url}/common/oauth2/v2.0/token"
     print(url)
-    headers = {"Content-Type": constants.CONTENT_TYPE}
+    headers = {"Content-Type": CONTENT_TYPE}
     data = {
         "client_id": microsoft_client_id,
-        "scope": settings.MICROSOFT_SCOPE,
+        "scope": REFRESH_TOKEN_SCOPE,
         "code": app_password,
-        "grant_type": constants.GRANT_TYPE,
+        "grant_type": GRANT_TYPE,
         "client_secret": client_secret,
         "redirect_uri": redirect_uri,
     }
@@ -65,14 +71,14 @@ def generate_access_token(
     password: str, microsoft_client_id: str, client_secret: str
 ) -> str:
     """Function to generate access token using refresh token"""
-    headers = {"Content-Type": constants.CONTENT_TYPE}
+    headers = {"Content-Type": CONTENT_TYPE}
     base_url = settings.MICROSOFT_BASE_URL
     url = f"{base_url}/common/oauth2/v2.0/token"
     input_data = {
         "client_id": microsoft_client_id,
-        "scope": constants.ACCESS_TOKEN_SCOPE,
+        "scope": ACCESS_TOKEN_SCOPE,
         "refresh_token": f"{password}",
-        "grant_type": constants.ACCESS_TOKEN_GRANT_TYPE,
+        "grant_type": ACCESS_TOKEN_GRANT_TYPE,
         "client_secret": client_secret,
     }
     print(url)

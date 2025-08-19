@@ -5,6 +5,8 @@ REFRESH = "refresh"
 
 
 class ErrorMessage(StrEnum):
+    """This class represents the error messages for the application."""
+
     INVALID_JWT_TOKEN = "Invalid Token"  # noqa: S105
     EXPIRED_TOKEN = "Expired Token"  # noqa: S105
     UNAUTHORIZED = "Unauthorized"
@@ -14,10 +16,7 @@ class ErrorMessage(StrEnum):
 
 
 class SortType(StrEnum):
+    """This class represents the sort type for the application."""
+
     ASC = "ASC"
     DSC = "DSC"
-
-CONTENT_TYPE = "application/x-www-form-urlencoded"
-GRANT_TYPE = "authorization_code"
-ACCESS_TOKEN_SCOPE = "openid profile offline_access email Mail.Read"
-ACCESS_TOKEN_GRANT_TYPE = "refresh_token"

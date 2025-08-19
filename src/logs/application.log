@@ -1,54 +1,551 @@
-[2025-08-18 22:10:35,385: INFO/MainProcess] Connected to redis://localhost:6379/0
-[2025-08-18 22:10:35,401: INFO/MainProcess] mingle: searching for neighbors
-[2025-08-18 22:10:36,515: INFO/MainProcess] mingle: all alone
-[2025-08-18 22:10:36,708: INFO/MainProcess] celery@APC-AP-13RQPB4 ready.
-[2025-08-18 23:19:17,857: ERROR/MainProcess] Received unregistered task of type 'core.utils.celery_worker.pooling_mail_box'.
-The message has been ignored and discarded.
+[2025-08-19 18:21:01,581: INFO/MainProcess] Connected to redis://localhost:6379/0
+[2025-08-19 18:21:01,599: INFO/MainProcess] mingle: searching for neighbors
+[2025-08-19 18:21:02,687: INFO/MainProcess] mingle: all alone
+[2025-08-19 18:21:02,771: INFO/MainProcess] celery@APC-AP-13RQPB4 ready.
+[2025-08-19 18:39:04,851: INFO/MainProcess] Connected to redis://localhost:6379/0
+[2025-08-19 18:39:04,865: INFO/MainProcess] mingle: searching for neighbors
+[2025-08-19 18:39:05,924: INFO/MainProcess] mingle: all alone
+[2025-08-19 18:39:06,008: INFO/MainProcess] celery@APC-AP-13RQPB4 ready.
+[2025-08-19 18:46:51,014: INFO/MainProcess] Connected to redis://localhost:6379/0
+[2025-08-19 18:46:51,022: INFO/MainProcess] mingle: searching for neighbors
+[2025-08-19 18:46:52,093: INFO/MainProcess] mingle: all alone
+[2025-08-19 18:46:52,221: INFO/MainProcess] celery@APC-AP-13RQPB4 ready.
+[2025-08-19 18:49:14,155: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K317QQ1ZEZCZH1SJ00S0R1P4] received
+[2025-08-19 18:49:19,005: WARNING/MainProcess] CurrentDatetime: 2025-08-19 18:49:19.005348
+[2025-08-19 18:49:19,006: WARNING/MainProcess] Frequency: SECONDLY30
+[2025-08-19 18:49:19,006: WARNING/MainProcess] mail_box_config_id: 01K317QQ1WD6GEXT0F3EBA34HF
+[2025-08-19 18:49:19,568: WARNING/MainProcess] <sys>:0: SAWarning: relationship 'Roles.role_module_permission_links' will copy column roles.id to column role_module_permission_link.role_id, which conflicts with relationship(s): 'Roles.modules' (copies roles.id to role_module_permission_link.role_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="modules"' to the 'Roles.role_module_permission_links' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
 
-Did you remember to import the module containing this task?
-Or maybe you're using relative imports?
+[2025-08-19 18:49:19,578: WARNING/MainProcess] <sys>:0: SAWarning: relationship 'RoleModulePermissionLink.role' will copy column roles.id to column role_module_permission_link.role_id, which conflicts with relationship(s): 'Roles.modules' (copies roles.id to role_module_permission_link.role_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="modules"' to the 'RoleModulePermissionLink.role' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
 
-Please see
-https://docs.celeryq.dev/en/latest/internals/protocol.html
-for more information.
+[2025-08-19 18:49:19,580: WARNING/MainProcess] <sys>:0: SAWarning: relationship 'RoleModulePermissionLink.module' will copy column modules.id to column role_module_permission_link.module_id, which conflicts with relationship(s): 'Roles.modules' (copies modules.id to role_module_permission_link.module_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="modules"' to the 'RoleModulePermissionLink.module' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
 
-The full contents of the message body was:
-b'[["01K2Z4S3SV806Z3VN4EH2MXDZ6", "SECONDLY30"], {}, {"callbacks": null, "errbacks": null, "chain": null, "chord": null}]' (119b)
+[2025-08-19 18:49:19,598: WARNING/MainProcess] <sys>:0: SAWarning: relationship 'Modules.role_module_permission_links' will copy column modules.id to column role_module_permission_link.module_id, which conflicts with relationship(s): 'Roles.modules' (copies modules.id to role_module_permission_link.module_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="modules"' to the 'Modules.role_module_permission_links' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
 
-The full contents of the message headers:
-{'lang': 'py', 'task': 'core.utils.celery_worker.pooling_mail_box', 'id': '01K2Z4SFYR2Z1FCCWJAP28MGPV', 'shadow': None, 'eta': '2025-08-18T17:49:22.659686', 'expires': None, 'group': None, 'group_index': None, 'retries': 0, 'timelimit': [None, None], 'root_id': '01K2Z4SFYR2Z1FCCWJAP28MGPV', 'parent_id': None, 'argsrepr': "['01K2Z4S3SV806Z3VN4EH2MXDZ6', 'SECONDLY30']", 'kwargsrepr': '{}', 'origin': 'gen26688@APC-AP-13RQPB4', 'ignore_result': True, 'replaced_task_nesting': 0, 'stamped_headers': None, 'stamps': {}}
+[2025-08-19 18:49:19,600: WARNING/MainProcess] <sys>:0: SAWarning: relationship 'Modules.module_permission_links' will copy column modules.id to column module_permission_link.module_id, which conflicts with relationship(s): 'Modules.permissions' (copies modules.id to module_permission_link.module_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="permissions"' to the 'Modules.module_permission_links' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
 
-The delivery info for this task is:
-{'exchange': '', 'routing_key': 'main-queue'}
+[2025-08-19 18:49:19,610: WARNING/MainProcess] <sys>:0: SAWarning: relationship 'ModulePermissionLink.module' will copy column modules.id to column module_permission_link.module_id, which conflicts with relationship(s): 'Modules.permissions' (copies modules.id to module_permission_link.module_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="permissions"' to the 'ModulePermissionLink.module' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
+
+[2025-08-19 18:49:19,613: WARNING/MainProcess] <sys>:0: SAWarning: relationship 'ModulePermissionLink.permission' will copy column permissions.id to column module_permission_link.permission_id, which conflicts with relationship(s): 'Modules.permissions' (copies permissions.id to module_permission_link.permission_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="permissions"' to the 'ModulePermissionLink.permission' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
+
+[2025-08-19 18:49:19,625: WARNING/MainProcess] <sys>:0: SAWarning: relationship 'Permissions.module_permission_links' will copy column permissions.id to column module_permission_link.permission_id, which conflicts with relationship(s): 'Modules.permissions' (copies permissions.id to module_permission_link.permission_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="permissions"' to the 'Permissions.module_permission_links' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
+
+[2025-08-19 18:49:19,685: WARNING/MainProcess] MailBox: vjigar2404@outlook.com
+[2025-08-19 18:49:19,696: WARNING/MainProcess] https://login.microsoftonline.com/common/oauth2/v2.0/token
+[2025-08-19 18:49:21,047: INFO/MainProcess] HTTP Request: POST https://login.microsoftonline.com/common/oauth2/v2.0/token "HTTP/1.1 200 OK"
+[2025-08-19 18:49:22,323: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/mailFolders/Inbox/messages?%24filter=hasAttachments%20eq%20true%20and%20receivedDateTime%20ge%202025-08-19T13%3A19%3A14Z&%24top=10 "HTTP/1.1 200 OK"
+[2025-08-19 18:49:22,326: WARNING/MainProcess] CurrentDatetime: 2025-08-19 18:49:22.326710
+[2025-08-19 18:49:22,327: WARNING/MainProcess] Last Execution Date: 2025-08-19 13:19:14.246796
+[2025-08-19 18:49:22,327: WARNING/MainProcess] Fetched 0 email(s) from mailbox
+[2025-08-19 18:49:22,345: WARNING/MainProcess] Scheduling next execution at: 2025-08-19 13:19:52.345269
+[2025-08-19 18:49:22,360: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K317QZ6Q95ABFVYSGEBB36T9] received
+[2025-08-19 18:49:22,416: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K317QQ1ZEZCZH1SJ00S0R1P4] succeeded in 3.4157925999024883s: None
+[2025-08-19 18:49:52,351: WARNING/MainProcess] CurrentDatetime: 2025-08-19 18:49:52.350996
+[2025-08-19 18:49:52,351: WARNING/MainProcess] Frequency: SECONDLY30
+[2025-08-19 18:49:52,351: WARNING/MainProcess] mail_box_config_id: 01K317QQ1WD6GEXT0F3EBA34HF
+[2025-08-19 18:49:52,359: WARNING/MainProcess] MailBox: vjigar2404@outlook.com
+[2025-08-19 18:49:52,366: WARNING/MainProcess] https://login.microsoftonline.com/common/oauth2/v2.0/token
+[2025-08-19 18:49:53,688: INFO/MainProcess] HTTP Request: POST https://login.microsoftonline.com/common/oauth2/v2.0/token "HTTP/1.1 200 OK"
+[2025-08-19 18:49:54,841: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/mailFolders/Inbox/messages?%24filter=hasAttachments%20eq%20true%20and%20receivedDateTime%20ge%202025-08-19T13%3A19%3A14Z&%24top=10 "HTTP/1.1 200 OK"
+[2025-08-19 18:49:54,848: WARNING/MainProcess] CurrentDatetime: 2025-08-19 18:49:54.848163
+[2025-08-19 18:49:54,848: WARNING/MainProcess] Last Execution Date: 2025-08-19 13:19:14.246796
+[2025-08-19 18:49:54,849: WARNING/MainProcess] Fetched 0 email(s) from mailbox
+[2025-08-19 18:49:54,854: WARNING/MainProcess] Scheduling next execution at: 2025-08-19 13:20:24.854631
+[2025-08-19 18:49:54,860: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K317QZ6Q95ABFVYSGEBB36T9] succeeded in 2.5099285000469536s: None
+[2025-08-19 18:49:54,867: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K317RYZ1TFP8P5FK438D7166] received
+[2025-08-19 18:50:24,860: WARNING/MainProcess] CurrentDatetime: 2025-08-19 18:50:24.859998
+[2025-08-19 18:50:24,861: WARNING/MainProcess] Frequency: SECONDLY30
+[2025-08-19 18:50:24,861: WARNING/MainProcess] mail_box_config_id: 01K317QQ1WD6GEXT0F3EBA34HF
+[2025-08-19 18:50:24,869: WARNING/MainProcess] MailBox: vjigar2404@outlook.com
+[2025-08-19 18:50:24,873: WARNING/MainProcess] https://login.microsoftonline.com/common/oauth2/v2.0/token
+[2025-08-19 18:50:26,409: INFO/MainProcess] HTTP Request: POST https://login.microsoftonline.com/common/oauth2/v2.0/token "HTTP/1.1 200 OK"
+[2025-08-19 18:50:27,642: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/mailFolders/Inbox/messages?%24filter=hasAttachments%20eq%20true%20and%20receivedDateTime%20ge%202025-08-19T13%3A19%3A14Z&%24top=10 "HTTP/1.1 200 OK"
+[2025-08-19 18:50:27,645: WARNING/MainProcess] CurrentDatetime: 2025-08-19 18:50:27.645269
+[2025-08-19 18:50:27,646: WARNING/MainProcess] Last Execution Date: 2025-08-19 13:19:14.246796
+[2025-08-19 18:50:27,646: WARNING/MainProcess] Fetched 0 email(s) from mailbox
+[2025-08-19 18:50:27,650: WARNING/MainProcess] Scheduling next execution at: 2025-08-19 13:20:57.650227
+[2025-08-19 18:50:27,657: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K317RYZ1TFP8P5FK438D7166] succeeded in 2.79817299998831s: None
+[2025-08-19 18:50:27,661: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K317SYZZPGDBZBDHKXCE1VQ0] received
+[2025-08-19 18:50:57,658: WARNING/MainProcess] CurrentDatetime: 2025-08-19 18:50:57.658434
+[2025-08-19 18:50:57,659: WARNING/MainProcess] Frequency: SECONDLY30
+[2025-08-19 18:50:57,660: WARNING/MainProcess] mail_box_config_id: 01K317QQ1WD6GEXT0F3EBA34HF
+[2025-08-19 18:50:57,669: WARNING/MainProcess] MailBox: vjigar2404@outlook.com
+[2025-08-19 18:50:57,674: WARNING/MainProcess] https://login.microsoftonline.com/common/oauth2/v2.0/token
+[2025-08-19 18:50:59,378: INFO/MainProcess] HTTP Request: POST https://login.microsoftonline.com/common/oauth2/v2.0/token "HTTP/1.1 200 OK"
+[2025-08-19 18:51:00,579: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/mailFolders/Inbox/messages?%24filter=hasAttachments%20eq%20true%20and%20receivedDateTime%20ge%202025-08-19T13%3A19%3A14Z&%24top=10 "HTTP/1.1 200 OK"
+[2025-08-19 18:51:00,590: WARNING/MainProcess] CurrentDatetime: 2025-08-19 18:51:00.590094
+[2025-08-19 18:51:00,591: WARNING/MainProcess] Last Execution Date: 2025-08-19 13:19:14.246796
+[2025-08-19 18:51:00,591: WARNING/MainProcess] Fetched 0 email(s) from mailbox
+[2025-08-19 18:51:00,596: WARNING/MainProcess] Scheduling next execution at: 2025-08-19 13:21:30.596560
+[2025-08-19 18:51:00,604: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K317SYZZPGDBZBDHKXCE1VQ0] succeeded in 2.9472087000031024s: None
+[2025-08-19 18:51:00,612: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K317TZ5GGQQEKP4RBJJYXRD6] received
+[2025-08-19 18:51:30,603: WARNING/MainProcess] CurrentDatetime: 2025-08-19 18:51:30.602930
+[2025-08-19 18:51:30,604: WARNING/MainProcess] Frequency: SECONDLY30
+[2025-08-19 18:51:30,604: WARNING/MainProcess] mail_box_config_id: 01K317QQ1WD6GEXT0F3EBA34HF
+[2025-08-19 18:51:30,613: WARNING/MainProcess] MailBox: vjigar2404@outlook.com
+[2025-08-19 18:51:30,621: WARNING/MainProcess] https://login.microsoftonline.com/common/oauth2/v2.0/token
+[2025-08-19 18:51:32,972: INFO/MainProcess] HTTP Request: POST https://login.microsoftonline.com/common/oauth2/v2.0/token "HTTP/1.1 200 OK"
+[2025-08-19 18:51:34,745: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/mailFolders/Inbox/messages?%24filter=hasAttachments%20eq%20true%20and%20receivedDateTime%20ge%202025-08-19T13%3A19%3A14Z&%24top=10 "HTTP/1.1 200 OK"
+[2025-08-19 18:51:34,747: WARNING/MainProcess] CurrentDatetime: 2025-08-19 18:51:34.747745
+[2025-08-19 18:51:34,748: WARNING/MainProcess] Last Execution Date: 2025-08-19 13:19:14.246796
+[2025-08-19 18:51:34,749: WARNING/MainProcess] Fetched 0 email(s) from mailbox
+[2025-08-19 18:51:34,752: WARNING/MainProcess] Scheduling next execution at: 2025-08-19 13:22:04.752222
+[2025-08-19 18:51:34,759: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K317TZ5GGQQEKP4RBJJYXRD6] succeeded in 4.156953700003214s: None
+[2025-08-19 18:51:34,786: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K317W0GYFA6EP3TFYDMW4S9P] received
+[2025-08-19 18:52:04,758: WARNING/MainProcess] CurrentDatetime: 2025-08-19 18:52:04.758444
+[2025-08-19 18:52:04,759: WARNING/MainProcess] Frequency: SECONDLY30
+[2025-08-19 18:52:04,761: WARNING/MainProcess] mail_box_config_id: 01K317QQ1WD6GEXT0F3EBA34HF
+[2025-08-19 18:52:04,771: WARNING/MainProcess] MailBox: vjigar2404@outlook.com
+[2025-08-19 18:52:04,780: WARNING/MainProcess] https://login.microsoftonline.com/common/oauth2/v2.0/token
+[2025-08-19 18:52:07,222: INFO/MainProcess] HTTP Request: POST https://login.microsoftonline.com/common/oauth2/v2.0/token "HTTP/1.1 200 OK"
+[2025-08-19 18:52:09,590: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/mailFolders/Inbox/messages?%24filter=hasAttachments%20eq%20true%20and%20receivedDateTime%20ge%202025-08-19T13%3A19%3A14Z&%24top=10 "HTTP/1.1 200 OK"
+[2025-08-19 18:52:09,595: WARNING/MainProcess] CurrentDatetime: 2025-08-19 18:52:09.594918
+[2025-08-19 18:52:09,595: WARNING/MainProcess] Last Execution Date: 2025-08-19 13:19:14.246796
+[2025-08-19 18:52:09,596: WARNING/MainProcess] Fetched 0 email(s) from mailbox
+[2025-08-19 18:52:09,600: WARNING/MainProcess] Scheduling next execution at: 2025-08-19 13:22:39.600524
+[2025-08-19 18:52:09,609: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K317W0GYFA6EP3TFYDMW4S9P] succeeded in 4.852915800060146s: None
+[2025-08-19 18:52:09,614: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K317X2HXSAY1TGMM6M64852Y] received
+[2025-08-19 18:52:39,606: WARNING/MainProcess] CurrentDatetime: 2025-08-19 18:52:39.606153
+[2025-08-19 18:52:39,608: WARNING/MainProcess] Frequency: SECONDLY30
+[2025-08-19 18:52:39,608: WARNING/MainProcess] mail_box_config_id: 01K317QQ1WD6GEXT0F3EBA34HF
+[2025-08-19 18:52:39,616: WARNING/MainProcess] MailBox: vjigar2404@outlook.com
+[2025-08-19 18:52:39,621: WARNING/MainProcess] https://login.microsoftonline.com/common/oauth2/v2.0/token
+[2025-08-19 18:52:42,121: INFO/MainProcess] HTTP Request: POST https://login.microsoftonline.com/common/oauth2/v2.0/token "HTTP/1.1 200 OK"
+[2025-08-19 18:52:44,294: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/mailFolders/Inbox/messages?%24filter=hasAttachments%20eq%20true%20and%20receivedDateTime%20ge%202025-08-19T13%3A19%3A14Z&%24top=10 "HTTP/1.1 200 OK"
+[2025-08-19 18:52:44,296: WARNING/MainProcess] CurrentDatetime: 2025-08-19 18:52:44.296627
+[2025-08-19 18:52:44,297: WARNING/MainProcess] Last Execution Date: 2025-08-19 13:19:14.246796
+[2025-08-19 18:52:44,298: WARNING/MainProcess] Fetched 0 email(s) from mailbox
+[2025-08-19 18:52:44,301: WARNING/MainProcess] Scheduling next execution at: 2025-08-19 13:23:14.301544
+[2025-08-19 18:52:44,308: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K317X2HXSAY1TGMM6M64852Y] succeeded in 4.703087999951094s: None
+[2025-08-19 18:52:44,315: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K317Y4EAWP50TYVTDHJGTDCE] received
+[2025-08-19 18:53:14,310: WARNING/MainProcess] CurrentDatetime: 2025-08-19 18:53:14.310531
+[2025-08-19 18:53:14,311: WARNING/MainProcess] Frequency: SECONDLY30
+[2025-08-19 18:53:14,311: WARNING/MainProcess] mail_box_config_id: 01K317QQ1WD6GEXT0F3EBA34HF
+[2025-08-19 18:53:14,316: WARNING/MainProcess] MailBox: vjigar2404@outlook.com
+[2025-08-19 18:53:14,320: WARNING/MainProcess] https://login.microsoftonline.com/common/oauth2/v2.0/token
+[2025-08-19 18:53:15,788: INFO/MainProcess] HTTP Request: POST https://login.microsoftonline.com/common/oauth2/v2.0/token "HTTP/1.1 200 OK"
+[2025-08-19 18:53:16,867: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/mailFolders/Inbox/messages?%24filter=hasAttachments%20eq%20true%20and%20receivedDateTime%20ge%202025-08-19T13%3A19%3A14Z&%24top=10 "HTTP/1.1 200 OK"
+[2025-08-19 18:53:19,315: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/messages/AQMkADAwATNiZmYAZS04ZDNjLTdiOTgtMDACLTAwCgBGAAADxthT1SzjGkK73hUDXwNxUwcAAfmYEfbpfES9PhJtktQywAAAAgEMAAAAAfmYEfbpfES9PhJtktQywAAAAKUrJL4AAAA=/attachments "HTTP/1.1 200 OK"
+[2025-08-19 18:53:21,520: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/messages/AQMkADAwATNiZmYAZS04ZDNjLTdiOTgtMDACLTAwCgBGAAADxthT1SzjGkK73hUDXwNxUwcAAfmYEfbpfES9PhJtktQywAAAAgEMAAAAAfmYEfbpfES9PhJtktQywAAAAKUrJL4AAAA=/attachments/AQMkADAwATNiZmYAZS04ZDNjLTdiOTgtMDACLTAwCgBGAAADxthT1SzjGkK73hUDXwNxUwcAAfmYEfbpfES9PhJtktQywAAAAgEMAAAAAfmYEfbpfES9PhJtktQywAAAAKUrJL4AAAABEgAQAMu6Puq6UbZCuSfkL2Y42hw=/$value "HTTP/1.1 200 OK"
+[2025-08-19 18:53:22,582: WARNING/MainProcess] CurrentDatetime: 2025-08-19 18:53:22.581886
+[2025-08-19 18:53:22,582: WARNING/MainProcess] Last Execution Date: 2025-08-19 13:19:14.246796
+[2025-08-19 18:53:22,583: WARNING/MainProcess] Fetched 1 email(s) from mailbox
+[2025-08-19 18:53:22,587: WARNING/MainProcess] Scheduling next execution at: 2025-08-19 13:23:52.587573
+[2025-08-19 18:53:22,593: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K317Y4EAWP50TYVTDHJGTDCE] succeeded in 8.28410409996286s: None
+[2025-08-19 18:53:22,599: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K317Z9TS5681F09EMSBDJBTS] received
+[2025-08-19 18:53:52,593: WARNING/MainProcess] CurrentDatetime: 2025-08-19 18:53:52.593135
+[2025-08-19 18:53:52,594: WARNING/MainProcess] Frequency: SECONDLY30
+[2025-08-19 18:53:52,594: WARNING/MainProcess] mail_box_config_id: 01K317QQ1WD6GEXT0F3EBA34HF
+[2025-08-19 18:53:52,606: WARNING/MainProcess] MailBox: vjigar2404@outlook.com
+[2025-08-19 18:53:52,611: WARNING/MainProcess] https://login.microsoftonline.com/common/oauth2/v2.0/token
+[2025-08-19 18:53:54,066: INFO/MainProcess] HTTP Request: POST https://login.microsoftonline.com/common/oauth2/v2.0/token "HTTP/1.1 200 OK"
+[2025-08-19 18:53:55,274: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/mailFolders/Inbox/messages?%24filter=hasAttachments%20eq%20true%20and%20receivedDateTime%20ge%202025-08-19T13%3A19%3A14Z&%24top=10 "HTTP/1.1 200 OK"
+[2025-08-19 18:53:56,542: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/messages/AQMkADAwATNiZmYAZS04ZDNjLTdiOTgtMDACLTAwCgBGAAADxthT1SzjGkK73hUDXwNxUwcAAfmYEfbpfES9PhJtktQywAAAAgEMAAAAAfmYEfbpfES9PhJtktQywAAAAKUrJL4AAAA=/attachments "HTTP/1.1 200 OK"
+[2025-08-19 18:53:59,381: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/messages/AQMkADAwATNiZmYAZS04ZDNjLTdiOTgtMDACLTAwCgBGAAADxthT1SzjGkK73hUDXwNxUwcAAfmYEfbpfES9PhJtktQywAAAAgEMAAAAAfmYEfbpfES9PhJtktQywAAAAKUrJL4AAAA=/attachments/AQMkADAwATNiZmYAZS04ZDNjLTdiOTgtMDACLTAwCgBGAAADxthT1SzjGkK73hUDXwNxUwcAAfmYEfbpfES9PhJtktQywAAAAgEMAAAAAfmYEfbpfES9PhJtktQywAAAAKUrJL4AAAABEgAQAMu6Puq6UbZCuSfkL2Y42hw=/$value "HTTP/1.1 200 OK"
+[2025-08-19 18:54:00,784: WARNING/MainProcess] CurrentDatetime: 2025-08-19 18:54:00.784507
+[2025-08-19 18:54:00,785: WARNING/MainProcess] Last Execution Date: 2025-08-19 13:19:14.246796
+[2025-08-19 18:54:00,786: WARNING/MainProcess] Fetched 1 email(s) from mailbox
+[2025-08-19 18:54:00,790: WARNING/MainProcess] Scheduling next execution at: 2025-08-19 13:24:30.790899
+[2025-08-19 18:54:00,797: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K317Z9TS5681F09EMSBDJBTS] succeeded in 8.205541000002995s: None
+[2025-08-19 18:54:00,802: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K3180F4KXW23TCQ5KYW5D19S] received
+[2025-08-19 18:54:30,795: WARNING/MainProcess] CurrentDatetime: 2025-08-19 18:54:30.795428
+[2025-08-19 18:54:30,795: WARNING/MainProcess] Frequency: SECONDLY30
+[2025-08-19 18:54:30,796: WARNING/MainProcess] mail_box_config_id: 01K317QQ1WD6GEXT0F3EBA34HF
+[2025-08-19 18:54:30,802: WARNING/MainProcess] MailBox: vjigar2404@outlook.com
+[2025-08-19 18:54:30,807: WARNING/MainProcess] https://login.microsoftonline.com/common/oauth2/v2.0/token
+[2025-08-19 18:54:32,389: INFO/MainProcess] HTTP Request: POST https://login.microsoftonline.com/common/oauth2/v2.0/token "HTTP/1.1 200 OK"
+[2025-08-19 18:54:33,761: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/mailFolders/Inbox/messages?%24filter=hasAttachments%20eq%20true%20and%20receivedDateTime%20ge%202025-08-19T13%3A19%3A14Z&%24top=10 "HTTP/1.1 200 OK"
+[2025-08-19 18:54:35,147: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/messages/AQMkADAwATNiZmYAZS04ZDNjLTdiOTgtMDACLTAwCgBGAAADxthT1SzjGkK73hUDXwNxUwcAAfmYEfbpfES9PhJtktQywAAAAgEMAAAAAfmYEfbpfES9PhJtktQywAAAAKUrJL4AAAA=/attachments "HTTP/1.1 200 OK"
+[2025-08-19 18:54:37,462: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/messages/AQMkADAwATNiZmYAZS04ZDNjLTdiOTgtMDACLTAwCgBGAAADxthT1SzjGkK73hUDXwNxUwcAAfmYEfbpfES9PhJtktQywAAAAgEMAAAAAfmYEfbpfES9PhJtktQywAAAAKUrJL4AAAA=/attachments/AQMkADAwATNiZmYAZS04ZDNjLTdiOTgtMDACLTAwCgBGAAADxthT1SzjGkK73hUDXwNxUwcAAfmYEfbpfES9PhJtktQywAAAAgEMAAAAAfmYEfbpfES9PhJtktQywAAAAKUrJL4AAAABEgAQAMu6Puq6UbZCuSfkL2Y42hw=/$value "HTTP/1.1 200 OK"
+[2025-08-19 18:54:38,267: WARNING/MainProcess] CurrentDatetime: 2025-08-19 18:54:38.267476
+[2025-08-19 18:54:38,268: WARNING/MainProcess] Last Execution Date: 2025-08-19 13:19:14.246796
+[2025-08-19 18:54:38,269: WARNING/MainProcess] Fetched 1 email(s) from mailbox
+[2025-08-19 18:54:38,275: WARNING/MainProcess] Scheduling next execution at: 2025-08-19 13:25:08.274914
+[2025-08-19 18:54:38,282: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K3180F4KXW23TCQ5KYW5D19S] succeeded in 7.4879549000179395s: None
+[2025-08-19 18:54:38,289: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K3181KQYG66N970YFEAWYW5F] received
+[2025-08-19 18:55:08,281: WARNING/MainProcess] CurrentDatetime: 2025-08-19 18:55:08.281875
+[2025-08-19 18:55:08,282: WARNING/MainProcess] Frequency: SECONDLY30
+[2025-08-19 18:55:08,283: WARNING/MainProcess] mail_box_config_id: 01K317QQ1WD6GEXT0F3EBA34HF
+[2025-08-19 18:55:08,288: WARNING/MainProcess] MailBox: vjigar2404@outlook.com
+[2025-08-19 18:55:08,291: WARNING/MainProcess] https://login.microsoftonline.com/common/oauth2/v2.0/token
+[2025-08-19 18:55:09,608: INFO/MainProcess] HTTP Request: POST https://login.microsoftonline.com/common/oauth2/v2.0/token "HTTP/1.1 200 OK"
+[2025-08-19 18:55:10,688: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/mailFolders/Inbox/messages?%24filter=hasAttachments%20eq%20true%20and%20receivedDateTime%20ge%202025-08-19T13%3A19%3A14Z&%24top=10 "HTTP/1.1 200 OK"
+[2025-08-19 18:55:11,829: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/messages/AQMkADAwATNiZmYAZS04ZDNjLTdiOTgtMDACLTAwCgBGAAADxthT1SzjGkK73hUDXwNxUwcAAfmYEfbpfES9PhJtktQywAAAAgEMAAAAAfmYEfbpfES9PhJtktQywAAAAKUrJL4AAAA=/attachments "HTTP/1.1 200 OK"
+[2025-08-19 18:55:14,185: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/messages/AQMkADAwATNiZmYAZS04ZDNjLTdiOTgtMDACLTAwCgBGAAADxthT1SzjGkK73hUDXwNxUwcAAfmYEfbpfES9PhJtktQywAAAAgEMAAAAAfmYEfbpfES9PhJtktQywAAAAKUrJL4AAAA=/attachments/AQMkADAwATNiZmYAZS04ZDNjLTdiOTgtMDACLTAwCgBGAAADxthT1SzjGkK73hUDXwNxUwcAAfmYEfbpfES9PhJtktQywAAAAgEMAAAAAfmYEfbpfES9PhJtktQywAAAAKUrJL4AAAABEgAQAMu6Puq6UbZCuSfkL2Y42hw=/$value "HTTP/1.1 200 OK"
+[2025-08-19 18:55:15,543: WARNING/MainProcess] CurrentDatetime: 2025-08-19 18:55:15.542954
+[2025-08-19 18:55:15,543: WARNING/MainProcess] Last Execution Date: 2025-08-19 13:19:14.246796
+[2025-08-19 18:55:15,544: WARNING/MainProcess] Fetched 1 email(s) from mailbox
+[2025-08-19 18:55:15,546: WARNING/MainProcess] Scheduling next execution at: 2025-08-19 13:25:45.546418
+[2025-08-19 18:55:15,550: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K3181KQYG66N970YFEAWYW5F] succeeded in 7.272086999961175s: None
+[2025-08-19 18:55:15,554: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K3182R4RXSYRE9CZJDMJ8TGM] received
+[2025-08-19 18:55:45,552: WARNING/MainProcess] CurrentDatetime: 2025-08-19 18:55:45.551926
+[2025-08-19 18:55:45,552: WARNING/MainProcess] Frequency: SECONDLY30
+[2025-08-19 18:55:45,554: WARNING/MainProcess] mail_box_config_id: 01K317QQ1WD6GEXT0F3EBA34HF
+[2025-08-19 18:55:45,560: WARNING/MainProcess] MailBox: vjigar2404@outlook.com
+[2025-08-19 18:55:45,567: WARNING/MainProcess] https://login.microsoftonline.com/common/oauth2/v2.0/token
+[2025-08-19 18:55:47,556: INFO/MainProcess] HTTP Request: POST https://login.microsoftonline.com/common/oauth2/v2.0/token "HTTP/1.1 200 OK"
+[2025-08-19 18:55:49,387: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/mailFolders/Inbox/messages?%24filter=hasAttachments%20eq%20true%20and%20receivedDateTime%20ge%202025-08-19T13%3A19%3A14Z&%24top=10 "HTTP/1.1 200 OK"
+[2025-08-19 18:55:51,365: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/messages/AQMkADAwATNiZmYAZS04ZDNjLTdiOTgtMDACLTAwCgBGAAADxthT1SzjGkK73hUDXwNxUwcAAfmYEfbpfES9PhJtktQywAAAAgEMAAAAAfmYEfbpfES9PhJtktQywAAAAKUrJL4AAAA=/attachments "HTTP/1.1 200 OK"
+[2025-08-19 18:55:55,329: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/messages/AQMkADAwATNiZmYAZS04ZDNjLTdiOTgtMDACLTAwCgBGAAADxthT1SzjGkK73hUDXwNxUwcAAfmYEfbpfES9PhJtktQywAAAAgEMAAAAAfmYEfbpfES9PhJtktQywAAAAKUrJL4AAAA=/attachments/AQMkADAwATNiZmYAZS04ZDNjLTdiOTgtMDACLTAwCgBGAAADxthT1SzjGkK73hUDXwNxUwcAAfmYEfbpfES9PhJtktQywAAAAgEMAAAAAfmYEfbpfES9PhJtktQywAAAAKUrJL4AAAABEgAQAMu6Puq6UbZCuSfkL2Y42hw=/$value "HTTP/1.1 200 OK"
+[2025-08-19 18:55:56,326: WARNING/MainProcess] CurrentDatetime: 2025-08-19 18:55:56.325995
+[2025-08-19 18:55:56,326: WARNING/MainProcess] Last Execution Date: 2025-08-19 13:19:14.246796
+[2025-08-19 18:55:56,326: WARNING/MainProcess] Fetched 1 email(s) from mailbox
+[2025-08-19 18:55:56,330: WARNING/MainProcess] Scheduling next execution at: 2025-08-19 13:26:26.330518
+[2025-08-19 18:55:56,336: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K3182R4RXSYRE9CZJDMJ8TGM] succeeded in 10.786706099985167s: None
+[2025-08-19 18:55:56,340: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K3183ZZ7AM21Y5A4X3XWF00G] received
+[2025-08-19 18:56:26,335: WARNING/MainProcess] CurrentDatetime: 2025-08-19 18:56:26.335077
+[2025-08-19 18:56:26,335: WARNING/MainProcess] Frequency: SECONDLY30
+[2025-08-19 18:56:26,336: WARNING/MainProcess] mail_box_config_id: 01K317QQ1WD6GEXT0F3EBA34HF
+[2025-08-19 18:56:26,340: WARNING/MainProcess] MailBox: vjigar2404@outlook.com
+[2025-08-19 18:56:26,343: WARNING/MainProcess] https://login.microsoftonline.com/common/oauth2/v2.0/token
+[2025-08-19 18:56:27,807: INFO/MainProcess] HTTP Request: POST https://login.microsoftonline.com/common/oauth2/v2.0/token "HTTP/1.1 200 OK"
+[2025-08-19 18:56:29,117: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/mailFolders/Inbox/messages?%24filter=hasAttachments%20eq%20true%20and%20receivedDateTime%20ge%202025-08-19T13%3A19%3A14Z&%24top=10 "HTTP/1.1 200 OK"
+[2025-08-19 18:56:30,362: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/messages/AQMkADAwATNiZmYAZS04ZDNjLTdiOTgtMDACLTAwCgBGAAADxthT1SzjGkK73hUDXwNxUwcAAfmYEfbpfES9PhJtktQywAAAAgEMAAAAAfmYEfbpfES9PhJtktQywAAAAKUrJL4AAAA=/attachments "HTTP/1.1 200 OK"
+[2025-08-19 18:56:32,945: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/messages/AQMkADAwATNiZmYAZS04ZDNjLTdiOTgtMDACLTAwCgBGAAADxthT1SzjGkK73hUDXwNxUwcAAfmYEfbpfES9PhJtktQywAAAAgEMAAAAAfmYEfbpfES9PhJtktQywAAAAKUrJL4AAAA=/attachments/AQMkADAwATNiZmYAZS04ZDNjLTdiOTgtMDACLTAwCgBGAAADxthT1SzjGkK73hUDXwNxUwcAAfmYEfbpfES9PhJtktQywAAAAgEMAAAAAfmYEfbpfES9PhJtktQywAAAAKUrJL4AAAABEgAQAMu6Puq6UbZCuSfkL2Y42hw=/$value "HTTP/1.1 200 OK"
+[2025-08-19 18:56:33,866: WARNING/MainProcess] CurrentDatetime: 2025-08-19 18:56:33.866676
+[2025-08-19 18:56:33,867: WARNING/MainProcess] Last Execution Date: 2025-08-19 13:19:14.246796
+[2025-08-19 18:56:33,867: WARNING/MainProcess] Fetched 1 email(s) from mailbox
+[2025-08-19 18:56:33,870: WARNING/MainProcess] Scheduling next execution at: 2025-08-19 13:27:03.870369
+[2025-08-19 18:56:33,877: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K3183ZZ7AM21Y5A4X3XWF00G] succeeded in 7.54458370001521s: None
+[2025-08-19 18:56:33,882: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K31854MCN266S59EYTF3ARSP] received
+[2025-08-19 18:57:03,884: WARNING/MainProcess] CurrentDatetime: 2025-08-19 18:57:03.883124
+[2025-08-19 18:57:03,887: WARNING/MainProcess] Frequency: SECONDLY30
+[2025-08-19 18:57:03,887: WARNING/MainProcess] mail_box_config_id: 01K317QQ1WD6GEXT0F3EBA34HF
+[2025-08-19 18:57:03,946: WARNING/MainProcess] MailBox: vjigar2404@outlook.com
+[2025-08-19 18:57:36,279: WARNING/MainProcess] https://login.microsoftonline.com/common/oauth2/v2.0/token
+[2025-08-19 18:57:37,737: INFO/MainProcess] HTTP Request: POST https://login.microsoftonline.com/common/oauth2/v2.0/token "HTTP/1.1 200 OK"
+[2025-08-19 18:57:39,058: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/mailFolders/Inbox/messages?%24filter=hasAttachments%20eq%20true%20and%20receivedDateTime%20ge%202025-08-19T13%3A19%3A14Z&%24top=10 "HTTP/1.1 200 OK"
+[2025-08-19 18:57:40,128: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/messages/AQMkADAwATNiZmYAZS04ZDNjLTdiOTgtMDACLTAwCgBGAAADxthT1SzjGkK73hUDXwNxUwcAAfmYEfbpfES9PhJtktQywAAAAgEMAAAAAfmYEfbpfES9PhJtktQywAAAAKUrJL4AAAA=/attachments "HTTP/1.1 200 OK"
+[2025-08-19 18:57:42,541: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/messages/AQMkADAwATNiZmYAZS04ZDNjLTdiOTgtMDACLTAwCgBGAAADxthT1SzjGkK73hUDXwNxUwcAAfmYEfbpfES9PhJtktQywAAAAgEMAAAAAfmYEfbpfES9PhJtktQywAAAAKUrJL4AAAA=/attachments/AQMkADAwATNiZmYAZS04ZDNjLTdiOTgtMDACLTAwCgBGAAADxthT1SzjGkK73hUDXwNxUwcAAfmYEfbpfES9PhJtktQywAAAAgEMAAAAAfmYEfbpfES9PhJtktQywAAAAKUrJL4AAAABEgAQAMu6Puq6UbZCuSfkL2Y42hw=/$value "HTTP/1.1 200 OK"
+[2025-08-19 18:57:43,374: WARNING/MainProcess] CurrentDatetime: 2025-08-19 18:57:43.374116
+[2025-08-19 18:57:43,375: WARNING/MainProcess] Last Execution Date: 2025-08-19 13:19:14.246796
+[2025-08-19 18:57:43,376: WARNING/MainProcess] Fetched 1 email(s) from mailbox
+[2025-08-19 18:57:43,388: WARNING/MainProcess] Scheduling next execution at: 2025-08-19 13:28:13.388728
+[2025-08-19 18:57:43,411: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K31854MCN266S59EYTF3ARSP] succeeded in 39.53185139992274s: None
+[2025-08-19 18:57:43,418: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K31878GJ0RJW6JGNJQ9A8PA7] received
+[2025-08-19 18:58:13,395: WARNING/MainProcess] CurrentDatetime: 2025-08-19 18:58:13.395621
+[2025-08-19 18:58:13,396: WARNING/MainProcess] Frequency: SECONDLY30
+[2025-08-19 18:58:13,397: WARNING/MainProcess] mail_box_config_id: 01K317QQ1WD6GEXT0F3EBA34HF
+[2025-08-19 18:58:13,403: WARNING/MainProcess] MailBox: vjigar2404@outlook.com
+[2025-08-19 18:58:13,407: WARNING/MainProcess] https://login.microsoftonline.com/common/oauth2/v2.0/token
+[2025-08-19 18:58:14,597: INFO/MainProcess] HTTP Request: POST https://login.microsoftonline.com/common/oauth2/v2.0/token "HTTP/1.1 200 OK"
+[2025-08-19 18:58:15,774: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/mailFolders/Inbox/messages?%24filter=hasAttachments%20eq%20true%20and%20receivedDateTime%20ge%202025-08-19T13%3A19%3A14Z&%24top=10 "HTTP/1.1 200 OK"
+[2025-08-19 18:58:16,956: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/messages/AQMkADAwATNiZmYAZS04ZDNjLTdiOTgtMDACLTAwCgBGAAADxthT1SzjGkK73hUDXwNxUwcAAfmYEfbpfES9PhJtktQywAAAAgEMAAAAAfmYEfbpfES9PhJtktQywAAAAKUrJL4AAAA=/attachments "HTTP/1.1 200 OK"
+[2025-08-19 18:58:19,342: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/messages/AQMkADAwATNiZmYAZS04ZDNjLTdiOTgtMDACLTAwCgBGAAADxthT1SzjGkK73hUDXwNxUwcAAfmYEfbpfES9PhJtktQywAAAAgEMAAAAAfmYEfbpfES9PhJtktQywAAAAKUrJL4AAAA=/attachments/AQMkADAwATNiZmYAZS04ZDNjLTdiOTgtMDACLTAwCgBGAAADxthT1SzjGkK73hUDXwNxUwcAAfmYEfbpfES9PhJtktQywAAAAgEMAAAAAfmYEfbpfES9PhJtktQywAAAAKUrJL4AAAABEgAQAMu6Puq6UbZCuSfkL2Y42hw=/$value "HTTP/1.1 200 OK"
+[2025-08-19 18:58:20,398: WARNING/MainProcess] CurrentDatetime: 2025-08-19 18:58:20.397941
+[2025-08-19 18:58:20,398: WARNING/MainProcess] Last Execution Date: 2025-08-19 13:19:14.246796
+[2025-08-19 18:58:20,398: WARNING/MainProcess] Fetched 1 email(s) from mailbox
+[2025-08-19 18:58:20,401: WARNING/MainProcess] Scheduling next execution at: 2025-08-19 13:28:50.401135
+[2025-08-19 18:58:20,405: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K31878GJ0RJW6JGNJQ9A8PA7] succeeded in 7.011704700067639s: None
+[2025-08-19 18:58:20,407: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K3188CNFJ1G17PXB4XQ0MQJJ] received
+[2025-08-19 18:58:50,408: WARNING/MainProcess] CurrentDatetime: 2025-08-19 18:58:50.408696
+[2025-08-19 18:58:50,409: WARNING/MainProcess] Frequency: SECONDLY30
+[2025-08-19 18:58:50,409: WARNING/MainProcess] mail_box_config_id: 01K317QQ1WD6GEXT0F3EBA34HF
+[2025-08-19 18:58:50,412: WARNING/MainProcess] MailBox: vjigar2404@outlook.com
+[2025-08-19 18:58:50,415: WARNING/MainProcess] https://login.microsoftonline.com/common/oauth2/v2.0/token
+[2025-08-19 18:58:51,749: INFO/MainProcess] HTTP Request: POST https://login.microsoftonline.com/common/oauth2/v2.0/token "HTTP/1.1 200 OK"
+[2025-08-19 18:58:53,603: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/mailFolders/Inbox/messages?%24filter=hasAttachments%20eq%20true%20and%20receivedDateTime%20ge%202025-08-19T13%3A19%3A14Z&%24top=10 "HTTP/1.1 200 OK"
+[2025-08-19 18:58:54,927: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/messages/AQMkADAwATNiZmYAZS04ZDNjLTdiOTgtMDACLTAwCgBGAAADxthT1SzjGkK73hUDXwNxUwcAAfmYEfbpfES9PhJtktQywAAAAgEMAAAAAfmYEfbpfES9PhJtktQywAAAAKUrJL4AAAA=/attachments "HTTP/1.1 200 OK"
+[2025-08-19 18:58:57,190: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/messages/AQMkADAwATNiZmYAZS04ZDNjLTdiOTgtMDACLTAwCgBGAAADxthT1SzjGkK73hUDXwNxUwcAAfmYEfbpfES9PhJtktQywAAAAgEMAAAAAfmYEfbpfES9PhJtktQywAAAAKUrJL4AAAA=/attachments/AQMkADAwATNiZmYAZS04ZDNjLTdiOTgtMDACLTAwCgBGAAADxthT1SzjGkK73hUDXwNxUwcAAfmYEfbpfES9PhJtktQywAAAAgEMAAAAAfmYEfbpfES9PhJtktQywAAAAKUrJL4AAAABEgAQAMu6Puq6UbZCuSfkL2Y42hw=/$value "HTTP/1.1 200 OK"
+[2025-08-19 18:58:57,885: WARNING/MainProcess] CurrentDatetime: 2025-08-19 18:58:57.885487
+[2025-08-19 18:58:57,886: WARNING/MainProcess] Last Execution Date: 2025-08-19 13:19:14.246796
+[2025-08-19 18:58:57,886: WARNING/MainProcess] Fetched 1 email(s) from mailbox
+[2025-08-19 18:58:57,889: WARNING/MainProcess] Scheduling next execution at: 2025-08-19 13:29:27.889399
+[2025-08-19 18:58:57,894: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K3188CNFJ1G17PXB4XQ0MQJJ] succeeded in 7.487299500033259s: None
+[2025-08-19 18:58:57,901: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K3189H8ZK4MNSZBPBQEXNAZN] received
+[2025-08-19 18:59:27,895: WARNING/MainProcess] CurrentDatetime: 2025-08-19 18:59:27.895155
+[2025-08-19 18:59:27,895: WARNING/MainProcess] Frequency: SECONDLY30
+[2025-08-19 18:59:27,896: WARNING/MainProcess] mail_box_config_id: 01K317QQ1WD6GEXT0F3EBA34HF
+[2025-08-19 18:59:27,902: WARNING/MainProcess] MailBox: vjigar2404@outlook.com
+[2025-08-19 18:59:27,908: WARNING/MainProcess] https://login.microsoftonline.com/common/oauth2/v2.0/token
+[2025-08-19 18:59:29,358: INFO/MainProcess] HTTP Request: POST https://login.microsoftonline.com/common/oauth2/v2.0/token "HTTP/1.1 200 OK"
+[2025-08-19 18:59:30,629: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/mailFolders/Inbox/messages?%24filter=hasAttachments%20eq%20true%20and%20receivedDateTime%20ge%202025-08-19T13%3A19%3A14Z&%24top=10 "HTTP/1.1 200 OK"
+[2025-08-19 18:59:31,903: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/messages/AQMkADAwATNiZmYAZS04ZDNjLTdiOTgtMDACLTAwCgBGAAADxthT1SzjGkK73hUDXwNxUwcAAfmYEfbpfES9PhJtktQywAAAAgEMAAAAAfmYEfbpfES9PhJtktQywAAAAKUrJL4AAAA=/attachments "HTTP/1.1 200 OK"
+[2025-08-19 18:59:35,719: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/messages/AQMkADAwATNiZmYAZS04ZDNjLTdiOTgtMDACLTAwCgBGAAADxthT1SzjGkK73hUDXwNxUwcAAfmYEfbpfES9PhJtktQywAAAAgEMAAAAAfmYEfbpfES9PhJtktQywAAAAKUrJL4AAAA=/attachments/AQMkADAwATNiZmYAZS04ZDNjLTdiOTgtMDACLTAwCgBGAAADxthT1SzjGkK73hUDXwNxUwcAAfmYEfbpfES9PhJtktQywAAAAgEMAAAAAfmYEfbpfES9PhJtktQywAAAAKUrJL4AAAABEgAQAMu6Puq6UbZCuSfkL2Y42hw=/$value "HTTP/1.1 200 OK"
+[2025-08-19 18:59:36,567: WARNING/MainProcess] CurrentDatetime: 2025-08-19 18:59:36.567203
+[2025-08-19 18:59:36,568: WARNING/MainProcess] Last Execution Date: 2025-08-19 13:19:14.246796
+[2025-08-19 18:59:36,568: WARNING/MainProcess] Fetched 1 email(s) from mailbox
+[2025-08-19 18:59:36,571: WARNING/MainProcess] Scheduling next execution at: 2025-08-19 13:30:06.571787
+[2025-08-19 18:59:36,576: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K3189H8ZK4MNSZBPBQEXNAZN] succeeded in 8.683806500048377s: None
+[2025-08-19 18:59:36,581: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K318AQ1SB250EGZ81A503XBD] received
+[2025-08-19 19:00:06,581: WARNING/MainProcess] CurrentDatetime: 2025-08-19 19:00:06.581864
+[2025-08-19 19:00:06,582: WARNING/MainProcess] Frequency: SECONDLY30
+[2025-08-19 19:00:06,583: WARNING/MainProcess] mail_box_config_id: 01K317QQ1WD6GEXT0F3EBA34HF
+[2025-08-19 19:00:06,591: WARNING/MainProcess] MailBox: vjigar2404@outlook.com
+[2025-08-19 19:00:06,595: WARNING/MainProcess] https://login.microsoftonline.com/common/oauth2/v2.0/token
+[2025-08-19 19:00:07,889: INFO/MainProcess] HTTP Request: POST https://login.microsoftonline.com/common/oauth2/v2.0/token "HTTP/1.1 200 OK"
+[2025-08-19 19:00:08,933: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/mailFolders/Inbox/messages?%24filter=hasAttachments%20eq%20true%20and%20receivedDateTime%20ge%202025-08-19T13%3A19%3A14Z&%24top=10 "HTTP/1.1 200 OK"
+[2025-08-19 19:00:10,029: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/messages/AQMkADAwATNiZmYAZS04ZDNjLTdiOTgtMDACLTAwCgBGAAADxthT1SzjGkK73hUDXwNxUwcAAfmYEfbpfES9PhJtktQywAAAAgEMAAAAAfmYEfbpfES9PhJtktQywAAAAKUrJL4AAAA=/attachments "HTTP/1.1 200 OK"
+[2025-08-19 19:00:12,690: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/messages/AQMkADAwATNiZmYAZS04ZDNjLTdiOTgtMDACLTAwCgBGAAADxthT1SzjGkK73hUDXwNxUwcAAfmYEfbpfES9PhJtktQywAAAAgEMAAAAAfmYEfbpfES9PhJtktQywAAAAKUrJL4AAAA=/attachments/AQMkADAwATNiZmYAZS04ZDNjLTdiOTgtMDACLTAwCgBGAAADxthT1SzjGkK73hUDXwNxUwcAAfmYEfbpfES9PhJtktQywAAAAgEMAAAAAfmYEfbpfES9PhJtktQywAAAAKUrJL4AAAABEgAQAMu6Puq6UbZCuSfkL2Y42hw=/$value "HTTP/1.1 200 OK"
+[2025-08-19 19:00:13,646: WARNING/MainProcess] CurrentDatetime: 2025-08-19 19:00:13.646050
+[2025-08-19 19:00:13,646: WARNING/MainProcess] Last Execution Date: 2025-08-19 13:19:14.246796
+[2025-08-19 19:00:13,646: WARNING/MainProcess] Fetched 1 email(s) from mailbox
+[2025-08-19 19:00:13,649: WARNING/MainProcess] Scheduling next execution at: 2025-08-19 13:30:43.649323
+[2025-08-19 19:00:13,654: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K318AQ1SB250EGZ81A503XBD] succeeded in 7.073741200030781s: None
+[2025-08-19 19:00:13,657: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K318BV8FYE2JZ26F2M8SA8H6] received
+[2025-08-19 19:00:43,654: WARNING/MainProcess] CurrentDatetime: 2025-08-19 19:00:43.654655
+[2025-08-19 19:00:43,655: WARNING/MainProcess] Frequency: SECONDLY30
+[2025-08-19 19:00:43,655: WARNING/MainProcess] mail_box_config_id: 01K317QQ1WD6GEXT0F3EBA34HF
+[2025-08-19 19:00:43,659: WARNING/MainProcess] MailBox: vjigar2404@outlook.com
+[2025-08-19 19:00:43,663: WARNING/MainProcess] https://login.microsoftonline.com/common/oauth2/v2.0/token
+[2025-08-19 19:00:45,026: INFO/MainProcess] HTTP Request: POST https://login.microsoftonline.com/common/oauth2/v2.0/token "HTTP/1.1 200 OK"
+[2025-08-19 19:00:46,325: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/mailFolders/Inbox/messages?%24filter=hasAttachments%20eq%20true%20and%20receivedDateTime%20ge%202025-08-19T13%3A19%3A14Z&%24top=10 "HTTP/1.1 200 OK"
+[2025-08-19 19:00:47,520: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/messages/AQMkADAwATNiZmYAZS04ZDNjLTdiOTgtMDACLTAwCgBGAAADxthT1SzjGkK73hUDXwNxUwcAAfmYEfbpfES9PhJtktQywAAAAgEMAAAAAfmYEfbpfES9PhJtktQywAAAAKUrJL4AAAA=/attachments "HTTP/1.1 200 OK"
+[2025-08-19 19:00:49,725: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/messages/AQMkADAwATNiZmYAZS04ZDNjLTdiOTgtMDACLTAwCgBGAAADxthT1SzjGkK73hUDXwNxUwcAAfmYEfbpfES9PhJtktQywAAAAgEMAAAAAfmYEfbpfES9PhJtktQywAAAAKUrJL4AAAA=/attachments/AQMkADAwATNiZmYAZS04ZDNjLTdiOTgtMDACLTAwCgBGAAADxthT1SzjGkK73hUDXwNxUwcAAfmYEfbpfES9PhJtktQywAAAAgEMAAAAAfmYEfbpfES9PhJtktQywAAAAKUrJL4AAAABEgAQAMu6Puq6UbZCuSfkL2Y42hw=/$value "HTTP/1.1 200 OK"
+[2025-08-19 19:00:51,761: WARNING/MainProcess] CurrentDatetime: 2025-08-19 19:00:51.761132
+[2025-08-19 19:00:51,762: WARNING/MainProcess] Last Execution Date: 2025-08-19 13:19:14.246796
+[2025-08-19 19:00:51,762: WARNING/MainProcess] Fetched 1 email(s) from mailbox
+[2025-08-19 19:00:51,765: WARNING/MainProcess] Scheduling next execution at: 2025-08-19 13:31:21.765405
+[2025-08-19 19:00:51,770: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K318BV8FYE2JZ26F2M8SA8H6] succeeded in 8.117553900112398s: None
+[2025-08-19 19:00:51,773: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K318D0FJGY39D6KE096B4SYF] received
+[2025-08-19 19:01:21,770: WARNING/MainProcess] CurrentDatetime: 2025-08-19 19:01:21.770840
+[2025-08-19 19:01:21,771: WARNING/MainProcess] Frequency: SECONDLY30
+[2025-08-19 19:01:21,771: WARNING/MainProcess] mail_box_config_id: 01K317QQ1WD6GEXT0F3EBA34HF
+[2025-08-19 19:01:21,777: WARNING/MainProcess] MailBox: vjigar2404@outlook.com
+[2025-08-19 19:01:21,782: WARNING/MainProcess] https://login.microsoftonline.com/common/oauth2/v2.0/token
+[2025-08-19 19:01:23,119: INFO/MainProcess] HTTP Request: POST https://login.microsoftonline.com/common/oauth2/v2.0/token "HTTP/1.1 200 OK"
+[2025-08-19 19:01:24,257: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/mailFolders/Inbox/messages?%24filter=hasAttachments%20eq%20true%20and%20receivedDateTime%20ge%202025-08-19T13%3A19%3A14Z&%24top=10 "HTTP/1.1 200 OK"
+[2025-08-19 19:01:25,360: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/messages/AQMkADAwATNiZmYAZS04ZDNjLTdiOTgtMDACLTAwCgBGAAADxthT1SzjGkK73hUDXwNxUwcAAfmYEfbpfES9PhJtktQywAAAAgEMAAAAAfmYEfbpfES9PhJtktQywAAAAKUrJL4AAAA=/attachments "HTTP/1.1 200 OK"
+[2025-08-19 19:01:28,050: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/messages/AQMkADAwATNiZmYAZS04ZDNjLTdiOTgtMDACLTAwCgBGAAADxthT1SzjGkK73hUDXwNxUwcAAfmYEfbpfES9PhJtktQywAAAAgEMAAAAAfmYEfbpfES9PhJtktQywAAAAKUrJL4AAAA=/attachments/AQMkADAwATNiZmYAZS04ZDNjLTdiOTgtMDACLTAwCgBGAAADxthT1SzjGkK73hUDXwNxUwcAAfmYEfbpfES9PhJtktQywAAAAgEMAAAAAfmYEfbpfES9PhJtktQywAAAAKUrJL4AAAABEgAQAMu6Puq6UbZCuSfkL2Y42hw=/$value "HTTP/1.1 200 OK"
+[2025-08-19 19:01:30,336: WARNING/MainProcess] CurrentDatetime: 2025-08-19 19:01:30.336250
+[2025-08-19 19:01:30,336: WARNING/MainProcess] Last Execution Date: 2025-08-19 13:19:14.246796
+[2025-08-19 19:01:30,336: WARNING/MainProcess] Fetched 1 email(s) from mailbox
+[2025-08-19 19:01:30,338: WARNING/MainProcess] Scheduling next execution at: 2025-08-19 13:32:00.338560
+[2025-08-19 19:01:30,341: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K318D0FJGY39D6KE096B4SYF] succeeded in 8.572622300009243s: None
+[2025-08-19 19:01:30,344: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K318E651X1DN4KVQ4WBR5ZV2] received
+[2025-08-19 19:02:00,344: WARNING/MainProcess] CurrentDatetime: 2025-08-19 19:02:00.344189
+[2025-08-19 19:02:00,344: WARNING/MainProcess] Frequency: SECONDLY30
+[2025-08-19 19:02:00,345: WARNING/MainProcess] mail_box_config_id: 01K317QQ1WD6GEXT0F3EBA34HF
+[2025-08-19 19:02:00,350: WARNING/MainProcess] MailBox: vjigar2404@outlook.com
+[2025-08-19 19:02:00,355: WARNING/MainProcess] https://login.microsoftonline.com/common/oauth2/v2.0/token
+[2025-08-19 19:02:01,573: INFO/MainProcess] HTTP Request: POST https://login.microsoftonline.com/common/oauth2/v2.0/token "HTTP/1.1 200 OK"
+[2025-08-19 19:02:02,839: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/mailFolders/Inbox/messages?%24filter=hasAttachments%20eq%20true%20and%20receivedDateTime%20ge%202025-08-19T13%3A19%3A14Z&%24top=10 "HTTP/1.1 200 OK"
+[2025-08-19 19:02:04,026: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/messages/AQMkADAwATNiZmYAZS04ZDNjLTdiOTgtMDACLTAwCgBGAAADxthT1SzjGkK73hUDXwNxUwcAAfmYEfbpfES9PhJtktQywAAAAgEMAAAAAfmYEfbpfES9PhJtktQywAAAAKUrJL4AAAA=/attachments "HTTP/1.1 200 OK"
+[2025-08-19 19:02:06,811: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/messages/AQMkADAwATNiZmYAZS04ZDNjLTdiOTgtMDACLTAwCgBGAAADxthT1SzjGkK73hUDXwNxUwcAAfmYEfbpfES9PhJtktQywAAAAgEMAAAAAfmYEfbpfES9PhJtktQywAAAAKUrJL4AAAA=/attachments/AQMkADAwATNiZmYAZS04ZDNjLTdiOTgtMDACLTAwCgBGAAADxthT1SzjGkK73hUDXwNxUwcAAfmYEfbpfES9PhJtktQywAAAAgEMAAAAAfmYEfbpfES9PhJtktQywAAAAKUrJL4AAAABEgAQAMu6Puq6UbZCuSfkL2Y42hw=/$value "HTTP/1.1 200 OK"
+[2025-08-19 19:02:08,736: WARNING/MainProcess] CurrentDatetime: 2025-08-19 19:02:08.736553
+[2025-08-19 19:02:08,737: WARNING/MainProcess] Last Execution Date: 2025-08-19 13:19:14.246796
+[2025-08-19 19:02:08,737: WARNING/MainProcess] Fetched 1 email(s) from mailbox
+[2025-08-19 19:02:08,741: WARNING/MainProcess] Scheduling next execution at: 2025-08-19 13:32:38.741180
+[2025-08-19 19:02:08,745: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K318E651X1DN4KVQ4WBR5ZV2] succeeded in 8.403259299928322s: None
+[2025-08-19 19:02:08,748: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K318FBN27MF0PGX084A83XS0] received
+[2025-08-19 19:02:38,755: WARNING/MainProcess] CurrentDatetime: 2025-08-19 19:02:38.754900
+[2025-08-19 19:02:38,756: WARNING/MainProcess] Frequency: SECONDLY30
+[2025-08-19 19:02:38,757: WARNING/MainProcess] mail_box_config_id: 01K317QQ1WD6GEXT0F3EBA34HF
+[2025-08-19 19:02:38,775: WARNING/MainProcess] MailBox: vjigar2404@outlook.com
+[2025-08-19 19:03:36,489: WARNING/MainProcess] https://login.microsoftonline.com/common/oauth2/v2.0/token
+[2025-08-19 19:03:37,908: INFO/MainProcess] HTTP Request: POST https://login.microsoftonline.com/common/oauth2/v2.0/token "HTTP/1.1 200 OK"
+[2025-08-19 19:04:33,312: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/mailFolders/Inbox/messages?%24filter=hasAttachments%20eq%20true%20and%20receivedDateTime%20ge%202025-08-19T13%3A19%3A14Z&%24top=10 "HTTP/1.1 200 OK"
+[2025-08-19 19:05:45,970: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/messages/AQMkADAwATNiZmYAZS04ZDNjLTdiOTgtMDACLTAwCgBGAAADxthT1SzjGkK73hUDXwNxUwcAAfmYEfbpfES9PhJtktQywAAAAgEMAAAAAfmYEfbpfES9PhJtktQywAAAAKUrJL4AAAA=/attachments "HTTP/1.1 200 OK"
+[2025-08-19 19:05:48,394: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/messages/AQMkADAwATNiZmYAZS04ZDNjLTdiOTgtMDACLTAwCgBGAAADxthT1SzjGkK73hUDXwNxUwcAAfmYEfbpfES9PhJtktQywAAAAgEMAAAAAfmYEfbpfES9PhJtktQywAAAAKUrJL4AAAA=/attachments/AQMkADAwATNiZmYAZS04ZDNjLTdiOTgtMDACLTAwCgBGAAADxthT1SzjGkK73hUDXwNxUwcAAfmYEfbpfES9PhJtktQywAAAAgEMAAAAAfmYEfbpfES9PhJtktQywAAAAKUrJL4AAAABEgAQAMu6Puq6UbZCuSfkL2Y42hw=/$value "HTTP/1.1 200 OK"
+[2025-08-19 19:05:49,318: WARNING/MainProcess] CurrentDatetime: 2025-08-19 19:05:49.318327
+[2025-08-19 19:05:49,319: WARNING/MainProcess] Last Execution Date: 2025-08-19 13:19:14.246796
+[2025-08-19 19:05:49,319: WARNING/MainProcess] Fetched 1 email(s) from mailbox
+[2025-08-19 19:05:49,327: WARNING/MainProcess] Scheduling next execution at: 2025-08-19 13:36:19.326997
+[2025-08-19 19:05:49,340: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K318FBN27MF0PGX084A83XS0] succeeded in 190.58838649990503s: None
+[2025-08-19 19:05:49,346: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K318P32880W4ZBAAJFTJ6XBJ] received
+[2025-08-19 19:06:19,334: WARNING/MainProcess] CurrentDatetime: 2025-08-19 19:06:19.333876
+[2025-08-19 19:06:19,335: WARNING/MainProcess] Frequency: SECONDLY30
+[2025-08-19 19:06:19,335: WARNING/MainProcess] mail_box_config_id: 01K317QQ1WD6GEXT0F3EBA34HF
+[2025-08-19 19:06:19,352: WARNING/MainProcess] MailBox: vjigar2404@outlook.com
+[2025-08-19 19:06:19,357: WARNING/MainProcess] https://login.microsoftonline.com/common/oauth2/v2.0/token
+[2025-08-19 19:06:20,750: INFO/MainProcess] HTTP Request: POST https://login.microsoftonline.com/common/oauth2/v2.0/token "HTTP/1.1 200 OK"
+[2025-08-19 19:06:22,028: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/mailFolders/Inbox/messages?%24filter=hasAttachments%20eq%20true%20and%20receivedDateTime%20ge%202025-08-19T13%3A19%3A14Z&%24top=10 "HTTP/1.1 200 OK"
+[2025-08-19 19:06:23,345: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/messages/AQMkADAwATNiZmYAZS04ZDNjLTdiOTgtMDACLTAwCgBGAAADxthT1SzjGkK73hUDXwNxUwcAAfmYEfbpfES9PhJtktQywAAAAgEMAAAAAfmYEfbpfES9PhJtktQywAAAAKUrJL4AAAA=/attachments "HTTP/1.1 200 OK"
+[2025-08-19 19:06:25,646: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/messages/AQMkADAwATNiZmYAZS04ZDNjLTdiOTgtMDACLTAwCgBGAAADxthT1SzjGkK73hUDXwNxUwcAAfmYEfbpfES9PhJtktQywAAAAgEMAAAAAfmYEfbpfES9PhJtktQywAAAAKUrJL4AAAA=/attachments/AQMkADAwATNiZmYAZS04ZDNjLTdiOTgtMDACLTAwCgBGAAADxthT1SzjGkK73hUDXwNxUwcAAfmYEfbpfES9PhJtktQywAAAAgEMAAAAAfmYEfbpfES9PhJtktQywAAAAKUrJL4AAAABEgAQAMu6Puq6UbZCuSfkL2Y42hw=/$value "HTTP/1.1 200 OK"
+[2025-08-19 19:06:28,036: WARNING/MainProcess] CurrentDatetime: 2025-08-19 19:06:28.036292
+[2025-08-19 19:06:28,036: WARNING/MainProcess] Last Execution Date: 2025-08-19 13:19:14.246796
+[2025-08-19 19:06:28,037: WARNING/MainProcess] Fetched 1 email(s) from mailbox
+[2025-08-19 19:06:28,041: WARNING/MainProcess] Scheduling next execution at: 2025-08-19 13:36:58.041017
+[2025-08-19 19:06:28,048: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K318P32880W4ZBAAJFTJ6XBJ] succeeded in 8.716070899972692s: None
+[2025-08-19 19:06:28,054: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K318Q8W549DDSA83ZVZGWQQ2] received
+[2025-08-19 19:11:28,413: INFO/MainProcess] Connected to redis://localhost:6379/0
+[2025-08-19 19:11:28,429: INFO/MainProcess] mingle: searching for neighbors
+[2025-08-19 19:11:29,487: INFO/MainProcess] mingle: all alone
+[2025-08-19 19:11:29,536: INFO/MainProcess] celery@APC-AP-13RQPB4 ready.
+[2025-08-19 19:16:43,328: ERROR/MainProcess] pidbox command error: AttributeError("module 'signal' has no attribute 'SIGKILL'")
 Traceback (most recent call last):
-  File "c:\Users\JigarVaishnav\Projects\pv-tool-be\.venv\Lib\site-packages\celery\worker\consumer\consumer.py", line 662, in on_task_received
-    strategy = strategies[type_]
-               ~~~~~~~~~~^^^^^^^
-KeyError: 'core.utils.celery_worker.pooling_mail_box'
-[2025-08-18 23:27:39,014: INFO/MainProcess] Connected to redis://localhost:6379/0
-[2025-08-18 23:27:39,028: INFO/MainProcess] mingle: searching for neighbors
-[2025-08-18 23:27:40,098: INFO/MainProcess] mingle: all alone
-[2025-08-18 23:27:40,182: INFO/MainProcess] celery@APC-AP-13RQPB4 ready.
-[2025-08-18 23:30:39,344: ERROR/MainProcess] Received unregistered task of type 'core.utils.celery_worker.pooling_mail_box'.
-The message has been ignored and discarded.
+  File "c:\Users\JigarVaishnav\Projects\pv-tool-be\.venv\Lib\site-packages\kombu\pidbox.py", line 102, in dispatch
+    reply = handle(method, arguments)
+  File "c:\Users\JigarVaishnav\Projects\pv-tool-be\.venv\Lib\site-packages\kombu\pidbox.py", line 124, in handle_cast
+    return self.handle(method, arguments)
+           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\JigarVaishnav\Projects\pv-tool-be\.venv\Lib\site-packages\kombu\pidbox.py", line 118, in handle
+    return self.handlers[method](self.state, **arguments)
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\JigarVaishnav\Projects\pv-tool-be\.venv\Lib\site-packages\celery\worker\control.py", line 150, in revoke
+    task_ids = _revoke(state, task_ids, terminate, signal, **kwargs)
+  File "c:\Users\JigarVaishnav\Projects\pv-tool-be\.venv\Lib\site-packages\celery\worker\control.py", line 220, in _revoke
+    signum = _signals.signum(signal or TERM_SIGNAME)
+  File "c:\Users\JigarVaishnav\Projects\pv-tool-be\.venv\Lib\site-packages\celery\platforms.py", line 656, in signum
+    return getattr(_signal, name)
+AttributeError: module 'signal' has no attribute 'SIGKILL'. Did you mean: 'SIGILL'?
+[2025-08-19 19:16:43,436: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K319A1QP8JYKKNFYDSQEXGGZ] received
+[2025-08-19 19:16:53,352: WARNING/MainProcess] CurrentDatetime: 2025-08-19 19:16:53.351820
+[2025-08-19 19:16:53,352: WARNING/MainProcess] Frequency: SECONDLY60
+[2025-08-19 19:16:53,353: WARNING/MainProcess] mail_box_config_id: 01K317QQ1WD6GEXT0F3EBA34HF
+[2025-08-19 19:16:53,927: WARNING/MainProcess] <sys>:0: SAWarning: relationship 'Roles.role_module_permission_links' will copy column roles.id to column role_module_permission_link.role_id, which conflicts with relationship(s): 'Roles.modules' (copies roles.id to role_module_permission_link.role_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="modules"' to the 'Roles.role_module_permission_links' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
 
-Did you remember to import the module containing this task?
-Or maybe you're using relative imports?
+[2025-08-19 19:16:53,938: WARNING/MainProcess] <sys>:0: SAWarning: relationship 'RoleModulePermissionLink.role' will copy column roles.id to column role_module_permission_link.role_id, which conflicts with relationship(s): 'Roles.modules' (copies roles.id to role_module_permission_link.role_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="modules"' to the 'RoleModulePermissionLink.role' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
 
-Please see
-https://docs.celeryq.dev/en/latest/internals/protocol.html
-for more information.
+[2025-08-19 19:16:53,940: WARNING/MainProcess] <sys>:0: SAWarning: relationship 'RoleModulePermissionLink.module' will copy column modules.id to column role_module_permission_link.module_id, which conflicts with relationship(s): 'Roles.modules' (copies modules.id to role_module_permission_link.module_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="modules"' to the 'RoleModulePermissionLink.module' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
 
-The full contents of the message body was:
-b'[["01K2Z5DV6G4FFF5D9FJT3G96EP", "SECONDLY30"], {}, {"callbacks": null, "errbacks": null, "chain": null, "chord": null}]' (119b)
+[2025-08-19 19:16:53,958: WARNING/MainProcess] <sys>:0: SAWarning: relationship 'Modules.role_module_permission_links' will copy column modules.id to column role_module_permission_link.module_id, which conflicts with relationship(s): 'Roles.modules' (copies modules.id to role_module_permission_link.module_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="modules"' to the 'Modules.role_module_permission_links' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
 
-The full contents of the message headers:
-{'lang': 'py', 'task': 'core.utils.celery_worker.pooling_mail_box', 'id': '01K2Z5E10EB0PEDB0874WSV8AV', 'shadow': None, 'eta': '2025-08-18T18:00:37.342776', 'expires': None, 'group': None, 'group_index': None, 'retries': 0, 'timelimit': [None, None], 'root_id': '01K2Z5E10EB0PEDB0874WSV8AV', 'parent_id': None, 'argsrepr': "['01K2Z5DV6G4FFF5D9FJT3G96EP', 'SECONDLY30']", 'kwargsrepr': '{}', 'origin': 'gen28716@APC-AP-13RQPB4', 'ignore_result': True, 'replaced_task_nesting': 0, 'stamped_headers': None, 'stamps': {}}
+[2025-08-19 19:16:53,960: WARNING/MainProcess] <sys>:0: SAWarning: relationship 'Modules.module_permission_links' will copy column modules.id to column module_permission_link.module_id, which conflicts with relationship(s): 'Modules.permissions' (copies modules.id to module_permission_link.module_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="permissions"' to the 'Modules.module_permission_links' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
 
-The delivery info for this task is:
-{'exchange': '', 'routing_key': 'main-queue'}
+[2025-08-19 19:16:53,971: WARNING/MainProcess] <sys>:0: SAWarning: relationship 'ModulePermissionLink.module' will copy column modules.id to column module_permission_link.module_id, which conflicts with relationship(s): 'Modules.permissions' (copies modules.id to module_permission_link.module_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="permissions"' to the 'ModulePermissionLink.module' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
+
+[2025-08-19 19:16:53,974: WARNING/MainProcess] <sys>:0: SAWarning: relationship 'ModulePermissionLink.permission' will copy column permissions.id to column module_permission_link.permission_id, which conflicts with relationship(s): 'Modules.permissions' (copies permissions.id to module_permission_link.permission_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="permissions"' to the 'ModulePermissionLink.permission' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
+
+[2025-08-19 19:16:53,988: WARNING/MainProcess] <sys>:0: SAWarning: relationship 'Permissions.module_permission_links' will copy column permissions.id to column module_permission_link.permission_id, which conflicts with relationship(s): 'Modules.permissions' (copies permissions.id to module_permission_link.permission_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="permissions"' to the 'Permissions.module_permission_links' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
+
+[2025-08-19 19:16:54,051: WARNING/MainProcess] MailBox: vjigar2404@outlook.com
+[2025-08-19 19:16:54,071: WARNING/MainProcess] https://login.microsoftonline.com/common/oauth2/v2.0/token
+[2025-08-19 19:16:55,412: INFO/MainProcess] HTTP Request: POST https://login.microsoftonline.com/common/oauth2/v2.0/token "HTTP/1.1 200 OK"
+[2025-08-19 19:16:57,310: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/mailFolders/Inbox/messages?%24filter=hasAttachments%20eq%20true%20and%20receivedDateTime%20ge%202025-08-19T13%3A19%3A14Z&%24top=10 "HTTP/1.1 200 OK"
+[2025-08-19 19:16:58,859: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/messages/AQMkADAwATNiZmYAZS04ZDNjLTdiOTgtMDACLTAwCgBGAAADxthT1SzjGkK73hUDXwNxUwcAAfmYEfbpfES9PhJtktQywAAAAgEMAAAAAfmYEfbpfES9PhJtktQywAAAAKUrJL4AAAA=/attachments "HTTP/1.1 200 OK"
+[2025-08-19 19:17:04,982: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/messages/AQMkADAwATNiZmYAZS04ZDNjLTdiOTgtMDACLTAwCgBGAAADxthT1SzjGkK73hUDXwNxUwcAAfmYEfbpfES9PhJtktQywAAAAgEMAAAAAfmYEfbpfES9PhJtktQywAAAAKUrJL4AAAA=/attachments/AQMkADAwATNiZmYAZS04ZDNjLTdiOTgtMDACLTAwCgBGAAADxthT1SzjGkK73hUDXwNxUwcAAfmYEfbpfES9PhJtktQywAAAAgEMAAAAAfmYEfbpfES9PhJtktQywAAAAKUrJL4AAAABEgAQAMu6Puq6UbZCuSfkL2Y42hw=/$value "HTTP/1.1 200 OK"
+[2025-08-19 19:17:06,134: WARNING/MainProcess] CurrentDatetime: 2025-08-19 19:17:06.134913
+[2025-08-19 19:17:06,135: WARNING/MainProcess] Last Execution Date: 2025-08-19 13:19:14.246796
+[2025-08-19 19:17:06,136: WARNING/MainProcess] Fetched 1 email(s) from mailbox
+[2025-08-19 19:17:25,732: WARNING/MainProcess] Scheduling next execution at: 2025-08-19 13:48:25.731932
+[2025-08-19 19:17:25,759: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K319BB4C1VGVD8ZP98CT1GVD] received
+[2025-08-19 19:17:25,825: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K319A1QP8JYKKNFYDSQEXGGZ] succeeded in 32.482298900024034s: None
+[2025-08-19 19:18:25,737: WARNING/MainProcess] CurrentDatetime: 2025-08-19 19:18:25.737432
+[2025-08-19 19:18:25,738: WARNING/MainProcess] Frequency: SECONDLY60
+[2025-08-19 19:18:25,738: WARNING/MainProcess] mail_box_config_id: 01K317QQ1WD6GEXT0F3EBA34HF
+[2025-08-19 19:18:25,749: WARNING/MainProcess] MailBox: vjigar2404@outlook.com
+[2025-08-19 19:18:25,754: WARNING/MainProcess] https://login.microsoftonline.com/common/oauth2/v2.0/token
+[2025-08-19 19:18:27,218: INFO/MainProcess] HTTP Request: POST https://login.microsoftonline.com/common/oauth2/v2.0/token "HTTP/1.1 200 OK"
+[2025-08-19 19:18:28,466: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/mailFolders/Inbox/messages?%24filter=hasAttachments%20eq%20true%20and%20receivedDateTime%20ge%202025-08-19T13%3A47%3A17Z&%24top=10 "HTTP/1.1 200 OK"
+[2025-08-19 19:18:28,467: WARNING/MainProcess] CurrentDatetime: 2025-08-19 19:18:28.467666
+[2025-08-19 19:18:28,468: WARNING/MainProcess] Last Execution Date: 2025-08-19 13:47:17.852881
+[2025-08-19 19:18:28,468: WARNING/MainProcess] Fetched 0 email(s) from mailbox
+[2025-08-19 19:18:28,480: WARNING/MainProcess] Scheduling next execution at: 2025-08-19 13:49:28.480501
+[2025-08-19 19:18:28,485: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K319BB4C1VGVD8ZP98CT1GVD] succeeded in 2.7494091000407934s: None
+[2025-08-19 19:18:28,489: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K319D8DYSBZ4NRF4PGYAF7T1] received
+[2025-08-19 19:19:28,484: WARNING/MainProcess] CurrentDatetime: 2025-08-19 19:19:28.484313
+[2025-08-19 19:19:28,484: WARNING/MainProcess] Frequency: SECONDLY60
+[2025-08-19 19:19:28,485: WARNING/MainProcess] mail_box_config_id: 01K317QQ1WD6GEXT0F3EBA34HF
+[2025-08-19 19:19:28,491: WARNING/MainProcess] MailBox: vjigar2404@outlook.com
+[2025-08-19 19:19:28,496: WARNING/MainProcess] https://login.microsoftonline.com/common/oauth2/v2.0/token
+[2025-08-19 19:19:29,884: INFO/MainProcess] HTTP Request: POST https://login.microsoftonline.com/common/oauth2/v2.0/token "HTTP/1.1 200 OK"
+[2025-08-19 19:19:31,020: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/mailFolders/Inbox/messages?%24filter=hasAttachments%20eq%20true%20and%20receivedDateTime%20ge%202025-08-19T13%3A48%3A28Z&%24top=10 "HTTP/1.1 200 OK"
+[2025-08-19 19:19:31,021: WARNING/MainProcess] CurrentDatetime: 2025-08-19 19:19:31.021130
+[2025-08-19 19:19:31,021: WARNING/MainProcess] Last Execution Date: 2025-08-19 13:48:28.468756
+[2025-08-19 19:19:31,021: WARNING/MainProcess] Fetched 0 email(s) from mailbox
+[2025-08-19 19:19:31,029: WARNING/MainProcess] Scheduling next execution at: 2025-08-19 13:50:31.029181
+[2025-08-19 19:19:31,032: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K319D8DYSBZ4NRF4PGYAF7T1] succeeded in 2.5491676999954507s: None
+[2025-08-19 19:19:31,038: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K319F5GKGZ7VFW21BB2432KG] received
+[2025-08-19 19:20:31,034: WARNING/MainProcess] CurrentDatetime: 2025-08-19 19:20:31.034885
+[2025-08-19 19:20:31,035: WARNING/MainProcess] Frequency: SECONDLY60
+[2025-08-19 19:20:31,036: WARNING/MainProcess] mail_box_config_id: 01K317QQ1WD6GEXT0F3EBA34HF
+[2025-08-19 19:20:31,046: WARNING/MainProcess] MailBox: vjigar2404@outlook.com
+[2025-08-19 19:20:31,052: WARNING/MainProcess] https://login.microsoftonline.com/common/oauth2/v2.0/token
+[2025-08-19 19:20:33,140: INFO/MainProcess] HTTP Request: POST https://login.microsoftonline.com/common/oauth2/v2.0/token "HTTP/1.1 200 OK"
+[2025-08-19 19:20:35,000: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/mailFolders/Inbox/messages?%24filter=hasAttachments%20eq%20true%20and%20receivedDateTime%20ge%202025-08-19T13%3A49%3A31Z&%24top=10 "HTTP/1.1 200 OK"
+[2025-08-19 19:20:35,002: WARNING/MainProcess] CurrentDatetime: 2025-08-19 19:20:35.002708
+[2025-08-19 19:20:35,003: WARNING/MainProcess] Last Execution Date: 2025-08-19 13:49:31.021811
+[2025-08-19 19:20:35,003: WARNING/MainProcess] Fetched 0 email(s) from mailbox
+[2025-08-19 19:20:35,017: WARNING/MainProcess] Scheduling next execution at: 2025-08-19 13:51:35.017391
+[2025-08-19 19:20:35,022: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K319F5GKGZ7VFW21BB2432KG] succeeded in 3.9882945000426844s: None
+[2025-08-19 19:20:35,026: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K319H4067FJEJEJZB5XFPG8S] received
+[2025-08-19 19:21:35,022: WARNING/MainProcess] CurrentDatetime: 2025-08-19 19:21:35.022379
+[2025-08-19 19:21:35,023: WARNING/MainProcess] Frequency: SECONDLY60
+[2025-08-19 19:21:35,023: WARNING/MainProcess] mail_box_config_id: 01K317QQ1WD6GEXT0F3EBA34HF
+[2025-08-19 19:21:35,031: WARNING/MainProcess] MailBox: vjigar2404@outlook.com
+[2025-08-19 19:21:35,036: WARNING/MainProcess] https://login.microsoftonline.com/common/oauth2/v2.0/token
+[2025-08-19 19:21:37,088: INFO/MainProcess] HTTP Request: POST https://login.microsoftonline.com/common/oauth2/v2.0/token "HTTP/1.1 200 OK"
+[2025-08-19 19:21:39,044: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/mailFolders/Inbox/messages?%24filter=hasAttachments%20eq%20true%20and%20receivedDateTime%20ge%202025-08-19T13%3A50%3A35Z&%24top=10 "HTTP/1.1 200 OK"
+[2025-08-19 19:21:39,047: WARNING/MainProcess] CurrentDatetime: 2025-08-19 19:21:39.047111
+[2025-08-19 19:21:39,047: WARNING/MainProcess] Last Execution Date: 2025-08-19 13:50:35.004117
+[2025-08-19 19:21:39,048: WARNING/MainProcess] Fetched 0 email(s) from mailbox
+[2025-08-19 19:21:39,061: WARNING/MainProcess] Scheduling next execution at: 2025-08-19 13:52:39.061630
+[2025-08-19 19:21:39,068: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K319H4067FJEJEJZB5XFPG8S] succeeded in 4.046605799929239s: None
+[2025-08-19 19:21:39,071: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K319K2HJX3T6J2XD55714459] received
+[2025-08-19 19:22:39,066: WARNING/MainProcess] CurrentDatetime: 2025-08-19 19:22:39.066204
+[2025-08-19 19:22:39,066: WARNING/MainProcess] Frequency: SECONDLY60
+[2025-08-19 19:22:39,067: WARNING/MainProcess] mail_box_config_id: 01K317QQ1WD6GEXT0F3EBA34HF
+[2025-08-19 19:22:39,077: WARNING/MainProcess] MailBox: vjigar2404@outlook.com
+[2025-08-19 19:22:39,083: WARNING/MainProcess] https://login.microsoftonline.com/common/oauth2/v2.0/token
+[2025-08-19 19:22:41,311: INFO/MainProcess] HTTP Request: POST https://login.microsoftonline.com/common/oauth2/v2.0/token "HTTP/1.1 200 OK"
+[2025-08-19 19:22:43,534: INFO/MainProcess] HTTP Request: GET https://graph.microsoft.com/v1.0/me/mailFolders/Inbox/messages?%24filter=hasAttachments%20eq%20true%20and%20receivedDateTime%20ge%202025-08-19T13%3A51%3A39Z&%24top=10 "HTTP/1.1 200 OK"
+[2025-08-19 19:22:43,537: WARNING/MainProcess] CurrentDatetime: 2025-08-19 19:22:43.537397
+[2025-08-19 19:22:43,538: WARNING/MainProcess] Last Execution Date: 2025-08-19 13:51:39.048550
+[2025-08-19 19:22:43,538: WARNING/MainProcess] Fetched 0 email(s) from mailbox
+[2025-08-19 19:22:43,550: WARNING/MainProcess] Scheduling next execution at: 2025-08-19 13:53:43.550236
+[2025-08-19 19:22:43,558: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K319K2HJX3T6J2XD55714459] succeeded in 4.492762599955313s: None
+[2025-08-19 19:22:43,560: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K319N1GVSZ60YKY6TBHFSRW0] received
+[2025-08-19 19:23:43,554: WARNING/MainProcess] CurrentDatetime: 2025-08-19 19:23:43.554634
+[2025-08-19 19:23:43,555: WARNING/MainProcess] Frequency: SECONDLY60
+[2025-08-19 19:23:43,555: WARNING/MainProcess] mail_box_config_id: 01K317QQ1WD6GEXT0F3EBA34HF
+[2025-08-19 19:23:43,639: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K319N1GVSZ60YKY6TBHFSRW0] succeeded in 0.0856144999852404s: None
+[2025-08-19 19:23:43,641: ERROR/MainProcess] pidbox command error: AttributeError("module 'signal' has no attribute 'SIGKILL'")
 Traceback (most recent call last):
-  File "c:\Users\JigarVaishnav\Projects\pv-tool-be\.venv\Lib\site-packages\celery\worker\consumer\consumer.py", line 662, in on_task_received
-    strategy = strategies[type_]
-               ~~~~~~~~~~^^^^^^^
-KeyError: 'core.utils.celery_worker.pooling_mail_box'
+  File "c:\Users\JigarVaishnav\Projects\pv-tool-be\.venv\Lib\site-packages\kombu\pidbox.py", line 102, in dispatch
+    reply = handle(method, arguments)
+  File "c:\Users\JigarVaishnav\Projects\pv-tool-be\.venv\Lib\site-packages\kombu\pidbox.py", line 124, in handle_cast
+    return self.handle(method, arguments)
+           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\JigarVaishnav\Projects\pv-tool-be\.venv\Lib\site-packages\kombu\pidbox.py", line 118, in handle
+    return self.handlers[method](self.state, **arguments)
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\JigarVaishnav\Projects\pv-tool-be\.venv\Lib\site-packages\celery\worker\control.py", line 150, in revoke
+    task_ids = _revoke(state, task_ids, terminate, signal, **kwargs)
+  File "c:\Users\JigarVaishnav\Projects\pv-tool-be\.venv\Lib\site-packages\celery\worker\control.py", line 220, in _revoke
+    signum = _signals.signum(signal or TERM_SIGNAME)
+  File "c:\Users\JigarVaishnav\Projects\pv-tool-be\.venv\Lib\site-packages\celery\platforms.py", line 656, in signum
+    return getattr(_signal, name)
+AttributeError: module 'signal' has no attribute 'SIGKILL'. Did you mean: 'SIGILL'?
+[2025-08-19 19:27:43,909: INFO/MainProcess] Connected to redis://localhost:6379/0
+[2025-08-19 19:27:43,934: INFO/MainProcess] mingle: searching for neighbors
+[2025-08-19 19:27:45,020: INFO/MainProcess] mingle: all alone
+[2025-08-19 19:27:45,115: INFO/MainProcess] celery@APC-AP-13RQPB4 ready.
+[2025-08-19 19:42:08,953: INFO/MainProcess] Connected to redis://localhost:6379/0
+[2025-08-19 19:42:08,963: INFO/MainProcess] mingle: searching for neighbors
+[2025-08-19 19:42:10,033: INFO/MainProcess] mingle: all alone
+[2025-08-19 19:42:10,087: INFO/MainProcess] celery@APC-AP-13RQPB4 ready.
+[2025-08-19 19:42:10,096: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K315NCAEBFQCS9GDNV24ZM3T] received
+[2025-08-19 19:42:11,059: WARNING/MainProcess] CurrentDatetime: 2025-08-19 19:42:11.059487
+[2025-08-19 19:42:11,059: WARNING/MainProcess] Frequency: SECONDLY30
+[2025-08-19 19:42:11,060: WARNING/MainProcess] mail_box_config_id: 01K315NCAB0YSSX4ZDDPHX5AP5
+[2025-08-19 19:42:11,530: WARNING/MainProcess] <sys>:0: SAWarning: relationship 'Roles.role_module_permission_links' will copy column roles.id to column role_module_permission_link.role_id, which conflicts with relationship(s): 'Roles.modules' (copies roles.id to role_module_permission_link.role_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="modules"' to the 'Roles.role_module_permission_links' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
+
+[2025-08-19 19:42:11,540: WARNING/MainProcess] <sys>:0: SAWarning: relationship 'RoleModulePermissionLink.role' will copy column roles.id to column role_module_permission_link.role_id, which conflicts with relationship(s): 'Roles.modules' (copies roles.id to role_module_permission_link.role_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="modules"' to the 'RoleModulePermissionLink.role' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
+
+[2025-08-19 19:42:11,542: WARNING/MainProcess] <sys>:0: SAWarning: relationship 'RoleModulePermissionLink.module' will copy column modules.id to column role_module_permission_link.module_id, which conflicts with relationship(s): 'Roles.modules' (copies modules.id to role_module_permission_link.module_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="modules"' to the 'RoleModulePermissionLink.module' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
+
+[2025-08-19 19:42:11,561: WARNING/MainProcess] <sys>:0: SAWarning: relationship 'Modules.role_module_permission_links' will copy column modules.id to column role_module_permission_link.module_id, which conflicts with relationship(s): 'Roles.modules' (copies modules.id to role_module_permission_link.module_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="modules"' to the 'Modules.role_module_permission_links' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
+
+[2025-08-19 19:42:11,563: WARNING/MainProcess] <sys>:0: SAWarning: relationship 'Modules.module_permission_links' will copy column modules.id to column module_permission_link.module_id, which conflicts with relationship(s): 'Modules.permissions' (copies modules.id to module_permission_link.module_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="permissions"' to the 'Modules.module_permission_links' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
+
+[2025-08-19 19:42:11,572: WARNING/MainProcess] <sys>:0: SAWarning: relationship 'ModulePermissionLink.module' will copy column modules.id to column module_permission_link.module_id, which conflicts with relationship(s): 'Modules.permissions' (copies modules.id to module_permission_link.module_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="permissions"' to the 'ModulePermissionLink.module' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
+
+[2025-08-19 19:42:11,573: WARNING/MainProcess] <sys>:0: SAWarning: relationship 'ModulePermissionLink.permission' will copy column permissions.id to column module_permission_link.permission_id, which conflicts with relationship(s): 'Modules.permissions' (copies permissions.id to module_permission_link.permission_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="permissions"' to the 'ModulePermissionLink.permission' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
+
+[2025-08-19 19:42:11,583: WARNING/MainProcess] <sys>:0: SAWarning: relationship 'Permissions.module_permission_links' will copy column permissions.id to column module_permission_link.permission_id, which conflicts with relationship(s): 'Modules.permissions' (copies permissions.id to module_permission_link.permission_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="permissions"' to the 'Permissions.module_permission_links' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
+
+[2025-08-19 19:42:11,663: INFO/MainProcess] Terminating 01K315NCAEBFQCS9GDNV24ZM3T (15)
+[2025-08-19 19:42:11,668: ERROR/MainProcess] pidbox command error: NotImplementedError("<class 'celery.concurrency.solo.TaskPool'> does not implement kill_job")
+Traceback (most recent call last):
+  File "c:\Users\JigarVaishnav\Projects\pv-tool-be\.venv\Lib\site-packages\kombu\pidbox.py", line 102, in dispatch
+    reply = handle(method, arguments)
+  File "c:\Users\JigarVaishnav\Projects\pv-tool-be\.venv\Lib\site-packages\kombu\pidbox.py", line 124, in handle_cast
+    return self.handle(method, arguments)
+           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\JigarVaishnav\Projects\pv-tool-be\.venv\Lib\site-packages\kombu\pidbox.py", line 118, in handle
+    return self.handlers[method](self.state, **arguments)
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\JigarVaishnav\Projects\pv-tool-be\.venv\Lib\site-packages\celery\worker\control.py", line 150, in revoke
+    task_ids = _revoke(state, task_ids, terminate, signal, **kwargs)
+  File "c:\Users\JigarVaishnav\Projects\pv-tool-be\.venv\Lib\site-packages\celery\worker\control.py", line 225, in _revoke
+    request.terminate(state.consumer.pool, signal=signum)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\JigarVaishnav\Projects\pv-tool-be\.venv\Lib\site-packages\celery\worker\request.py", line 416, in terminate
+    pool.terminate_job(self.worker_pid, signal)
+    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\JigarVaishnav\Projects\pv-tool-be\.venv\Lib\site-packages\celery\concurrency\base.py", line 113, in terminate_job
+    raise NotImplementedError(
+        f'{type(self)} does not implement kill_job')
+NotImplementedError: <class 'celery.concurrency.solo.TaskPool'> does not implement kill_job
+[2025-08-19 19:42:11,721: INFO/MainProcess] Task core.utils.celery_worker.pooling_mail_box[01K315NCAEBFQCS9GDNV24ZM3T] succeeded in 0.6648888000054285s: None

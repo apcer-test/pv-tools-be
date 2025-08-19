@@ -1,4 +1,4 @@
-from pydantic import model_validator
+from pydantic import EmailStr, model_validator
 
 from core.common_helpers import validate_string_fields
 from core.types import FrequencyType, Providers
@@ -8,13 +8,20 @@ from core.utils.schema import CamelCaseModel
 class CreateUpdateMailBoxConfigRequest(CamelCaseModel):
     """This class represents the request body for creating or updating a mail box configuration."""
 
-    recipient_email: str
+    recipient_email: EmailStr
     app_password: str
     provider: Providers
     frequency: FrequencyType
 
 
+class UpdateMailBoxConfigRequest(CamelCaseModel):
+    """This class represents the request body for updating a mail box configuration."""
 
+    recipient_email: EmailStr
+    app_password: str
+    provider: Providers
+    frequency: FrequencyType
+    reason: str
 
 
 class EncryptedRequest(CamelCaseModel):

@@ -7,7 +7,7 @@ DOC_TYPE_SCHEMAS = {
     "LAB_REPORT": None,  # LabReportSchema,
     "UNKNOWN": None,  # GenericSchema
 }
-MICROSOFT_GENERATE_CODE_SCOPE = "offline_access%20User.Read%20Mail.Read"
+MICROSOFT_GENERATE_CODE_SCOPE = "offline_access Mail.Read User.Read"
 
 OUTLOOK_PAGE_SIZE = 10
 

@@ -30,3 +30,9 @@ class EndDateException(BadRequestError):
     """Custom exception to show a generic error message."""
 
     message = constants.END_DATE_INVALID
+
+
+class ClientNotFoundException(NotFoundError):
+    """Custom exception to show a generic error message."""
+
+    message = constants.CLIENT_NOT_FOUND

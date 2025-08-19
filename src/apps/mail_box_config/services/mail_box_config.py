@@ -1,7 +1,5 @@
-import imaplib
-from datetime import UTC, date, datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Annotated
-from uuid import UUID, uuid4
 
 from fastapi import Depends
 from fastapi_pagination import Params
@@ -11,8 +9,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import load_only
 from ulid import ULID
 
-import constants
+from apps.clients.models.clients import Clients
 from apps.mail_box_config.exceptions import (
+    ClientNotFoundException,
     MailBoxAlreadyConfigured,
     MailBoxConfigNotFound,
 )
@@ -23,7 +22,6 @@ from core.db import db_session, redis
 from core.types import FrequencyType, Providers
 from core.utils.celery_worker import pooling_mail_box
 from core.utils.microsoft_oauth_util import generate_refresh_token
-from core.utils.schema import SuccessResponse
 
 
 class MailBoxService:
@@ -47,6 +45,12 @@ class MailBoxService:
     ) -> MicrosoftMailBoxConfig:
         """This method adds mail box configuration to the database."""
         token_expiry = None
+
+        client = await self.session.scalar(
+            select(Clients).where(Clients.id == client_id)
+        )
+        if not client:
+            raise ClientNotFoundException
 
         get_email = await self.session.scalar(
             select(MicrosoftMailBoxConfig).where(
@@ -79,6 +83,7 @@ class MailBoxService:
                 provider=provider,
                 frequency=frequency,
                 app_password_expired_at=token_expiry,
+                is_active=True,
             )
             self.session.add(mail_box_config)
 
@@ -86,13 +91,12 @@ class MailBoxService:
             await revoke_running_task(mail_box_config.id)
             task_id = str(ULID())
             await redis.set(name=str(mail_box_config.id), value=task_id)
-            
-            # Schedule task to start in 5 seconds
-            eta = datetime.now(UTC).replace(tzinfo=None) + timedelta(seconds=5)
+
+            # Schedule task to start after DB transaction completes
             pooling_mail_box.apply_async(
-                eta=eta,
+                eta=datetime.now(UTC).replace(tzinfo=None) + timedelta(seconds=5),
                 task_id=task_id,
-                args=[mail_box_config.id, frequency],
+                args=[str(mail_box_config.id), frequency],
             )
             return mail_box_config
 
@@ -110,6 +114,7 @@ class MailBoxService:
                     MicrosoftMailBoxConfig.provider,
                     MicrosoftMailBoxConfig.frequency,
                     MicrosoftMailBoxConfig.last_execution,
+                    MicrosoftMailBoxConfig.is_active,
                 )
             )
             .where(
@@ -137,9 +142,11 @@ class MailBoxService:
         self,
         mail_box_config_id: str,
         client_id: str,
+        recipient_email: str | None = None,
         app_password: str | None = None,
         provider: Providers | None = None,
         frequency: FrequencyType | None = None,
+        reason: str | None = None,
     ):
         """Update the configuration for the user"""
         mail_box_config = await self.session.scalar(
@@ -153,13 +160,13 @@ class MailBoxService:
 
         reschedule_task = False
 
+        if recipient_email:
+            mail_box_config.recipient_email = recipient_email
+
         if app_password:
-            (
-                client_id,
-                redirect_uri,
-                client_secret,
-                refresh_token_validity_days,
-            ) = await fetch_outlook_settings()
+            (client_id, redirect_uri, client_secret, refresh_token_validity_days) = (
+                await fetch_outlook_settings()
+            )
 
             app_password = await generate_refresh_token(
                 app_password,
@@ -188,18 +195,24 @@ class MailBoxService:
             task_id = str(ULID())
             await redis.set(name=str(mail_box_config.id), value=task_id)
 
-            # Schedule task to start in 5 seconds
-            eta = datetime.now(UTC).replace(tzinfo=None) + timedelta(seconds=5)
+            # Schedule task to start after DB transaction completes
             pooling_mail_box.apply_async(
-                eta=eta,
+                eta=datetime.now(UTC).replace(tzinfo=None) + timedelta(seconds=10),
                 task_id=task_id,
-                args=[mail_box_config.id, frequency],
+                args=[str(mail_box_config.id), frequency],
             )
+        print(f"reason: {reason}")
 
         return mail_box_config
 
-    async def delete_mail_box_config(self, client_id: str, mail_box_config_id: str):
-        """Delete the mail box configuration"""
+    async def update_mail_box_config_status(
+        self, mail_box_config_id: str, client_id: str
+    ):
+        """
+        Toggle the is_active status of the mail box configuration.
+        Instead of using a value from the request body, this method
+        sets is_active to the opposite of its current value in the database.
+        """
         mail_box_config = await self.session.scalar(
             select(MicrosoftMailBoxConfig).where(
                 MicrosoftMailBoxConfig.client_id == client_id,
@@ -208,6 +221,6 @@ class MailBoxService:
         )
         if not mail_box_config:
             raise MailBoxConfigNotFound
-        await revoke_running_task(mail_box_config_id)
-        await self.session.delete(mail_box_config)
-        return SuccessResponse
+        # Toggle the is_active status
+        mail_box_config.is_active = not mail_box_config.is_active
+        return mail_box_config

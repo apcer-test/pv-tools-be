@@ -32,6 +32,17 @@ services:
     networks:
       - default
 
+  # flower:
+  #   image: mher/flower:2.0
+  #   container_name: pv_tool_flower
+  #   command: celery flower --broker=redis://redis-cache:6379/0 --port=5555
+  #   ports:
+  #     - "5555:5555"
+  #   depends_on:
+  #     - redis-cache
+  #   networks:
+  #     - default
+
 networks:
   default:
     name: "pv_tool"

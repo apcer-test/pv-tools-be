@@ -1,6 +1,6 @@
 import asyncio
 import traceback
-from datetime import UTC, datetime, time, timedelta
+from datetime import UTC, datetime, timedelta
 
 import sentry_sdk
 from celery import Celery
@@ -14,19 +14,23 @@ from core.common_helpers import (
     capture_exception,
     fetch_mail_box_config,
     fetch_outlook_settings,
-    revoke_running_task,
+    update_last_execution_date,
 )
 from core.db import redis
 from core.exceptions import CustomException
 from core.types import FrequencyType, Providers
-from core.utils.email_utils import fetch_email_outlook, logger
-
+from core.utils.email_utils import fetch_email_outlook
 
 celery_app = Celery(
     "tasks", broker=settings.CELERY_BROKER_URL, backend=settings.CELERY_RESULT_BACKEND
 )
 
-celery_app.conf.update(task_ignore_result=True, worker_prefetch_multiplier=1)
+celery_app.conf.update(
+    task_ignore_result=True,
+    worker_prefetch_multiplier=1,
+    worker_pool_restarts=True,
+    worker_concurrency=5,
+)
 
 celery_app.conf.task_routes = {
     "core.utils.celery_worker.pooling_mail_box": "main-queue"
@@ -370,59 +374,121 @@ def pooling_mail_box(
     additional_filter: str | None = None,
 ):
     """Pooling mail box"""
+
+    from apps.mail_box_config.helper import revoke_running_task
+
     try:
         print(f"CurrentDatetime: {datetime.now()}")
         print(f"Frequency: {frequency}")
         print(f"mail_box_config_id: {mail_box_config_id}")
 
-        # Remove the start logging - we'll only log when attachments are found
+        # Helper to get or create a running event loop
+        def get_or_create_event_loop():
+            """Get or create an event loop"""
+            try:
+                loop = asyncio.get_event_loop()
+                if loop.is_closed():
+                    raise RuntimeError
+            except (RuntimeError, AttributeError):
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+            return loop
 
-        mail_box_config = asyncio.get_event_loop().run_until_complete(
+        loop = get_or_create_event_loop()
+        mail_box_config = loop.run_until_complete(
             fetch_mail_box_config(mail_box_config_id)
         )
 
         if not mail_box_config:
-            asyncio.get_event_loop().run_until_complete(
-                revoke_running_task(mail_box_config_id)
-            )
+            loop = get_or_create_event_loop()
+            loop.run_until_complete(revoke_running_task(mail_box_config_id))
             return
-        
+
+        if mail_box_config.is_active is False:
+            loop = get_or_create_event_loop()
+            loop.run_until_complete(revoke_running_task(mail_box_config_id))
+            return
+
         provider = mail_box_config.provider
         password = mail_box_config.app_password
         email = mail_box_config.recipient_email
-        
+
         print(f"MailBox: {email}")
-        
+
         last_execution_date = mail_box_config.last_execution
         if last_execution_date is None:
             last_execution_date = mail_box_config.created_at
 
         if provider == Providers.MICROSOFT:
-            (
-                client_id,
-                redirect_uri,
-                client_secret,
-                refresh_token_validity_days,
-            ) = asyncio.get_event_loop().run_until_complete(
-                fetch_outlook_settings()
+            loop = get_or_create_event_loop()
+            (client_id, redirect_uri, client_secret, refresh_token_validity_days) = (
+                loop.run_until_complete(fetch_outlook_settings())
             )
             list_of_items = fetch_email_outlook(
-                client_id=client_id,
+                microsoft_client_id=client_id,
                 client_secret=client_secret,
                 password=password,
                 last_execution_date=last_execution_date,
                 app_password_expiry=mail_box_config.app_password_expired_at,
             )
-            # No further action required for now after fetching emails
-            print(
-                f"Fetched {len(list_of_items)} email(s) from mailbox, no further action taken."
+
+            # Log the fetched emails details
+            print(f"CurrentDatetime: {datetime.now()}")
+            print(f"Last Execution Date: {last_execution_date}")
+            print(f"Fetched {len(list_of_items)} email(s) from mailbox")
+
+            # Update last execution date to current time if emails were checked
+            current_time = datetime.now(UTC).replace(tzinfo=None)
+            asyncio.get_event_loop().run_until_complete(
+                update_last_execution_date(mail_box_config_id, current_time)
             )
-            return
 
-            polling_session_id = str(ULID())
+            # Schedule next execution based on frequency
+            task_id = str(ULID())
+            loop = get_or_create_event_loop()
+            loop.run_until_complete(
+                redis.set(name=str(mail_box_config_id), value=task_id)
+            )
 
-            attachments_found = 0
-            processed_attachments = []
+            if frequency:
+                match frequency:
+                    case FrequencyType.DAILY:
+                        days = 1
+                        eta = datetime.now(UTC).replace(tzinfo=None) + timedelta(
+                            days=days
+                        )
+                    case FrequencyType.WEEKLY:
+                        days = 7
+                        eta = datetime.now(UTC).replace(tzinfo=None) + timedelta(
+                            days=days
+                        )
+                    case FrequencyType.MONTHLY:
+                        days = 30
+                        eta = datetime.now(UTC).replace(tzinfo=None) + timedelta(
+                            days=days
+                        )
+                    case FrequencyType.SECONDLY30:
+                        seconds = 30
+                        eta = datetime.now(UTC).replace(tzinfo=None) + timedelta(
+                            seconds=seconds
+                        )
+                    case FrequencyType.SECONDLY60:
+                        seconds = 60
+                        eta = datetime.now(UTC).replace(tzinfo=None) + timedelta(
+                            seconds=seconds
+                        )
+                    case _:
+                        seconds = 30
+                        eta = datetime.now(UTC).replace(tzinfo=None) + timedelta(
+                            seconds=seconds
+                        )
+
+                print(f"Scheduling next execution at: {eta}")
+                self.apply_async(
+                    eta=eta,
+                    task_id=task_id,
+                    args=[mail_box_config_id, frequency, additional_filter],
+                )
 
             # for item in list_of_items:
             #     email_extracted = asyncio.get_event_loop().run_until_complete(
@@ -482,35 +548,3 @@ def pooling_mail_box(
     except Exception as e:
         capture_exception(e)
         print(str(traceback.format_exc()))
-
-    task_id = str(ULID())
-    asyncio.get_event_loop().run_until_complete(
-        redis.set(name=str(mail_box_config_id), value=task_id)
-    )
-
-    match frequency:
-        case FrequencyType.DAILY:
-            days = 1
-            eta = datetime.now(UTC).replace(tzinfo=None) + timedelta(days=days)
-        case FrequencyType.WEEKLY:
-            days = 7
-            eta = datetime.now(UTC).replace(tzinfo=None) + timedelta(days=days)
-        case FrequencyType.MONTHLY:
-            days = 30
-            eta = datetime.now(UTC).replace(tzinfo=None) + timedelta(days=days)
-        case FrequencyType.SECONDLY30:
-            seconds = 30
-            eta = datetime.now(UTC).replace(tzinfo=None) + timedelta(seconds=seconds)
-        case FrequencyType.SECONDLY60:
-            seconds = 60
-            eta = datetime.now(UTC).replace(tzinfo=None) + timedelta(seconds=seconds)
-        case _:
-            seconds = 30
-            eta = datetime.now(UTC).replace(tzinfo=None) + timedelta(seconds=seconds)
-
-    if frequency:
-        self.apply_async(
-            eta=eta,
-            task_id=task_id,
-            args=[mail_box_config_id, frequency, additional_filter],
-        )

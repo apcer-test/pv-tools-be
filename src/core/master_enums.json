@@ -32,6 +32,13 @@
     "lookup_types": {
       "CODELIST": "code-list",
       "NFLIST": "nf-list"
+    },
+    "frequency_type": {
+      "DAILY": "DAILY",
+      "WEEKLY": "WEEKLY",
+      "MONTHLY": "MONTHLY",
+      "SECONDLY30": "SECONDLY30",
+      "SECONDLY60": "SECONDLY60"
     }
   }
 }

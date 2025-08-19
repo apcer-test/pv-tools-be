@@ -97,6 +97,8 @@ class Settings(BaseSettings):
     ENCRYPTION_KEY: Optional[str] = Field(None, alias="ENCRYPTION_KEY")
     SECRET_KEY: Optional[str] = Field(None, alias="SECRET_KEY")
 
+    WORKER_POOL: Optional[str] = Field(None, alias="WORKER_POOL")
+
     model_config = {"env_file": ".env", "extra": "ignore"}
 
     # Add a root validator for required fields

@@ -1,7 +1,7 @@
-from datetime import date, datetime
+from datetime import datetime
 from typing import TYPE_CHECKING, Self
 
-from sqlalchemy import ARRAY, ForeignKey, String
+from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from ulid import ULID
 
@@ -24,6 +24,7 @@ class MicrosoftMailBoxConfig(Base, ULIDPrimaryKeyMixin, TimeStampMixin, UserMixi
     frequency: Mapped[str] = mapped_column()
     app_password_expired_at: Mapped[datetime] = mapped_column(nullable=True)
     last_execution: Mapped[datetime] = mapped_column(nullable=True)
+    is_active: Mapped[bool] = mapped_column(default=True)
 
     # Relationships
     client: Mapped["Clients"] = relationship(
@@ -39,6 +40,7 @@ class MicrosoftMailBoxConfig(Base, ULIDPrimaryKeyMixin, TimeStampMixin, UserMixi
         provider: Providers,
         frequency: FrequencyType,
         app_password_expired_at: datetime,
+        is_active: bool = True,
     ) -> Self:
         """Create a new mail box configuration"""
         return cls(
@@ -50,4 +52,5 @@ class MicrosoftMailBoxConfig(Base, ULIDPrimaryKeyMixin, TimeStampMixin, UserMixi
             frequency=frequency,
             app_password_expired_at=app_password_expired_at,
             last_execution=None,
+            is_active=is_active,
         )
