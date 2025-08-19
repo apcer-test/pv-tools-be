@@ -8,8 +8,6 @@ Create Date: 2025-08-14 12:32:14.075400
 from alembic import op
 import sqlalchemy as sa
 
-from migrations.seeder import sql_for_doc_type, sql_for_fallback_chain, sql_for_tenant, sql_for_tenant_users, user_management_sql
-
 
 # revision identifiers, used by Alembic.
 revision = '8dfafdff7061'
@@ -477,13 +475,6 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['updated_by'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    # ### end Alembic commands ###
-    for sql in user_management_sql.split(';'):
-        op.execute(sql)
-    op.execute(sql_for_tenant)
-    op.execute(sql_for_tenant_users)
-    op.execute(sql_for_doc_type)
-    op.execute(sql_for_fallback_chain)
 
 
 def downgrade() -> None:

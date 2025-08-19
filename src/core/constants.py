@@ -1,4 +1,4 @@
-from enum import StrEnum
+from enum import IntEnum, StrEnum
 
 ACCESS = "access"
 REFRESH = "refresh"
@@ -20,3 +20,11 @@ class SortType(StrEnum):
 
     ASC = "ASC"
     DSC = "DSC"
+
+
+class RedisTTL(IntEnum):
+    """
+    Redis TTL for the API
+    """
+
+    AICB_MEDDRA_VERSION_LIST = 3600  # 3600s = 1h

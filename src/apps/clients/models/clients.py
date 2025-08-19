@@ -10,10 +10,6 @@ if TYPE_CHECKING:
     from apps.case.models.case import CaseNumberConfiguration
     from apps.mail_box_config.models.mail_box import MicrosoftMailBoxConfig
     from apps.media.models.media import Media
-    from apps.modules.models.modules import Modules
-    from apps.permissions.models.permissions import Permissions
-    from apps.roles.models.roles import Roles
-
     from apps.users.models.user import UserRoleLink, Users
 
 
@@ -48,18 +44,6 @@ class Clients(Base, ULIDPrimaryKeyMixin, TimeStampMixin, UserMixin):
 
     microsoft_mail_box_configs: Mapped[List["MicrosoftMailBoxConfig"]] = relationship(
         "MicrosoftMailBoxConfig", back_populates="client", cascade="all, delete-orphan"
-    )
-
-    roles: Mapped[List["Roles"]] = relationship(
-        "Roles", back_populates="client", cascade="all, delete-orphan"
-    )
-
-    modules: Mapped[List["Modules"]] = relationship(
-        "Modules", back_populates="client", cascade="all, delete-orphan"
-    )
-
-    permissions: Mapped[List["Permissions"]] = relationship(
-        "Permissions", back_populates="client", cascade="all, delete-orphan"
     )
 
     users: Mapped[List["Users"]] = relationship(

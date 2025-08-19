@@ -10,7 +10,21 @@ from jwt import DecodeError, ExpiredSignatureError, decode, encode
 
 import constants.messages as constants
 from config import settings
+from core.db import redis
 from core.exceptions import InvalidJWTTokenException, UnauthorizedError
+from core.utils.hashing import Hash
+
+
+async def check_cached_token_exists(token: str) -> None:
+    """
+    Check the cached token is existed or not.
+    :param token: access token or refresh token
+    :return: None
+    """
+    key = Hash.make(token)
+    exist_token = await redis.get(key)
+    if not exist_token:
+        raise UnauthorizedError(message=constants.UNAUTHORIZED)
 
 
 class JWToken(SecurityBase):
@@ -28,9 +42,7 @@ class JWToken(SecurityBase):
         token_type (Literal["access", "refresh"]): The type of token.
     """
 
-    def __init__(
-        self, token_type: Literal["access", "refresh"]
-    ) -> None:
+    def __init__(self, token_type: Literal["access", "refresh"]) -> None:
         """
         Initialize the JWToken with the specified token type.
 
@@ -114,6 +126,7 @@ class JWToken(SecurityBase):
         if authorization:
             try:
                 token = authorization.credentials
+                await check_cached_token_exists(token)
                 return self.decode(token)
             except InvalidJWTTokenException:
                 raise UnauthorizedError(message=constants.UNAUTHORIZED)
@@ -126,12 +139,10 @@ class JWToken(SecurityBase):
         token = token_mapping.get(self.token_type)
 
         if token:
+            await check_cached_token_exists(token)
             return self.decode(token)
 
-        if self.token_type in [
-            constants.ACCESS,
-            constants.REFRESH,
-        ]:
+        if self.token_type in [constants.ACCESS, constants.REFRESH]:
             raise UnauthorizedError(message=constants.UNAUTHORIZED)
         return None
 

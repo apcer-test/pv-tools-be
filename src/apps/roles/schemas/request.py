@@ -1,6 +1,8 @@
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
+
+from core.common_helpers import validate_string_fields
 
 
 class ModulePermissionAssignment(BaseModel):
@@ -16,8 +18,11 @@ class CreateRoleRequest(BaseModel):
     description: str | None = None
     role_metadata: dict[str, Any] | None = None
 
+    _validate_string_fields = model_validator(mode="before")(validate_string_fields)
 
 class UpdateRoleRequest(CreateRoleRequest):
     """Request model for updating a role."""
 
     reason: str = Field(..., description="Reason for updating the role")
+
+    _validate_string_fields = model_validator(mode="before")(validate_string_fields)

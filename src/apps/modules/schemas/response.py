@@ -1,11 +1,10 @@
 from typing import Any
 
-from pydantic import BaseModel
-
 from apps.permissions.schemas import BasePermissionResponse
+from core.utils.schema import CamelCaseModel
 
 
-class BaseModuleResponse(BaseModel):
+class BaseModuleResponse(CamelCaseModel):
     """Base module response model."""
 
     id: str
@@ -17,7 +16,7 @@ class BaseModuleResponse(BaseModel):
     child_modules: list["BaseModuleResponse"] = []
 
 
-class ModuleResponse(BaseModel):
+class ModuleResponse(CamelCaseModel):
     """Model for representing module response."""
 
     id: str

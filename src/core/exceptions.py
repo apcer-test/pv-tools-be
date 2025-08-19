@@ -3,7 +3,11 @@ from typing import Optional
 from fastapi import status
 from httpx import Response
 
-import constants
+from constants.messages import (
+    INVALID_ROLE,
+    INVALID_USERNAME_PASSWORD,
+    SOMETHING_WENT_WRONG,
+)
 
 
 class CustomException(Exception):
@@ -16,7 +20,7 @@ class CustomException(Exception):
     """
 
     status_code = status.HTTP_400_BAD_REQUEST
-    message = constants.SOMETHING_WENT_WRONG
+    message = SOMETHING_WENT_WRONG
 
     def __init__(self, message: Optional[str] = None):
         """
@@ -90,7 +94,15 @@ class InvalidRoleException(NotFoundError):
     Custom exception to show a generic error message.
     """
 
-    message = constants.INVALID_ROLE
+    message = INVALID_ROLE
+
+
+class InvalidUsernamePassword(BadRequestError):
+    """
+    Custom exception to show a generic error message.
+    """
+
+    message = INVALID_USERNAME_PASSWORD
 
 
 class UnexpectedResponse(Exception):
@@ -109,6 +121,7 @@ class UnexpectedResponse(Exception):
             response (Response): The unexpected HTTP response.
         """
         self.response = response
+
 
 class ConflictError(CustomException):
     """

@@ -52,3 +52,35 @@ class LookupType(StrEnum):
 
     CODELIST = "code-list"
     NFLIST = "nf-list"
+
+
+class MeddraLevel(StrEnum):
+    """Enum class of MedDRA level"""
+
+    LLT = "LLT"
+    PT = "PT"
+    HLGT = "HLGT"
+    HLT = "HLT"
+    SOC = "SOC"
+
+
+class MeddraCondition(StrEnum):
+    """Enum class of MedDRA condition"""
+
+    STARTSWITH = "startswith"
+    EXACT = "exact"
+    CONTAINS = "contains"
+
+
+class MeddraOrderBy(StrEnum):
+    """Enum class of MedDRA order by"""
+
+    CODE = "Code"
+    TERM = "Term"
+
+
+class MeddraSoctype(StrEnum):
+    """Enum class of MedDRA soctype"""
+
+    Y = "Y"
+    N = "N"

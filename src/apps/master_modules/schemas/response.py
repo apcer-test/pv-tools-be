@@ -1,13 +1,17 @@
-from pydantic import BaseModel
+from core.utils.schema import CamelCaseModel
 
 
-class LookupResponse(BaseModel):
+class LookupResponse(CamelCaseModel):
+    """Lookup response model."""
+
     id: str
     name: str
     slug: str
 
 
-class CodeListLookupValueResponse(BaseModel):
+class CodeListLookupValueResponse(CamelCaseModel):
+    """Code list lookup value response model."""
+
     id: str
     name: str
     e2b_code_r2: str | None = None
@@ -15,7 +19,9 @@ class CodeListLookupValueResponse(BaseModel):
     is_active: bool
 
 
-class NFListLookupValueResponse(BaseModel):
+class NFListLookupValueResponse(CamelCaseModel):
+    """NF list lookup value response model."""
+
     id: str
     name: str
     is_active: bool

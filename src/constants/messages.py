@@ -104,3 +104,5 @@ CLIENT_NOT_FOUND = "Client not found"
 MICROSOFT_CREDENTIALS_UPDATED_SUCCESSFULLY = (
     "Microsoft credentials updated successfully"
 )
+INVALID_USERNAME_PASSWORD = "Invalid username or password"
+USER_DUPLICATE_CLIENT_ASSIGNMENT = "User duplicate client assignment not allowed"

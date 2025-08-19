@@ -5,8 +5,8 @@ from typing import Annotated
 
 from authlib.integrations.base_client.errors import OAuthError
 from fastapi import APIRouter, Body, Depends, Path, Query, Request, status
-from fastapi.responses import RedirectResponse
 from fastapi_pagination import Page, Params
+from starlette.responses import RedirectResponse
 
 from apps.users.constants import UserSortBy
 from apps.users.models.user import Users
@@ -132,22 +132,30 @@ async def auth(
                     logger.error(
                         f"OAuth error during Microsoft callback: {str(oauth_error)}"
                     )
-                    return RedirectResponse(url=settings.UI_LOGIN_SCREEN)
+                    return RedirectResponse(
+                        url=f"{settings.LOGIN_REDIRECT_URL_ERROR}?error=Error in Microsoft callback"
+                    )
                 except Exception as e:
                     logger.error(
                         f"Unexpected error during Microsoft callback: {str(e)}"
                     )
-                    return RedirectResponse(url=settings.UI_LOGIN_SCREEN)
+                    return RedirectResponse(
+                        url=f"{settings.LOGIN_REDIRECT_URL_ERROR}?error=Error in Microsoft callback"
+                    )
                 finally:
                     # Clean up session
                     request.session.clear()
 
             case _:
                 logger.warning(f"Unsupported provider in callback: {provider}")
-                return RedirectResponse(url=settings.UI_LOGIN_SCREEN)
+                return RedirectResponse(
+                    url=f"{settings.LOGIN_REDIRECT_URL_ERROR}?error=Unsupported provider in callback"
+                )
     except Exception as e:
         logger.error(f"Global error in auth callback: {str(e)}")
-        return RedirectResponse(url=settings.UI_LOGIN_SCREEN)
+        return RedirectResponse(
+            url=f"{settings.LOGIN_REDIRECT_URL_ERROR}?error=Global error in auth callback"
+        )
 
 
 @router.get(
@@ -242,9 +250,7 @@ async def create_user(
     """
 
     return BaseResponse(
-        data=await service.create_simple_user(
-            **body.model_dump(), user_id=user.get("user").id
-        )
+        data=await service.create_user(**body.model_dump(), user_id=user.get("user").id)
     )
 
 
@@ -283,7 +289,7 @@ async def update_user(
     """
 
     return BaseResponse(
-        data=await service.update_simple_user(
+        data=await service.update_user(
             user_id=user_id, **body.model_dump(), current_user_id=user.get("user").id
         )
     )
