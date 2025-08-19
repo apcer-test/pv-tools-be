@@ -24,6 +24,18 @@ variable "codestart_connection_name" {
   type        = string
 }
 
+variable "use_existing_connection" {
+  description = "Whether to use an existing CodeStar connection instead of creating a new one."
+  type        = bool
+  default     = false
+}
+
+variable "existing_connection_arn" {
+  description = "ARN of existing CodeStar connection to use (required if use_existing_connection is true)."
+  type        = string
+  default     = ""
+}
+
 variable "codestart_connection_gitlab_host_arn" {
   description = "Host ARN for CodeStar connection (GitHub/GitLab)."
   type        = string

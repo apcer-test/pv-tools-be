@@ -139,7 +139,7 @@ locals {
       cloudfront_distribution_id = ""
       env_vars = [
         {
-          name  = "REPOSITORY_URI"
+          name  = "ECS_REPOSITORY_URI"
           value = "${local.account_id}.dkr.ecr.${var.region}.amazonaws.com/${var.project_name}-${service.container_name}-${var.env}"
         },
         {
@@ -288,6 +288,7 @@ module "codepipeline" {
   install_commands              = each.value.install_commands
   serverless_stage              = lookup(each.value, "serverless_stage", var.env)
   create_codepipeline_webhook   = false
+  use_custom_buildspec          = lookup(each.value, "use_custom_buildspec", false)
   
   # Environment variables
   env_vars                      = each.value.env_vars

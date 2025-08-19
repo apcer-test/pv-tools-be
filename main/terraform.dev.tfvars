@@ -32,7 +32,7 @@ services = {
     domain              = "api-dev.webelight.co.in"  # Updated domain for dev environment
     command             = ["/bin/sh", "-c", "python main.py migrate && python main.py run"]
     health_check_path   = "/healthcheck"
-    repository_path     = "APCER-Life-Sciences-Inc/pv-tool-be"  # GitHub repository path
+    repository_path     = "apcer-test/pv-tools-be"  # GitHub repository path
     repository_branch   = "main"
     env_bucket_path     = "api/dev"
     compute_type        = "BUILD_GENERAL1_SMALL"
@@ -40,6 +40,7 @@ services = {
     enable_xray         = true
     xray_daemon_cpu    = 32
     xray_daemon_memory = 256
+    use_custom_buildspec = true
   }
 }
 # EC2 Bastion Host
@@ -76,25 +77,37 @@ s3_buckets = {
   }
 }
 
+# Storage buckets for environment files and CodePipeline artifacts
+storage_buckets = {
+  env_bucket = {
+    service_name        = "env"
+    enable_versioning   = true
+    service_folders     = ["frontend", "api"]
+    lifecycle_rules     = []
+  }
+  codepipeline_artifacts_bucket = {
+    service_name        = "codepipeline-artifacts"
+    lifecycle_rules     = []
+  }
+}
+
 # Frontend Configuration (for CodePipeline)
 frontends = {
   frontend = {
     service_name         = "frontend"
     domain              = "frontend-dev.webelight.co.in"  # Update with your domain
-    repository_path     = "APCER-Life-Sciences-Inc/pv-tool-fe"  # GitHub repository path
+    repository_path     = "apcer-test/pv-tools-fe"  # GitHub repository path
     repository_branch   = "main"
     bucket_path         = "frontend/dev"
-    node_version        = "20.9.0"
-    build_commands      = [
-      "npm install",
-      "npm run build"
-    ]
+    node_version        = "22.11.0"
+    build_commands      = []
     install_commands    = []
     compute_type        = "BUILD_GENERAL1_SMALL"
     create_codepipeline = true
     create             = true
     enable_oac         = true
     create_cloudfront  = true
+    use_custom_buildspec = true
   }
 }
 
@@ -104,6 +117,8 @@ ecr_repositories = ["apcer-api-dev"]
 
 # RDS PostgreSQL
 create_rds = true
+rds_engine = "postgres"
+rds_engine_version = "17.4"
 rds_instance_class = "db.t3.medium"
 rds_allocated_storage = 20
 rds_max_allocated_storage = 100
@@ -113,15 +128,30 @@ rds_backup_window = "03:00-04:00"
 rds_maintenance_window = "sun:04:00-sun:05:00"
 rds_deletion_protection = true
 rds_skip_final_snapshot = true
-rds_engine_version = "17.4"
 rds_database_name = "apcer_pv_tool_dev"
 rds_username = "apcer_admin"
 # Password will be managed by AWS Secrets Manager
 rds_manage_master_user_secret = true
 rds_master_user_secret_kms_key_id = null  # Leave null to use default AWS managed key
 
-# ElastiCache Redis (Disabled for now - confirm with backend dev)
-create_elasticache = false
+# ElastiCache Redis
+create_elasticache = true
+elasticache_engine = "redis"
+elasticache_node_type = "cache.t3.micro"
+elasticache_num_cache_nodes = 1
+elasticache_parameter_group_name = "default.redis7"
+elasticache_port = 6379
+elasticache_subnet_group_name = "apcer-pv-tool-dev-elasticache-subnet-group"
+elasticache_security_group_ids = ["apcer-pv-tool-dev-elasticache-sg"]
+elasticache_engine_version = "7.0"
+elasticache_automatic_failover_enabled = false
+elasticache_multi_az_enabled = false
+elasticache_at_rest_encryption_enabled = true
+elasticache_transit_encryption_enabled = true
+elasticache_auth_token = null  # Set to a secure token if needed
+elasticache_maintenance_window = "sun:05:00-sun:06:00"
+elasticache_snapshot_window = "04:00-05:00"
+elasticache_snapshot_retention_limit = 7
 
 # =============================================================================
 # CONTENT DELIVERY
@@ -145,7 +175,7 @@ version_control_type = "github"
 # GitHub Personal Access Token for CodePipeline connections
 # Create one at: https://github.com/settings/tokens
 # Required scopes: repo, admin:repo_hook
-github_token = "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"  # Add your GitHub Personal Access Token here
+github_token = "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"  # Add your GitHub Personal Access Token here
 
 # CodeBuild
 create_codebuild = true

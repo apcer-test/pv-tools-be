@@ -9,111 +9,14 @@ locals {
   # Use host ARN only for GitLab self-hosted
   use_host_arn = var.repository_type == "gitlab-self-hosted"
   
-  # Dynamic buildspec based on service type
-  dynamic_buildspec = var.service_type == "frontend" ? local.frontend_buildspec : (
-    var.service_type == "serverless" ? local.serverless_buildspec : local.ecs_buildspec
-  )
+  # All services use custom buildspec from repository
+  dynamic_buildspec = null
   
-  # Frontend buildspec
-  frontend_buildspec = <<EOF
-version: 0.2
-phases:
-  install:
-    runtime-versions:
-      nodejs: ${var.node_version}
-    commands:
-      - echo Installing dependencies....
-      - aws --version
-      - aws s3 cp s3://$$S3_BUCKET/$$BUCKET_PATH/.env .env
-      - ls -la
-      - cat .env
-%{ for command in slice(var.build_commands, 0, min(2, length(var.build_commands))) }
-      - ${command}
-%{ endfor }
-  build:
-    commands:
-%{ if length(var.build_commands) > 2 }
-%{ for command in slice(var.build_commands, 2, length(var.build_commands)) }
-      - ${command}
-%{ endfor }
-%{ endif }
-      - ls -la dist
-artifacts:
-  files:
-    - "**/*"
-  base-directory: dist
-  discard-paths: no
-EOF
 
-  # Serverless buildspec
-  serverless_buildspec = <<EOF
-version: 0.2
-phases:
-  install:
-    runtime-versions:
-      nodejs: ${var.node_version != "" ? var.node_version : "20.9.0"}
-    commands:
-      - echo "Installing required dependencies"
-%{ if length(var.install_commands) > 0 }
-%{ for command in var.install_commands }
-      - ${command}
-%{ endfor }
-%{ else }
-      - npm install -g serverless
-%{ endif }
-  pre_build:
-    commands:
-      - echo "Setting up environment variables"
-      - aws s3 cp s3://$$S3_BUCKET/$$BUCKET_PATH/.env .
-      - ls -al
-      - cat .env
-  build:
-    commands:
-      - echo "Installing project dependencies"
-%{ if length(var.build_commands) > 0 }
-%{ for command in var.build_commands }
-      - ${command}
-%{ endfor }
-%{ else }
-      - yarn install
-%{ endif }
-      - echo "Deploying Serverless Application"
-      - sls deploy --stage $$STAGE --region $$REGION
-artifacts:
-  files:
-    - '**/*'
-EOF
 
-  # ECS buildspec (uses environment variables set via env_vars)
-  ecs_buildspec = <<EOF
-version: 0.2
-phases:
-  pre_build:
-    commands:
-      - echo Logging in to Amazon ECR...
-      - aws ecr get-login-password --region $$REGION | docker login -u AWS --password-stdin $$ECR_LOGIN
-      - echo Fetching environment variables from S3...
-      - aws s3 cp s3://$$S3_BUCKET/$$BUCKET_PATH/.env .env
-      - aws s3 cp s3://$$S3_BUCKET/$$BUCKET_PATH/private_key.pem private_key.pem
-      - aws s3 cp s3://$$S3_BUCKET/$$BUCKET_PATH/public_key.pem public_key.pem
-      - aws s3 cp s3://$$S3_BUCKET/$$BUCKET_PATH/cloudfront_private_key.pem private_key_cloudfront.pem
-      - ls -la
-  build:
-    commands:
-      - echo Building the Docker image...
-      - TAG="v$${CODEBUILD_RESOLVED_SOURCE_VERSION:0:5}-$(date +%I-%M-%y-%m-%d)"
-      - docker build -t $$REPOSITORY_URI:$$TAG .
-  post_build:
-    commands:
-      - echo Pushing the Docker image...
-      - docker push $$REPOSITORY_URI:$$TAG
-      - echo Generating imagedefinitions.json...
-      - printf '[{"name":"%s","imageUri":"%s"}]' "$$CONTAINER_NAME" "$$REPOSITORY_URI:$$TAG" > imagedefinitions.json
-artifacts:
-  files:
-    - imagedefinitions.json
-  base-directory: .
-EOF
+
+
+
 }
 
 # CodeStar Connection for GitLab self-hosted (uses host_arn)
@@ -132,12 +35,14 @@ resource "aws_codestarconnections_connection" "codestar_connection_public" {
 
 # Local to get the correct connection ARN
 locals {
-  connection_arn = local.use_host_arn ? (
-    length(aws_codestarconnections_connection.codestar_connection_gitlab_hosted) > 0 ? 
-    aws_codestarconnections_connection.codestar_connection_gitlab_hosted[0].arn : ""
-  ) : (
-    length(aws_codestarconnections_connection.codestar_connection_public) > 0 ? 
-    aws_codestarconnections_connection.codestar_connection_public[0].arn : ""
+  connection_arn = var.use_existing_connection ? var.existing_connection_arn : (
+    local.use_host_arn ? (
+      length(aws_codestarconnections_connection.codestar_connection_gitlab_hosted) > 0 ? 
+      aws_codestarconnections_connection.codestar_connection_gitlab_hosted[0].arn : ""
+    ) : (
+      length(aws_codestarconnections_connection.codestar_connection_public) > 0 ? 
+      aws_codestarconnections_connection.codestar_connection_public[0].arn : ""
+    )
   )
 }
 
@@ -150,7 +55,7 @@ resource "aws_codebuild_project" "build_project" {
 
   source {
     type = "CODEPIPELINE"
-    buildspec = var.force_terraform_buildspec ? local.dynamic_buildspec : (var.use_custom_buildspec ? null : local.dynamic_buildspec)
+    buildspec = null  # Always use custom buildspec from repository
   }
 
   environment {
