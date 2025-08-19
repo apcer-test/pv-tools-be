@@ -85,6 +85,12 @@ modules = [
     {"name": "AER Numbering", "slug": slugify.slugify("AER Numbering"), "parent_slug": "setup"},
     {"name": "Code List", "slug": slugify.slugify("Code List"), "parent_slug": "setup"},
     {"name": "Null Flavour List", "slug": slugify.slugify("Null Flavour List"), "parent_slug": "setup"},
+    {"name": "Mailbox Config", "slug": slugify.slugify("Mailbox Config"), "parent_slug": "setup"},
+    {"name": "Settings", "slug": "settings"},
+    {"name": "Active Substance", "slug": slugify.slugify("Active Substance"), "parent_slug": "settings"},
+    {"name": "Company Product", "slug": slugify.slugify("Company Product"), "parent_slug": "settings"},
+    {"name": "Auto Narrative", "slug": slugify.slugify("Auto Narrative"), "parent_slug": "settings"},
+    {"name": "Mail List", "slug": slugify.slugify("Mail List"), "parent_slug": "settings"},
 ]
 
 module_ids = {}

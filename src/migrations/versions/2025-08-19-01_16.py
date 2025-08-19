@@ -8,6 +8,8 @@ Create Date: 2025-08-19 01:16:17.670491
 from alembic import op
 import sqlalchemy as sa
 
+from migrations.seeder import sql_for_doc_type, sql_for_fallback_chain, sql_for_tenant, sql_for_tenant_users, user_management_sql
+
 
 # revision identifiers, used by Alembic.
 revision = 'dbd05e482320'
@@ -29,6 +31,13 @@ def upgrade() -> None:
     op.drop_constraint(op.f('roles_client_id_fkey'), 'roles', type_='foreignkey')
     op.drop_column('roles', 'client_id')
     # ### end Alembic commands ###
+     # ### end Alembic commands ###
+    for sql in user_management_sql.split(';'):
+        op.execute(sql)
+    op.execute(sql_for_tenant)
+    op.execute(sql_for_tenant_users)
+    op.execute(sql_for_doc_type)
+    op.execute(sql_for_fallback_chain)
 
 
 def downgrade() -> None:
