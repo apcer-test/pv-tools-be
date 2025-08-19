@@ -5,9 +5,7 @@ REFRESH = "refresh"
 
 
 class ErrorMessage(StrEnum):
-    """
-    Error messages for the API
-    """
+    """This class represents the error messages for the application."""
 
     INVALID_JWT_TOKEN = "Invalid Token"  # noqa: S105
     EXPIRED_TOKEN = "Expired Token"  # noqa: S105
@@ -18,9 +16,7 @@ class ErrorMessage(StrEnum):
 
 
 class SortType(StrEnum):
-    """
-    Sort types for the API
-    """
+    """This class represents the sort type for the application."""
 
     ASC = "ASC"
     DSC = "DSC"

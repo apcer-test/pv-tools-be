@@ -166,13 +166,13 @@ async def auth(
     description="endpoint for generate code",
     operation_id="generate_code",
 )
-async def generate_code(request: Request) -> RedirectResponse:
+async def generate_code(request: Request):
     """
     Open api generate code function
     """
 
-    url = f"{settings.MICROSOFT_BASE_URL}/{settings.MICROSOFT_TENANT_ID}/oauth2/v2.0/authorize?client_id={settings.MICROSOFT_CLIENT_ID}&response_type=code&redirect_uri={settings.GENERATE_CODE_REDIRECT_URL}&response_mode=query&scope={MICROSOFT_GENERATE_CODE_SCOPE}&state=12345&sso_reload=true"
-    return RedirectResponse(url=url)
+    url = f"{settings.MICROSOFT_BASE_URL}/common/oauth2/v2.0/authorize?client_id={settings.MICROSOFT_CLIENT_ID}&response_type=code&redirect_uri={settings.GENERATE_CODE_REDIRECT_URL}&response_mode=query&scope={MICROSOFT_GENERATE_CODE_SCOPE}&state=12345&sso_reload=true"
+    return {"url": url}
 
 
 @router.get(

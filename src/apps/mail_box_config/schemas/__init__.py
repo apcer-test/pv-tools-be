@@ -1,17 +1,15 @@
 from apps.mail_box_config.schemas.request import (
-    BaseMailBoxPollingConfigRequest,
     CreateUpdateMailBoxConfigRequest,
+    UpdateMailBoxConfigRequest,
 )
 from apps.mail_box_config.schemas.response import (
-    BaseMailBoxPollingConfigResponse,
-    CreateUpdateMailBoxConfigResponse,
+    MailBoxConfigDetailsResponse,
     MailBoxConfigResponse,
 )
 
 __all__ = [
-    "BaseMailBoxPollingConfigRequest",
     "CreateUpdateMailBoxConfigRequest",
-    "CreateUpdateMailBoxConfigResponse",
     "MailBoxConfigResponse",
-    "BaseMailBoxPollingConfigResponse",
+    "UpdateMailBoxConfigRequest",
+    "MailBoxConfigDetailsResponse",
 ]

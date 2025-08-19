@@ -108,6 +108,8 @@ class Settings(BaseSettings):
         False, alias="IS_SINGLE_DEVICE_LOGIN_ENABLED"
     )
 
+    WORKER_POOL: Optional[str] = Field(None, alias="WORKER_POOL")
+
     model_config = {"env_file": ".env", "extra": "ignore"}
 
     # Add a root validator for required fields

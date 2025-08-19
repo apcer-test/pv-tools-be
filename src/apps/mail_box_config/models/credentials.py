@@ -14,7 +14,6 @@ class MicrosoftCredentialsConfig(Base, ULIDPrimaryKeyMixin, TimeStampMixin, User
     """
 
     __tablename__ = "microsoft_credentials_config"
-    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id", ondelete="cascade"))
     config: Mapped[str | None] = mapped_column()
 
     def __str__(self) -> str:
@@ -22,7 +21,7 @@ class MicrosoftCredentialsConfig(Base, ULIDPrimaryKeyMixin, TimeStampMixin, User
         return f"<MicrosoftCredentialsConfig>"
 
     @classmethod
-    def create(cls, tenant_id: str, config: str | bytes | None = None) -> Self:
+    def create(cls, config: str | bytes | None = None) -> Self:
         """Create a microsoft credentials entry.
 
         Args:
@@ -31,4 +30,4 @@ class MicrosoftCredentialsConfig(Base, ULIDPrimaryKeyMixin, TimeStampMixin, User
         Returns:
             MicrosoftCredentialsConfig instance
         """
-        return cls(id=str(ULID()), tenant_id=tenant_id, config=config)
+        return cls(id=str(ULID()), config=config)
