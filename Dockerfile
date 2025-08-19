@@ -1,35 +1,48 @@
 FROM python:3.11-alpine as builder
 
-RUN apk add build-base libffi-dev
-
-COPY ./alembic.ini ./poetry.lock ./pyproject.toml /code/
-COPY ./.env /code/.env
-COPY ./src /code
+# Install system dependencies for building wheels
+RUN apk add --no-cache build-base libffi-dev
 
 WORKDIR /code
-RUN pip install --upgrade pip &&\
-    pip install --no-cache-dir pip==23.3.1 &&\
-    pip install --no-cache-dir poetry==1.6.1 &&\
-    poetry export -f requirements.txt --output requirements.txt --without-hashes &&\
-    pip install --no-cache-dir -r requirements.txt &&\
-    pip uninstall -y poetry &&\
-    rm -rf requirements.txt
 
+# Copy only dependency files first (better for caching)
+COPY pyproject.toml poetry.lock ./
+
+# Install Poetry and export requirements
+RUN pip install --no-cache-dir pip==23.3.1 poetry==1.6.1 \
+ && poetry export -f requirements.txt --output requirements.txt --without-hashes
+
+# Install project dependencies into a separate folder
+RUN pip install --no-cache-dir --prefix=/install -r requirements.txt \
+ && pip uninstall -y poetry \
+ && rm -f requirements.txt
+
+# Copy app source
+COPY alembic.ini .env ./src /code/
+
+# ---------------- Runner ----------------
 FROM python:3.11-alpine as runner
 
-ENV PYTHONUNBUFFERED 1
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONPATH "/code/src:${PYTHONPATH}"
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONPATH="/code/src:${PYTHONPATH}"
 
+# Create user
+RUN addgroup -S app && adduser -S app -G app
+
+WORKDIR /code
+
+# Copy installed dependencies from builder
+COPY --from=builder /install /usr/local
 COPY --from=builder /code /code
-COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
 
 RUN apk add --no-cache curl
 
-HEALTHCHECK --interval=10s --timeout=3s --start-period=10s --retries=3 CMD curl -f http://localhost:80/healthcheck || exit 1
+# Healthcheck (make sure your app actually runs on :80!)
+HEALTHCHECK --interval=10s --timeout=3s --start-period=10s --retries=3 \
+  CMD curl -f http://localhost:80/healthcheck || exit 1
 
-RUN addgroup -S app && adduser -S app -G app
 USER app
 
-WORKDIR /code
-ENTRYPOINT ["/bin/sh", "-c" , "python main.py migrate && python main.py run"]
+# Use a startup script instead of chaining in ENTRYPOINT
+ENTRYPOINT ["sh", "-c", "python main.py migrate && exec python main.py run"]
