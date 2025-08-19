@@ -19,8 +19,7 @@ FROM public.ecr.aws/docker/library/python:3.12-slim AS runner
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     curl \
-    bash && \
-    apt-get install -y libpq-dev wkhtmltopdf
+    bash
 
 ENV PYTHONUNBUFFERED 1
 ENV PYTHONPATH "/code/src:${PYTHONPATH}"
