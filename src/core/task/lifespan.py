@@ -36,5 +36,5 @@ async def lifespan(app):
     logger.info("starting scheduler")
 
     scheduler.start()
-    await FastAPILimiter.init(redis)
+    # await FastAPILimiter.init(redis)
     yield
