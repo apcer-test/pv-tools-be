@@ -3,10 +3,12 @@ import json
 from fastapi.responses import JSONResponse
 from ulid import ULID
 
+from apps.users.schemas.request import LoginActivityCreate
 from config import settings
-from core.db import redis
-from core.types import RoleType
+from core.db import async_session, redis
+from core.types import LoginActivityStatus, RoleType
 from core.utils.hashing import Hash
+from core.utils.login_logger import log_login_activity
 
 
 def set_auth_cookies(
@@ -146,3 +148,17 @@ async def delete_user_previous_tokens(user_id: ULID, client_slug: str) -> None:
         await redis.delete(hashed_user_id)
         await redis.delete(Hash.make(old_access_token))
         await redis.delete(Hash.make(old_refresh_token))
+        # ✅ Add activity log using a safe scoped session
+        async with async_session() as session:
+            async with session.begin():
+                await log_login_activity(
+                    session,
+                    LoginActivityCreate(
+                        user_id=user_id,
+                        client_id=client_slug,
+                        status=LoginActivityStatus.LOGOUT,
+                        activity="System Logout",
+                        reason="User logged out successfully by deleting previous session",
+                        ip_address=None,
+                    ),
+                )

@@ -1,17 +1,20 @@
 """Controller for user."""
 
 import logging
-from typing import Annotated
+from datetime import datetime
+from typing import Annotated, Optional
 
 from authlib.integrations.base_client.errors import OAuthError
 from fastapi import APIRouter, Body, Depends, Path, Query, Request, status
 from fastapi.security import HTTPAuthorizationCredentials
 from fastapi.security import HTTPBearer as HttpBearer
 from fastapi_pagination import Page, Params
+from sqlalchemy import and_, select
+from sqlalchemy.orm import selectinload
 from starlette.responses import JSONResponse, RedirectResponse
 
 from apps.users.constants import UserSortBy
-from apps.users.models.user import Users
+from apps.users.models.user import LoginActivity, Users
 from apps.users.schemas.request import (
     AssignUserClientsRequest,
     CreateUserRequest,
@@ -21,6 +24,7 @@ from apps.users.schemas.response import (
     AssignUserClientsResponse,
     CreateUserResponse,
     ListUserResponse,
+    LoginActivityOut,
     UpdateUserResponse,
     UserSelfResponse,
     UserStatusResponse,
@@ -126,9 +130,7 @@ async def auth(
                         f"Successfully got user data from Microsoft: {user_data.get('email')}"
                     )
                     return await service.sso_user(
-                        token=token.get("id_token"),
-                        client_slug=client_slug,
-                        **user_data,
+                        client_slug=client_slug, request=request, **user_data
                     )
 
                 except OAuthError as oauth_error:
@@ -260,6 +262,7 @@ async def refresh_token_handler(
     dependencies=[Depends(current_user)],
 )
 async def logout(
+    request: Request,
     service: Annotated[UserService, Depends()],
     access_token: Annotated[
         HTTPAuthorizationCredentials, Depends(HttpBearer(auto_error=False))
@@ -269,8 +272,42 @@ async def logout(
     Logout endpoint.
     :return: Success response.
     """
-    await service.logout(access_token.credentials)
+    await service.logout(access_token.credentials, request)
     return BaseResponse(data=SuccessResponse())
+
+
+@router.get(
+    "/login-activities",
+    status_code=status.HTTP_200_OK,
+    name="List Login Activities",
+    operation_id="list-login-activities",
+    response_model=BaseResponse[list[LoginActivityOut]],
+)
+async def get_all_login_activities(
+    param: Annotated[Params, Depends()],
+    user: Annotated[tuple[Users, str], Depends(current_user)],
+    service: Annotated[UserService, Depends()],
+    start_date: Annotated[datetime, Query(...)],
+    end_date: Annotated[datetime, Query(...)],
+    user_id: Annotated[str | None, Query()] = None,
+    client_id: Annotated[str | None, Query()] = None,
+    status: Annotated[str | None, Query()] = None,
+    activity: Annotated[str | None, Query()] = None,
+) -> BaseResponse[Page[LoginActivityOut]]:
+    """
+    Get all login activities.
+    """
+    return BaseResponse(
+        data=await service.get_all_login_activities(
+            page_param=param,
+            start_date=start_date,
+            end_date=end_date,
+            user_id=user_id,
+            client_id=client_id,
+            status=status,
+            activity=activity,
+        )
+    )
 
 
 @router.post(
@@ -512,3 +549,40 @@ async def get_user_by_id(
             client_id=user.get("client_id"), user_id=user_id
         )
     )
+
+
+async def list_login_activities(
+    self,
+    start_date: datetime,
+    end_date: datetime,
+    user_id: Optional[str] = None,
+    client_id: Optional[str] = None,
+    status: Optional[str] = None,
+    activity: Optional[str] = None,
+) -> list[LoginActivity]:
+    """
+    List login activities.
+    """
+    filters = [
+        LoginActivity.timestamp >= start_date,
+        LoginActivity.timestamp <= end_date,
+    ]
+
+    if user_id:
+        filters.append(LoginActivity.user_id == user_id)
+    if client_id:
+        filters.append(LoginActivity.client_id == client_id)
+    if status:
+        filters.append(LoginActivity.status == status)
+    if activity:
+        filters.append(LoginActivity.activity.ilike(f"%{activity}%"))
+
+    stmt = (
+        select(LoginActivity)
+        .options(selectinload(LoginActivity.user), selectinload(LoginActivity.client))
+        .where(and_(*filters))
+        .order_by(LoginActivity.timestamp.desc())
+    )
+
+    result = await self.db.execute(stmt)
+    return result.scalars().all()

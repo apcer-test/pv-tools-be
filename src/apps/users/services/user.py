@@ -2,10 +2,12 @@
 
 import copy
 import json
-from typing import Annotated, Any
+from datetime import datetime
+from typing import Annotated, Any, Optional
 
-from fastapi import Depends, status
+from fastapi import Depends, Request, status
 from fastapi_pagination import Page, Params
+from fastapi_pagination.bases import AbstractPage
 from fastapi_pagination.ext.sqlalchemy import paginate
 from pydantic import EmailStr
 from sqlalchemy import and_, or_, select
@@ -30,12 +32,14 @@ from apps.users.exceptions import (
     UserNotFoundException,
 )
 from apps.users.models import UserRoleLink, Users
-from apps.users.schemas.request import UserClientAssignment
+from apps.users.models.user import LoginActivity
+from apps.users.schemas.request import LoginActivityCreate, UserClientAssignment
 from apps.users.schemas.response import (
     AssignUserClientsResponse,
     ClientResponse,
     CreateUserResponse,
     ListUserResponse,
+    LoginActivityOut,
     RoleResponse,
     UpdateUserResponse,
     UserAssignmentsResponse,
@@ -50,7 +54,9 @@ from core.auth import access
 from core.common_helpers import create_tokens
 from core.db import db_session, redis
 from core.exceptions import InvalidJWTTokenException, UnauthorizedError
+from core.types import LoginActivityStatus
 from core.utils.hashing import Hash
+from core.utils.login_logger import log_login_activity
 from core.utils.set_cookies import create_user_token_caching
 
 
@@ -66,7 +72,9 @@ class MicrosoftSSOService:
         """
         self.session = session
 
-    async def sso_user(self, token: str, client_slug: str, **kwargs) -> dict[str, str]:
+    async def sso_user(
+        self, client_slug: str, request: Request, **kwargs
+    ) -> dict[str, str]:
         """
         Handle Microsoft OAuth callback and authenticate user
 
@@ -100,9 +108,31 @@ class MicrosoftSSOService:
             )
 
             if not user:
+                await log_login_activity(
+                    self.session,
+                    LoginActivityCreate(
+                        user_id=None,
+                        client_id=client_slug,
+                        status=LoginActivityStatus.FAILED,
+                        activity="System Login",
+                        reason=f"Failed to login, user not found: {email}",
+                        ip_address=request.client.host,
+                    ),
+                )
                 raise UserNotFoundException
 
             if user.is_active is False:
+                await log_login_activity(
+                    self.session,
+                    LoginActivityCreate(
+                        user_id=user.id,
+                        client_id=client_slug,
+                        status=LoginActivityStatus.FAILED,
+                        activity="System Login",
+                        reason=f"Failed to login, user is not active: {email}",
+                        ip_address=request.client.host,
+                    ),
+                )
                 raise UnauthorizedError
 
             res = await create_tokens(user_id=user.id, client_slug=client_slug)
@@ -115,7 +145,17 @@ class MicrosoftSSOService:
             )
 
             redirect_link = f"{settings.LOGIN_REDIRECT_URL}?accessToken={access_token}&refreshToken={refresh_token}"
-
+            await log_login_activity(
+                self.session,
+                LoginActivityCreate(
+                    user_id=user.id,
+                    client_id=client_slug,
+                    status=LoginActivityStatus.SUCCESS,
+                    activity="System Login",
+                    reason="User logged in successfully",
+                    ip_address=request.client.host,
+                ),
+            )
             return RedirectResponse(url=redirect_link)
         except Exception as e:
             raise e
@@ -1008,7 +1048,7 @@ class UserService:
 
         raise InvalidJWTTokenException(INVALID_TOKEN)
 
-    async def logout(self, access_token: str) -> None:
+    async def logout(self, access_token: str, request: Request) -> None:
         """
         Logout
         """
@@ -1035,3 +1075,60 @@ class UserService:
 
         await redis.delete(key)
         await redis.delete(Hash.make(refresh_token))
+        await log_login_activity(
+            self.session,
+            LoginActivityCreate(
+                user_id=user_id,
+                client_id=client_slug,
+                status=LoginActivityStatus.LOGOUT,
+                activity="System Logout",
+                reason="User logged out successfully",
+                ip_address=request.client.host,
+            ),
+        )
+
+    async def get_all_login_activities(
+        self,
+        page_param: Params,
+        start_date: datetime,
+        end_date: datetime,
+        user_id: Optional[str] = None,
+        client_id: Optional[str] = None,
+        status: Optional[str] = None,
+        activity: Optional[str] = None,
+    ) -> Page[LoginActivityOut]:
+        """
+        Get all login activities.
+        """
+        filters = [
+            LoginActivity.timestamp >= start_date,
+            LoginActivity.timestamp <= end_date,
+        ]
+
+        if user_id:
+            filters.append(LoginActivity.user_id == user_id)
+        if client_id:
+            filters.append(LoginActivity.client_id == client_id)
+        if status:
+            filters.append(LoginActivity.status == status)
+        if activity:
+            filters.append(LoginActivity.activity.ilike(f"%{activity}%"))
+
+        query = (
+            select(LoginActivity)
+            .options(
+                selectinload(LoginActivity.user), selectinload(LoginActivity.client)
+            )
+            .where(and_(*filters))
+            .order_by(LoginActivity.timestamp.desc())
+        )
+
+        raw_page: AbstractPage = await paginate(self.session, query, params=page_param)
+
+        # Convert ORM -> Pydantic
+        return Page[LoginActivityOut].construct(
+            items=[LoginActivityOut.model_validate(item) for item in raw_page.items],
+            total=raw_page.total,
+            page=raw_page.page,
+            size=raw_page.size,
+        )

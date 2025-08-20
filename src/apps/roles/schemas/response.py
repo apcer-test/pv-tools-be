@@ -46,7 +46,10 @@ class BaseRoleResponse(CamelCaseModel):
 class RoleResponse(CamelCaseModel):
     """role response for role operations."""
 
-    modules: list[ModuleBasicResponse]
+    id: str
+    name: str
+    description: str | None = None
+    modules: list[ModuleBasicResponse] = []
 
 
 class RoleStatusResponse(CamelCaseModel):

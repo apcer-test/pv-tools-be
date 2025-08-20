@@ -84,3 +84,12 @@ class MeddraSoctype(StrEnum):
 
     Y = "Y"
     N = "N"
+
+
+class LoginActivityStatus(StrEnum):
+    """Enum class of Login activity status"""
+
+    SUCCESS = "SUCCESS"
+    FAILED = "FAILED"
+    LOGOUT = "LOGOUT"
+    LOGOUT_FAILED = "LOGOUT_FAILED"
