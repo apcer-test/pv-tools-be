@@ -109,6 +109,7 @@ class Settings(BaseSettings):
     )
 
     WORKER_POOL: Optional[str] = Field(None, alias="WORKER_POOL")
+    SENTRY_SDK_DSN: Optional[str] = Field(None, alias="SENTRY_SDK_DSN")
 
     model_config = {"env_file": ".env", "extra": "ignore"}
 
