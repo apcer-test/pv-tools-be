@@ -106,3 +106,7 @@ MICROSOFT_CREDENTIALS_UPDATED_SUCCESSFULLY = (
 )
 INVALID_USERNAME_PASSWORD = "Invalid username or password"
 USER_DUPLICATE_CLIENT_ASSIGNMENT = "User duplicate client assignment not allowed"
+
+MAIL_BOX_CONFIG_CREATED = "Mail box config created successfully"
+MAIL_BOX_CONFIG_UPDATED = "Mail box config updated successfully"
+MAIL_BOX_STATUS_UPDATED = "Mail box status updated successfully"

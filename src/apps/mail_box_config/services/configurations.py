@@ -132,7 +132,9 @@ class MicrosoftCredentialsService:
             )
             self.session.add(tenant_settings)
 
-            return new_settings_data
+            return SuccessResponse(
+                message=constants.MICROSOFT_CREDENTIALS_UPDATED_SUCCESSFULLY
+            )
 
         current_settings = json.loads(
             self.cipher.decrypt(tenant_settings.config).decode("utf-8")
@@ -167,7 +169,7 @@ class MicrosoftCredentialsService:
         masked_length = len(value) - 4
         return "*" * masked_length + visible_chars
 
-    async def get_microsoft_credentials(self) -> dict:
+    async def get_microsoft_credentials(self) -> MicrosoftCredentialsResponse:
         """Retrieve tenant settings from the database.
 
         Args:

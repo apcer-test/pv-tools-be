@@ -6,6 +6,7 @@ from fastapi import status
 from fastapi.routing import APIRouter
 
 from apps.mail_box_config.schemas.request import EncryptedRequest
+from apps.mail_box_config.schemas.response import MicrosoftCredentialsResponse
 from apps.mail_box_config.services.configurations import MicrosoftCredentialsService
 from core.utils.schema import BaseResponse, SuccessResponse
 
@@ -49,7 +50,7 @@ async def update_microsoft_credentials(
 )
 async def get_microsoft_credentials(
     service: Annotated[MicrosoftCredentialsService, Depends()]
-) -> BaseResponse:
+) -> BaseResponse[MicrosoftCredentialsResponse]:
     """Get microsoft credentials.
 
     Args:
