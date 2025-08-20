@@ -19,3 +19,4 @@ class MailBoxConfigDetailsResponse(MailBoxConfigResponse):
     """This class represents the response data for retrieving a mail box configuration."""
 
     frequency: FrequencyType | None = None
+    app_password: str | None = None

@@ -10,3 +10,12 @@ async def revoke_running_task(mail_box_config_id: str) -> None:
         celery_app.control.revoke(running_task_id, terminate=True)
         # Clean up the Redis key
         await redis.delete(str(mail_box_config_id))
+
+
+def mask_password(password: str | None) -> str | None:
+    """Mask a password string, showing only the last 4 characters."""
+    if not password:
+        return None
+    if len(password) <= 4:
+        return "*" * len(password)
+    return "*" * (len(password) - 4) + password[-4:]
