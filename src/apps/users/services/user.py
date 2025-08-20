@@ -3,6 +3,7 @@
 import copy
 import json
 from datetime import datetime
+from io import BytesIO
 from typing import Annotated, Any, Optional
 
 from fastapi import Depends, Request, status
@@ -10,10 +11,15 @@ from fastapi_pagination import Page, Params
 from fastapi_pagination.bases import AbstractPage
 from fastapi_pagination.ext.sqlalchemy import paginate
 from pydantic import EmailStr
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4, landscape
+from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+from reportlab.lib.units import inch
+from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 from sqlalchemy import and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import load_only, selectinload
-from starlette.responses import JSONResponse, RedirectResponse
+from starlette.responses import JSONResponse, RedirectResponse, StreamingResponse
 
 from apps.clients.models.clients import Clients
 from apps.modules.models.modules import Modules
@@ -1087,18 +1093,17 @@ class UserService:
             ),
         )
 
-    async def get_all_login_activities(
+    def _build_login_activity_query(
         self,
-        page_param: Params,
         start_date: datetime,
         end_date: datetime,
         user_id: Optional[str] = None,
         client_id: Optional[str] = None,
         status: Optional[str] = None,
         activity: Optional[str] = None,
-    ) -> Page[LoginActivityOut]:
+    ):
         """
-        Get all login activities.
+        Build login activity query.
         """
         filters = [
             LoginActivity.timestamp >= start_date,
@@ -1114,13 +1119,35 @@ class UserService:
         if activity:
             filters.append(LoginActivity.activity.ilike(f"%{activity}%"))
 
-        query = (
+        return (
             select(LoginActivity)
             .options(
                 selectinload(LoginActivity.user), selectinload(LoginActivity.client)
             )
             .where(and_(*filters))
             .order_by(LoginActivity.timestamp.desc())
+        )
+
+    async def get_all_login_activities(
+        self,
+        page_param: Params,
+        start_date: datetime,
+        end_date: datetime,
+        user_id: Optional[str] = None,
+        client_id: Optional[str] = None,
+        status: Optional[str] = None,
+        activity: Optional[str] = None,
+    ) -> Page[LoginActivityOut]:
+        """
+        Get all login activities.
+        """
+        query = self._build_login_activity_query(
+            start_date=start_date,
+            end_date=end_date,
+            user_id=user_id,
+            client_id=client_id,
+            status=status,
+            activity=activity,
         )
 
         raw_page: AbstractPage = await paginate(self.session, query, params=page_param)
@@ -1131,4 +1158,129 @@ class UserService:
             total=raw_page.total,
             page=raw_page.page,
             size=raw_page.size,
+        )
+
+    def generate_login_activity_pdf(self, activities: list) -> bytes:
+        """
+        Generate login activity PDF.
+        """
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(
+            buffer,
+            pagesize=landscape(A4),
+            rightMargin=20,
+            leftMargin=20,
+            topMargin=20,
+            bottomMargin=20,
+        )
+        story = []
+        styles = getSampleStyleSheet()
+        title_style = ParagraphStyle("Title", parent=styles["Heading1"], alignment=1)
+
+        wrap_style = ParagraphStyle(
+            name="WrapStyle", fontSize=9, leading=11, wordWrap="LTR"
+        )
+
+        story.append(Paragraph("Login Activity Report", title_style))
+        story.append(Spacer(1, 12))
+
+        data = [
+            [
+                "Sr.",
+                "User Name",
+                "Client Name",
+                "IP Address",
+                "Action",
+                "Reason",
+                "Activity",
+            ]
+        ]
+
+        for idx, entry in enumerate(activities, start=1):
+            data.append(
+                [
+                    str(idx),
+                    Paragraph(
+                        (
+                            f"{entry.user.first_name} {entry.user.last_name}"
+                            if entry.user
+                            else "N/A"
+                        ),
+                        wrap_style,
+                    ),
+                    Paragraph(entry.client.name if entry.client else "N/A", wrap_style),
+                    Paragraph(entry.ip_address or "N/A", wrap_style),
+                    Paragraph(entry.status, wrap_style),
+                    Paragraph(entry.reason or "N/A", wrap_style),
+                    Paragraph(entry.activity, wrap_style),
+                ]
+            )
+
+        col_widths = [
+            0.5 * inch,
+            1.8 * inch,
+            1.8 * inch,
+            1.4 * inch,
+            1.2 * inch,
+            2.8 * inch,
+            2.0 * inch,
+        ]
+
+        table = Table(data, colWidths=col_widths)
+        table.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.lightblue),
+                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.black),
+                    ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                    ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                    ("FONTSIZE", (0, 0), (-1, 0), 11),
+                    ("GRID", (0, 0), (-1, -1), 0.25, colors.grey),
+                    ("FONTSIZE", (0, 1), (-1, -1), 9),
+                    ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                    (
+                        "ROWBACKGROUNDS",
+                        (0, 1),
+                        (-1, -1),
+                        [colors.whitesmoke, colors.white],
+                    ),
+                ]
+            )
+        )
+
+        story.append(table)
+        doc.build(story)
+        buffer.seek(0)
+        return buffer.getvalue()
+
+    async def export_login_activities(
+        self,
+        start_date: datetime,
+        end_date: datetime,
+        user_id: Optional[str] = None,
+        client_id: Optional[str] = None,
+        status: Optional[str] = None,
+        activity: Optional[str] = None,
+    ) -> StreamingResponse:
+        """
+        Export login activities as PDF.
+        """
+        query = self._build_login_activity_query(
+            start_date=start_date,
+            end_date=end_date,
+            user_id=user_id,
+            client_id=client_id,
+            status=status,
+            activity=activity,
+        )
+        result = await self.session.execute(query)
+        records = result.scalars().all()
+
+        pdf_data = self.generate_login_activity_pdf(records)
+        return StreamingResponse(
+            BytesIO(pdf_data),
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": "attachment; filename=login_activities.pdf"
+            },
         )

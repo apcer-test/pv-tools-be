@@ -308,6 +308,35 @@ async def get_all_login_activities(
     )
 
 
+@router.get(
+    "/login-activities/export",
+    status_code=status.HTTP_200_OK,
+    name="Export Login Activities",
+    operation_id="export-login-activities",
+    dependencies=[Depends(current_user)],
+)
+async def export_login_activities(
+    service: Annotated[UserService, Depends()],
+    start_date: Annotated[datetime, Query(...)],
+    end_date: Annotated[datetime, Query(...)],
+    user_id: Annotated[str | None, Query()] = None,
+    client_id: Annotated[str | None, Query()] = None,
+    status: Annotated[str | None, Query()] = None,
+    activity: Annotated[str | None, Query()] = None,
+):
+    """
+    Get all login activities.
+    """
+    return await service.export_login_activities(
+        start_date=start_date,
+        end_date=end_date,
+        user_id=user_id,
+        client_id=client_id,
+        status=status,
+        activity=activity,
+    )
+
+
 @router.post(
     "",
     status_code=status.HTTP_201_CREATED,
