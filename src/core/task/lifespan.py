@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
 
 from cryptography.hazmat.primitives import serialization
-from fastapi_limiter import FastAPILimiter
+# from fastapi_limiter import FastAPILimiter
 
 from config import settings
 from core.db import redis
