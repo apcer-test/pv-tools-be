@@ -24,7 +24,7 @@ RUN apt-get update && \
     apt-get install -y libpq-dev
 
 ENV PYTHONUNBUFFERED 1
-ENV PYTHONPATH "/code/src:${PYTHONPATH}"
+ENV PYTHONPATH "/code:${PYTHONPATH}"
 
 COPY --from=builder /code /code
 COPY --from=builder /usr/local /usr/local
