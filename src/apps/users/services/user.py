@@ -1158,6 +1158,7 @@ class UserService:
             total=raw_page.total,
             page=raw_page.page,
             size=raw_page.size,
+            pages=raw_page.pages,
         )
 
     def generate_login_activity_pdf(self, activities: list) -> bytes:
