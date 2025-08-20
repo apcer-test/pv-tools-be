@@ -30,7 +30,7 @@ COPY --from=builder /code /code
 COPY --from=builder /usr/local /usr/local
 
 # Healthcheck
-HEALTHCHECK --interval=10s --timeout=3s --start-period=10s --retries=3 CMD ["curl", "-f", "http://localhost:${APP_PORT}/healthcheck"]
+#HEALTHCHECK --interval=10s --timeout=3s --start-period=10s --retries=3 CMD ["curl", "-f", "http://localhost:${APP_PORT}/healthcheck"]
 
 RUN groupadd -r app && useradd -r -g app app && \
     chmod -R 755 /code && chown -R app:app /code
