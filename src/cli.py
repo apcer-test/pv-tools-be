@@ -590,7 +590,7 @@ def run(
         console.print(Panel.fit("[warning]Running in debug mode![/warning]"))
         uvicorn.run(
             "apps.server:debug_app",
-            host=host,
+            host=0.0.0.0,
             port=port,
             reload=not settings.APP_CONTAINER,
             reload_dirs=None if settings.APP_CONTAINER else ["src"],
