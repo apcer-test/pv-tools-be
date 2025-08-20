@@ -11,6 +11,7 @@ from sqlalchemy.orm.attributes import flag_modified
 
 import constants
 from apps.mail_box_config.models import MicrosoftCredentialsConfig
+from apps.mail_box_config.schemas.response import MicrosoftCredentialsResponse
 from apps.users.exceptions import InvalidRequestException
 from config import settings
 from core.common_helpers import decrypt
@@ -193,4 +194,10 @@ class MicrosoftCredentialsService:
                 masked_data[field] = self._mask_sensitive_value(masked_data[field])
 
         masked_data.pop("reason", None)
-        return masked_data
+        return MicrosoftCredentialsResponse(
+            tenant_id=masked_data.get("tenant_id"),
+            client_id=masked_data.get("client_id"),
+            redirect_uri=masked_data.get("redirect_uri"),
+            client_secret=masked_data.get("client_secret"),
+            refresh_token_validity_days=masked_data.get("refresh_token_validity_days"),
+        )

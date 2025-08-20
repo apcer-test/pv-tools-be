@@ -5,6 +5,7 @@ from apps.mail_box_config.schemas.request import (
 from apps.mail_box_config.schemas.response import (
     MailBoxConfigDetailsResponse,
     MailBoxConfigResponse,
+    MicrosoftCredentialsResponse,
 )
 
 __all__ = [
@@ -12,4 +13,5 @@ __all__ = [
     "MailBoxConfigResponse",
     "UpdateMailBoxConfigRequest",
     "MailBoxConfigDetailsResponse",
+    "MicrosoftCredentialsResponse",
 ]

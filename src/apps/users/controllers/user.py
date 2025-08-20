@@ -29,10 +29,10 @@ from apps.users.services import MicrosoftSSOService, UserService
 from apps.users.utils import current_user, permission_required
 from config import AppEnvironment, settings
 from constants.config import MICROSOFT_GENERATE_CODE_SCOPE
+from core.auth import refresh
 from core.types import Providers
 from core.utils.schema import BaseResponse, SuccessResponse
 from core.utils.sso_client import SSOOAuthClient
-from src.core.auth import refresh
 
 router = APIRouter(prefix="/users", tags=["User"])
 

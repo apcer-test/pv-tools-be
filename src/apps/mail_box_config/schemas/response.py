@@ -19,3 +19,13 @@ class MailBoxConfigDetailsResponse(MailBoxConfigResponse):
     """This class represents the response data for retrieving a mail box configuration."""
 
     frequency: FrequencyType | None = None
+
+
+class MicrosoftCredentialsResponse(CamelCaseModel):
+    """This class represents the response data for retrieving microsoft credentials."""
+
+    client_id: str | None = None
+    redirect_uri: str | None = None
+    client_secret: str | None = None
+    refresh_token_validity_days: int | None = None
+    tenant_id: str | None = None
