@@ -13,7 +13,7 @@ from config import settings
 from core.db import db_session, redis
 from core.external_service_client.aicloudbase.client import AICBClient
 from core.utils.redis_key_utils import RedisKeyConfig
-from src.core.constants import RedisTTL
+from core.constants import RedisTTL
 
 
 class MeddraService:
