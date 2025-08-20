@@ -100,6 +100,7 @@ class Settings(BaseSettings):
     AICB_URL: Optional[str] = Field(None, alias="AICB_URL")
     AICB_USERNAME: Optional[str] = Field(None, alias="AICB_USERNAME")
     AICB_PASSWORD: Optional[str] = Field(None, alias="AICB_PASSWORD")
+    SENTRY_SDK_DSN: Optional[str] = Field(None, alias="SENTRY_SDK_DSN")
 
     model_config = {"env_file": ".env", "extra": "ignore"}
 
