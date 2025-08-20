@@ -8,7 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import load_only
 from ulid import ULID
-
+import constants
 from apps.clients.models.clients import Clients
 from apps.mail_box_config.exceptions import (
     ClientNotFoundException,
@@ -22,6 +22,7 @@ from core.db import db_session, redis
 from core.types import FrequencyType, Providers
 from core.utils.celery_worker import pooling_mail_box
 from core.utils.microsoft_oauth_util import generate_refresh_token
+from core.utils.schema import SuccessResponse
 
 
 class MailBoxService:
@@ -98,7 +99,7 @@ class MailBoxService:
                 task_id=task_id,
                 args=[str(mail_box_config.id), frequency],
             )
-            return mail_box_config
+            return SuccessResponse(message=constants.MAIL_BOX_CONFIG_CREATED)
 
     async def get_mail_box_config(
         self, mail_box_config_id: str, client_id: str
@@ -110,10 +111,7 @@ class MailBoxService:
                 load_only(
                     MicrosoftMailBoxConfig.recipient_email,
                     MicrosoftMailBoxConfig.app_password,
-                    MicrosoftMailBoxConfig.app_password_expired_at,
-                    MicrosoftMailBoxConfig.provider,
                     MicrosoftMailBoxConfig.frequency,
-                    MicrosoftMailBoxConfig.last_execution,
                     MicrosoftMailBoxConfig.is_active,
                 )
             )
@@ -124,6 +122,11 @@ class MailBoxService:
         )
         if not mail_box_config:
             raise MailBoxConfigNotFound
+
+        # Mask the app password before returning
+        if mail_box_config.app_password:
+            from apps.mail_box_config.helper import mask_password
+            mail_box_config.app_password = mask_password(mail_box_config.app_password)
 
         return mail_box_config
 
@@ -203,7 +206,7 @@ class MailBoxService:
             )
         print(f"reason: {reason}")
 
-        return mail_box_config
+        return SuccessResponse(message=constants.MAIL_BOX_CONFIG_UPDATED)
 
     async def update_mail_box_config_status(
         self, mail_box_config_id: str, client_id: str
@@ -223,4 +226,4 @@ class MailBoxService:
             raise MailBoxConfigNotFound
         # Toggle the is_active status
         mail_box_config.is_active = not mail_box_config.is_active
-        return mail_box_config
+        return SuccessResponse(message=constants.MAIL_BOX_STATUS_UPDATED)

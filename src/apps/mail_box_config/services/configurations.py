@@ -131,7 +131,9 @@ class MicrosoftCredentialsService:
             )
             self.session.add(tenant_settings)
 
-            return new_settings_data
+            return SuccessResponse(
+            message=constants.MICROSOFT_CREDENTIALS_UPDATED_SUCCESSFULLY
+        )
 
         current_settings = json.loads(
             self.cipher.decrypt(tenant_settings.config).decode("utf-8")

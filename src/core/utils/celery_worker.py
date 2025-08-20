@@ -433,9 +433,40 @@ def pooling_mail_box(
             )
 
             # Log the fetched emails details
-            print(f"CurrentDatetime: {datetime.now()}")
+            print("\n" + "="*50)
+            print(f"Email Fetch Summary at {datetime.now()}")
+            print("="*50)
             print(f"Last Execution Date: {last_execution_date}")
-            print(f"Fetched {len(list_of_items)} email(s) from mailbox")
+            print(f"Total Emails Fetched: {len(list_of_items)}")
+            print("="*50 + "\n")
+
+            # Print detailed information for each email
+            for idx, email in enumerate(list_of_items, 1):
+                print(f"\nEmail #{idx}:")
+                print("-"*30)
+                print(f"ID: {email['id']}")
+                print(f"From: {email['from']}")
+                print(f"Subject: {email['subject']}")
+                print(f"Received Date: {email['date']}")
+                
+                # Print attachment information
+                if email['attachment']:
+                    print(f"Number of Attachments: {len(email['attachment'])}")
+                    print("Attachment Names:")
+                    for fname in email['filename']:
+                        print(f"  - {fname}")
+                else:
+                    print("Attachments: None")
+                
+                # Print preview of email body
+                body_preview = email.get('body', '')[:200]  # First 200 characters
+                if body_preview:
+                    print("\nBody Preview:")
+                    print(f"{body_preview}...")
+                else:
+                    print("\nBody: Empty")
+                
+                print("-"*30)
 
             # Update last execution date to current time if emails were checked
             current_time = datetime.now(UTC).replace(tzinfo=None)
