@@ -1,35 +1,35 @@
-FROM python:3.11-alpine as builder
+FROM public.ecr.aws/docker/library/python:3.12-slim as builder
 
-RUN apk add build-base libffi-dev
-
-COPY ./alembic.ini ./poetry.lock ./pyproject.toml /code/
+COPY ./poetry.lock ./pyproject.toml ./private_key.pem ./private_key_cloudfront.pem /code/
+COPY ./src /code/src
 COPY ./.env /code/.env
-COPY ./src /code
 
 WORKDIR /code
-RUN pip install --upgrade pip &&\
-    pip install --no-cache-dir pip==23.3.1 &&\
-    pip install --no-cache-dir poetry==1.6.1 &&\
-    poetry export -f requirements.txt --output requirements.txt --without-hashes &&\
-    pip install --no-cache-dir -r requirements.txt &&\
-    pip uninstall -y poetry &&\
-    rm -rf requirements.txt
+RUN pip install --upgrade pip && \
+    pip install poetry && \
+    poetry config virtualenvs.create false && \
+    poetry install --only main --no-root && \
+    pip uninstall -y poetry
 
-FROM python:3.11-alpine as runner
 
-ENV PYTHONUNBUFFERED 1
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONPATH "/code/src:${PYTHONPATH}"
+# runner
+FROM public.ecr.aws/docker/library/python:3.12-slim AS runner
+RUN apt-get update && apt-get install -y --no-install-recommends curl bash && rm -rf /var/lib/apt/lists/*
+
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH="/code/src:${PYTHONPATH}"
 
 COPY --from=builder /code /code
-COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=builder /usr/local /usr/local
 
-RUN apk add --no-cache curl
+# (If your app uses uvicorn --reload, make sure it watches "src" from /code)
+# HEALTHCHECK assumes APP_PORT is set from the environment
+HEALTHCHECK --interval=10s --timeout=3s --start-period=10s --retries=3 \
+  CMD ["curl","-f","http://localhost:${APP_PORT}/healthcheck"]
 
-HEALTHCHECK --interval=10s --timeout=3s --start-period=10s --retries=3 CMD curl -f http://localhost:80/healthcheck || exit 1
-
-RUN addgroup -S app && adduser -S app -G app
+RUN groupadd -r app && useradd -r -g app app && \
+    chmod -R 755 /code && chown -R app:app /code
 USER app
 
 WORKDIR /code
-ENTRYPOINT ["/bin/sh", "-c" , "python main.py migrate && python main.py run"]
+CMD ["/bin/sh","-c","python main.py migrate && python main.py run"]

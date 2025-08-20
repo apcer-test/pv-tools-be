@@ -1,0 +1,30 @@
+version: 0.2
+phases:
+  pre_build:
+    commands:
+      - echo Logging in to Amazon ECR...
+      - aws ecr get-login-password --region ${REGION} | docker login -u AWS --password-stdin ${ECR_LOGIN}
+      - echo Fetching environment variables from S3...
+      - aws s3 cp s3://${S3_BUCKET}/${BUCKET_PATH}/.env .env
+      - aws s3 cp s3://${S3_BUCKET}/${BUCKET_PATH}/private_key.pem private_key.pem
+      - aws s3 cp s3://${S3_BUCKET}/${BUCKET_PATH}/public_key.pem public_key.pem
+      - aws s3 cp s3://${S3_BUCKET}/${BUCKET_PATH}/cloudfront_private_key.pem private_key_cloudfront.pem
+      - ls -la
+
+  build:
+    commands:
+      - echo Building the Docker image...
+      - TAG="v${CODEBUILD_RESOLVED_SOURCE_VERSION:0:5}-$(date +%m-%d-%y-%H-%M)"
+      - docker build -t ${ECS_REPOSITORY_URI}:${TAG} .
+
+  post_build:
+    commands:
+      - echo Pushing the Docker image...
+      - docker push ${ECS_REPOSITORY_URI}:${TAG}
+      - echo Generating imagedefinitions.json...
+      - printf '[{"name":"%s","imageUri":"%s"}]' "${CONTAINER_NAME}" "${ECS_REPOSITORY_URI}:${TAG}" > imagedefinitions.json
+
+artifacts:
+  files:
+    - imagedefinitions.json
+  base-directory: .
