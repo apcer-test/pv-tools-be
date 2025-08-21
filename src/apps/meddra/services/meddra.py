@@ -14,10 +14,6 @@ from core.constants import RedisTTL
 from core.db import db_session, redis
 from core.external_service_client.aicloudbase.client import AICBClient
 from core.utils.redis_key_utils import RedisKeyConfig
-<<<<<<< HEAD
-from core.constants import RedisTTL
-=======
->>>>>>> da83d8098089862ea1b52f2fa0e25b5395d1585e
 
 
 class MeddraService:
