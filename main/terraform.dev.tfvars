@@ -29,10 +29,10 @@ services = {
     container_port      = 9094
     cpu                 = 1024
     memory              = 2048
-    domain              = "api-dev.webelight.co.in"  # Updated domain for dev environment
+    domain              = "api-dev.apcerls.com"  # Updated domain for dev environment
     command             = ["/bin/sh", "-c", "python main.py migrate && python main.py run"]
     health_check_path   = "/healthcheck"
-    repository_path     = "apcer-test/pv-tools-be"  # GitHub repository path
+    repository_path     = "APCER-Life-Sciences-Inc/pv-tool-be"  # GitHub repository path
     repository_branch   = "main"
     env_bucket_path     = "api/dev"
     compute_type        = "BUILD_GENERAL1_SMALL"
@@ -101,9 +101,9 @@ storage_buckets = {
 frontends = {
   frontend = {
     service_name         = "frontend"
-    domain              = "fe-dev.webelight.co.in"  # Primary domain
-    cloudfront_aliases   = ["fe-dev.webelight.co.in"]  # Primary and alternate domain
-    repository_path     = "apcer-test/pv-tools-fe"  # GitHub repository path
+    domain              = "fe-dev.apcerls.com"  # Primary domain
+    cloudfront_aliases   = ["fe-dev.apcerls.com"]  # Primary and alternate domain
+    repository_path     = "APCER-Life-Sciences-Inc/pv-tool-fe"  # GitHub repository path
     repository_branch   = "main"
     bucket_path         = "frontend/dev"
     node_version        = "22.11.0"
@@ -173,8 +173,8 @@ cloudfront_acm_certificate_arn = ""  # Will auto-create certificate for *.webeli
 
 # ACM Certificate Creation
 create_acm_certificate = true
-acm_domain_name = "*.webelight.co.in"
-acm_subject_alternative_names = ["webelight.co.in"]
+acm_domain_name = "*.apcerls.com"
+acm_subject_alternative_names = ["apcerls.com"]
 acm_validation_method = "DNS"
 route53_zone_id = ""  # Not using Route53; will output CNAMEs for manual DNS
 
@@ -222,7 +222,7 @@ create_aws_budgets = true
 # AWS Budgets Configuration
 aws_budgets = {
   budget_type = "COST"
-  budget_limit_amount = "200"
+  budget_limit_amount = "100"
   budget_limit_unit = "USD"
   budget_time_unit = "MONTHLY"
   cost_filters = {}
@@ -232,7 +232,7 @@ aws_budgets = {
       threshold                  = 80
       threshold_type             = "PERCENTAGE"
       notification_type          = "ACTUAL"
-      subscriber_email_addresses = ["dev-team@your-company.com"]  # Update with actual email
+      subscriber_email_addresses = ["vinit.shah@apcerls.com", "amit.chaubey@apcerls.com"]
       subscriber_sns_topic_arns  = []
     },
     {
@@ -240,7 +240,7 @@ aws_budgets = {
       threshold                  = 100
       threshold_type             = "PERCENTAGE"
       notification_type          = "ACTUAL"
-      subscriber_email_addresses = ["dev-team@your-company.com"]  # Update with actual email
+      subscriber_email_addresses = ["vinit.shah@apcerls.com", "amit.chaubey@apcerls.com"]
       subscriber_sns_topic_arns  = []
     }
   ]
@@ -248,7 +248,7 @@ aws_budgets = {
   alarm_evaluation_periods = 1
   alarm_period = 86400
   create_sns_topic = true
-  subscriber_email_addresses = ["dev-team@your-company.com"]  # Update with actual email
+  subscriber_email_addresses = ["vinit.shah@apcerls.com", "amit.chaubey@apcerls.com"]
 }
 
 # Cognito (Disabled)
