@@ -20,7 +20,7 @@ variable "cidr" {
   type    = string
 }
 
-variable "availability_zones" {
+variable "vpc_availability_zones" {
   type    = list(string)
 }
 
@@ -39,7 +39,7 @@ variable "services" {
     domain               = string
     # Optional fields with sensible defaults
     desired_count        = optional(number, 1)
-    image_tag            = optional(string, "latest")
+    image_tag            = optional(string, "")
     priority             = optional(number, 100)
     command              = optional(list(string), [])
     # Auto-scaling configuration
@@ -629,6 +629,31 @@ variable "create_elasticache" {
 # Master CDN Configuration
 variable "cloudfront_acm_certificate_arn" {
   description = "ACM certificate ARN for CloudFront distributions (must be in us-east-1). Leave empty for automatic wildcard certificate detection based on domain aliases"
+  type        = string
+  default     = ""
+}
+
+# ACM Certificate Configuration
+variable "create_acm_certificate" {
+  description = "Whether to create ACM certificate"
+  type        = bool
+  default     = false
+}
+
+variable "acm_domain_name" {
+  description = "Primary domain name for ACM certificate"
+  type        = string
+  default     = ""
+}
+
+variable "acm_subject_alternative_names" {
+  description = "List of additional domain names for ACM certificate"
+  type        = list(string)
+  default     = []
+}
+
+variable "route53_zone_id" {
+  description = "Route53 hosted zone ID for DNS validation"
   type        = string
   default     = ""
 }

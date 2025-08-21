@@ -6,7 +6,7 @@ app_name = "apcer-app"
 # VPC variables
 create_vpc = true
 cidr = "10.10.0.0/16"
-availability_zones = ["us-east-2a", "us-east-2b", "us-east-2c"]
+vpc_availability_zones = ["us-east-2a", "us-east-2b", "us-east-2c"]
 create_database_subnet_group = true
 
 # ALB variables

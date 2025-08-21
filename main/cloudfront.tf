@@ -286,6 +286,7 @@ module "cloudfront_s3" {
   comment                       = each.value.comment
   error_pages                   = each.value.error_pages
   default_cache_behavior        = each.value.default_cache_behavior
+  create_origin_access_control  = true  # Enable OAC for S3 origins
   tags                          = each.value.tags
 }
 
@@ -317,5 +318,6 @@ module "cloudfront_ecs" {
   error_pages                   = each.value.error_pages
   default_cache_behavior        = each.value.default_cache_behavior
   forwarded_values              = each.value.default_cache_behavior.forwarded_values
+  create_origin_access_control  = false  # ECS services use ALB, not S3
   tags                          = each.value.tags
 } 

@@ -73,9 +73,11 @@ locals {
     local.first_domain
   ) : ""
   
-  # Determine final certificate ARN (prioritize manual ARN, fallback to automatic wildcard lookup)
+  # Determine final certificate ARN (prioritize manual ARN, then ACM module, fallback to automatic wildcard lookup)
   final_cloudfront_certificate_arn = var.cloudfront_acm_certificate_arn != "" ? var.cloudfront_acm_certificate_arn : (
-    length(data.aws_acm_certificate.cloudfront_auto) > 0 ? data.aws_acm_certificate.cloudfront_auto[0].arn : ""
+    var.create_acm_certificate ? module.acm[0].certificate_arn : (
+      length(data.aws_acm_certificate.cloudfront_auto) > 0 ? data.aws_acm_certificate.cloudfront_auto[0].arn : ""
+    )
   )
   
   # Debug info for certificate lookup

@@ -84,6 +84,30 @@ resource "aws_iam_role_policy" "ecs_task_role_xray_policy" {
   })
 }
 
+# ECS Exec permissions for ECS task role
+resource "aws_iam_role_policy" "ecs_task_role_exec_policy" {
+  count = var.create_ecs_ecosystem ? 1 : 0
+  name  = "${var.project_name}-ecs-task-role-exec-policy-${var.env}"
+  role  = aws_iam_role.ecs_task_role[0].id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "ssm:UpdateInstanceInformation",
+          "ssmmessages:CreateControlChannel",
+          "ssmmessages:CreateDataChannel",
+          "ssmmessages:OpenControlChannel",
+          "ssmmessages:OpenDataChannel"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
 # ECS Fargate Cluster and Services
 
 # Create mapping from service keys to ECR repository URLs
@@ -115,4 +139,5 @@ module "ecs_fargate" {
   ecs_task_role_arn     = aws_iam_role.ecs_task_role[0].arn
   ecr_repository_urls   = local.ecr_repository_urls_map
   services           = var.services
+  tags                = local.common_tags
 } 

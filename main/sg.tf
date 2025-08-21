@@ -42,10 +42,10 @@ module "rds-sg" {
   vpc_id                     = module.vpc.vpc_id
   project_name               = var.project_name
   env                        = var.env
-  use_cidr_rules             = false
-  use_sg_rules               = var.create_rds_database
-  ingress_rules_sg           = [
-    { from_port = 3306, to_port = 3306, protocol = "tcp", description = "Allow MySQL from ECS", source_security_group_id = module.ecs-alb-sg.security_group_id }
+  use_cidr_rules             = var.create_rds_database
+  use_sg_rules               = false
+  ingress_rules_cidr         = [
+    { from_port = 5432, to_port = 5432, protocol = "tcp", description = "Allow PostgreSQL from VPC", cidr_blocks = "10.10.0.0/16" }
   ]
   egress_rules_cidr          = [
     { from_port = 0, to_port = 0, protocol = "-1", description = "Allow all outbound IPv4 traffic", cidr_blocks = "0.0.0.0/0" }

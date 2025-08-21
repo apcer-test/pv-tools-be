@@ -13,7 +13,7 @@ locals {
   )
   
   # First availability zone for RDS placement
-  rds_first_az = var.availability_zones[0]
+  rds_first_az = var.vpc_availability_zones[0]
 }
 
 # AWS RDS will automatically create and manage the secret

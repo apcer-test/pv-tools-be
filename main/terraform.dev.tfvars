@@ -9,7 +9,7 @@ region = "eu-west-2"
 
 # VPC Configuration
 cidr = "10.10.0.0/16"
-availability_zones = ["eu-west-2a", "eu-west-2b", "eu-west-2c"]
+vpc_availability_zones = ["eu-west-2a", "eu-west-2b", "eu-west-2c"]
 
 # VPC
 create_vpc = true
@@ -26,9 +26,9 @@ ecs_cluster_name = "apcer-pv-tool-dev-cluster"
 services = {
   service1 = {
     container_name      = "api"
-    container_port      = 8000
-    cpu                 = 480
-    memory              = 768
+    container_port      = 9094
+    cpu                 = 1024
+    memory              = 2048
     domain              = "api-dev.webelight.co.in"  # Updated domain for dev environment
     command             = ["/bin/sh", "-c", "python main.py migrate && python main.py run"]
     health_check_path   = "/healthcheck"
@@ -38,9 +38,15 @@ services = {
     compute_type        = "BUILD_GENERAL1_SMALL"
     create_cloudfront   = true
     enable_xray         = true
-    xray_daemon_cpu    = 32
-    xray_daemon_memory = 256
+    xray_daemon_cpu    = 0
+    xray_daemon_memory = 512
     use_custom_buildspec = true
+    enable_exec         = true
+    # Celery worker container configuration
+    enable_celery_worker = false
+    celery_worker_command = ["python", "-m", "celery", "--app=core.utils.celery_worker", "worker", "--queues=main-queue", "--concurrency=5", "-E"]
+    celery_worker_cpu    = 1024
+    celery_worker_memory = 1024
   }
 }
 # EC2 Bastion Host
@@ -95,7 +101,8 @@ storage_buckets = {
 frontends = {
   frontend = {
     service_name         = "frontend"
-    domain              = "frontend-dev.webelight.co.in"  # Update with your domain
+    domain              = "fe-dev.webelight.co.in"  # Primary domain
+    cloudfront_aliases   = ["fe-dev.webelight.co.in"]  # Primary and alternate domain
     repository_path     = "apcer-test/pv-tools-fe"  # GitHub repository path
     repository_branch   = "main"
     bucket_path         = "frontend/dev"
@@ -160,10 +167,16 @@ elasticache_snapshot_retention_limit = 7
 # CloudFront
 create_cloudfront = true
 cloudfront_price_class = "PriceClass_100"
-# IMPORTANT: Replace with your actual ACM certificate ARN from us-east-1 region
-# The certificate must be valid and cover your domain names (e.g., *.apcer-pv-tool.com)
-# You can create one in AWS Console or use AWS CLI: aws acm list-certificates --region us-east-1
-cloudfront_acm_certificate_arn = "arn:aws:acm:us-east-1:912106457730:certificate/8b8ae7bb-b1ee-42a3-bd10-b6c72c7936e1"  # Example: "arn:aws:acm:us-east-1:123456789012:certificate/your-actual-cert-id"
+# ACM Certificate Configuration
+# Leave empty to automatically create certificate for your domain
+cloudfront_acm_certificate_arn = ""  # Will auto-create certificate for *.webelight.co.in
+
+# ACM Certificate Creation
+create_acm_certificate = true
+acm_domain_name = "*.webelight.co.in"
+acm_subject_alternative_names = ["webelight.co.in"]
+acm_validation_method = "DNS"
+route53_zone_id = ""  # Not using Route53; will output CNAMEs for manual DNS
 
 # =============================================================================
 # CI/CD SERVICES
@@ -172,11 +185,6 @@ cloudfront_acm_certificate_arn = "arn:aws:acm:us-east-1:912106457730:certificate
 # CodePipeline
 create_codepipelines = true
 version_control_type = "github"
-# GitHub Personal Access Token for CodePipeline connections
-# Create one at: https://github.com/settings/tokens
-# Required scopes: repo, admin:repo_hook
-github_token = "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"  # Add your GitHub Personal Access Token here
-
 # CodeBuild
 create_codebuild = true
 

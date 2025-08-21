@@ -127,8 +127,8 @@ locals {
       
       # ECS configuration
       container_name    = service.container_name
-      ecs_cluster_name  = "${var.project_name}-${var.env}-ecs-cluster"
-      ecs_service_name  = "${service.container_name}-${var.env}"
+      ecs_cluster_name  = "${var.project_name}-cluster-${var.env}"
+      ecs_service_name  = "${var.project_name}-${service.container_name}-${var.env}"
       compute_type      = service.compute_type
       
       # Build settings
