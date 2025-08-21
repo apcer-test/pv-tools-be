@@ -1,12 +1,15 @@
 """Controller for user."""
 
 import logging
+from datetime import datetime
 from typing import Annotated
 
 from authlib.integrations.base_client.errors import OAuthError
 from fastapi import APIRouter, Body, Depends, Path, Query, Request, status
-from fastapi.responses import RedirectResponse
+from fastapi.security import HTTPAuthorizationCredentials
+from fastapi.security import HTTPBearer as HttpBearer
 from fastapi_pagination import Page, Params
+from starlette.responses import JSONResponse, RedirectResponse
 
 from apps.users.constants import UserSortBy
 from apps.users.models.user import Users
@@ -19,6 +22,7 @@ from apps.users.schemas.response import (
     AssignUserClientsResponse,
     CreateUserResponse,
     ListUserResponse,
+    LoginActivityOut,
     UpdateUserResponse,
     UserSelfResponse,
     UserStatusResponse,
@@ -27,6 +31,7 @@ from apps.users.services import MicrosoftSSOService, UserService
 from apps.users.utils import current_user, permission_required
 from config import AppEnvironment, settings
 from constants.config import MICROSOFT_GENERATE_CODE_SCOPE
+from core.auth import refresh
 from core.types import Providers
 from core.utils.schema import BaseResponse, SuccessResponse
 from core.utils.sso_client import SSOOAuthClient
@@ -34,6 +39,7 @@ from core.utils.sso_client import SSOOAuthClient
 router = APIRouter(prefix="/users", tags=["User"])
 
 logger = logging.getLogger(__name__)
+
 
 @router.get(
     "/openid/login/{provider}/{client_id}",
@@ -122,31 +128,37 @@ async def auth(
                         f"Successfully got user data from Microsoft: {user_data.get('email')}"
                     )
                     return await service.sso_user(
-                        token=token.get("id_token"),
-                        client_slug=client_slug,
-                        **user_data,
+                        client_slug=client_slug, request=request, **user_data
                     )
 
                 except OAuthError as oauth_error:
                     logger.error(
                         f"OAuth error during Microsoft callback: {str(oauth_error)}"
                     )
-                    return RedirectResponse(url=settings.UI_LOGIN_SCREEN)
+                    return RedirectResponse(
+                        url=f"{settings.LOGIN_REDIRECT_URL_ERROR}?error=Error in Microsoft callback"
+                    )
                 except Exception as e:
                     logger.error(
                         f"Unexpected error during Microsoft callback: {str(e)}"
                     )
-                    return RedirectResponse(url=settings.UI_LOGIN_SCREEN)
+                    return RedirectResponse(
+                        url=f"{settings.LOGIN_REDIRECT_URL_ERROR}?error=Error in Microsoft callback"
+                    )
                 finally:
                     # Clean up session
                     request.session.clear()
 
             case _:
                 logger.warning(f"Unsupported provider in callback: {provider}")
-                return RedirectResponse(url=settings.UI_LOGIN_SCREEN)
+                return RedirectResponse(
+                    url=f"{settings.LOGIN_REDIRECT_URL_ERROR}?error=Unsupported provider in callback"
+                )
     except Exception as e:
         logger.error(f"Global error in auth callback: {str(e)}")
-        return RedirectResponse(url=settings.UI_LOGIN_SCREEN)
+        return RedirectResponse(
+            url=f"{settings.LOGIN_REDIRECT_URL_ERROR}?error=Global error in auth callback"
+        )
 
 
 @router.get(
@@ -157,13 +169,13 @@ async def auth(
     description="endpoint for generate code",
     operation_id="generate_code",
 )
-async def generate_code(request: Request) -> RedirectResponse:
+async def generate_code(request: Request):
     """
     Open api generate code function
     """
 
-    url = f"{settings.MICROSOFT_BASE_URL}/{settings.MICROSOFT_TENANT_ID}/oauth2/v2.0/authorize?client_id={settings.MICROSOFT_CLIENT_ID}&response_type=code&redirect_uri={settings.GENERATE_CODE_REDIRECT_URL}&response_mode=query&scope={MICROSOFT_GENERATE_CODE_SCOPE}&state=12345&sso_reload=true"
-    return RedirectResponse(url=url)
+    url = f"{settings.MICROSOFT_BASE_URL}/common/oauth2/v2.0/authorize?client_id={settings.MICROSOFT_CLIENT_ID}&response_type=code&redirect_uri={settings.GENERATE_CODE_REDIRECT_URL}&response_mode=query&scope={MICROSOFT_GENERATE_CODE_SCOPE}&state=12345&sso_reload=true"
+    return {"url": url}
 
 
 @router.get(
@@ -211,6 +223,121 @@ async def get_self(
 
 
 @router.post(
+    "/refresh",
+    status_code=status.HTTP_200_OK,
+    name="Refresh Token",
+    description="Refresh Token",
+    operation_id="user_refresh_token",
+)
+async def refresh_token_handler(
+    token: Annotated[dict, Depends(refresh)],
+    service: Annotated[UserService, Depends()],
+    refresh_token: Annotated[
+        HTTPAuthorizationCredentials, Depends(HttpBearer(auto_error=False))
+    ],
+) -> JSONResponse:
+    """
+    Refresh the admin access token.
+
+    Args:
+        token (dict): User information from the admin_refresh dependency.
+        service (AuthService): AuthService instance from dependency injection.
+        refresh_token (str | None): Refresh token from the "adminRefreshToken" cookie.
+
+    Returns:
+        JSONResponse: Response with the new access and refresh tokens.
+    """
+    response = await service.refresh_token(token, refresh_token.credentials)
+    return response
+
+
+@router.post(
+    "/logout",
+    status_code=status.HTTP_200_OK,
+    name="User Logout",
+    description="User logout",
+    operation_id="User_logout",
+    dependencies=[Depends(current_user)],
+)
+async def logout(
+    request: Request,
+    service: Annotated[UserService, Depends()],
+    access_token: Annotated[
+        HTTPAuthorizationCredentials, Depends(HttpBearer(auto_error=False))
+    ],
+) -> BaseResponse[SuccessResponse]:
+    """
+    Logout endpoint.
+    :return: Success response.
+    """
+    await service.logout(access_token.credentials, request)
+    return BaseResponse(data=SuccessResponse())
+
+
+@router.get(
+    "/login-activities",
+    status_code=status.HTTP_200_OK,
+    name="List Login Activities",
+    operation_id="list-login-activities",
+    response_model=BaseResponse[list[LoginActivityOut]],
+)
+async def get_all_login_activities(
+    param: Annotated[Params, Depends()],
+    user: Annotated[tuple[Users, str], Depends(current_user)],
+    service: Annotated[UserService, Depends()],
+    start_date: Annotated[datetime, Query(...)],
+    end_date: Annotated[datetime, Query(...)],
+    user_id: Annotated[str | None, Query()] = None,
+    client_id: Annotated[str | None, Query()] = None,
+    status: Annotated[str | None, Query()] = None,
+    activity: Annotated[str | None, Query()] = None,
+) -> BaseResponse[Page[LoginActivityOut]]:
+    """
+    Get all login activities.
+    """
+    return BaseResponse(
+        data=await service.get_all_login_activities(
+            page_param=param,
+            start_date=start_date,
+            end_date=end_date,
+            user_id=user_id,
+            client_id=client_id,
+            status=status,
+            activity=activity,
+        )
+    )
+
+
+@router.get(
+    "/login-activities/export",
+    status_code=status.HTTP_200_OK,
+    name="Export Login Activities",
+    operation_id="export-login-activities",
+    dependencies=[Depends(current_user)],
+)
+async def export_login_activities(
+    service: Annotated[UserService, Depends()],
+    start_date: Annotated[datetime, Query(...)],
+    end_date: Annotated[datetime, Query(...)],
+    user_id: Annotated[str | None, Query()] = None,
+    client_id: Annotated[str | None, Query()] = None,
+    status: Annotated[str | None, Query()] = None,
+    activity: Annotated[str | None, Query()] = None,
+):
+    """
+    Get all login activities.
+    """
+    return await service.export_login_activities(
+        start_date=start_date,
+        end_date=end_date,
+        user_id=user_id,
+        client_id=client_id,
+        status=status,
+        activity=activity,
+    )
+
+
+@router.post(
     "",
     status_code=status.HTTP_201_CREATED,
     name="Create User",
@@ -241,9 +368,7 @@ async def create_user(
     """
 
     return BaseResponse(
-        data=await service.create_user(
-            **body.model_dump(), user_id=user.get("user").id
-        )
+        data=await service.create_user(**body.model_dump(), user_id=user.get("user").id)
     )
 
 
@@ -355,7 +480,9 @@ async def change_user_status(
     """
 
     return BaseResponse(
-        data=await service.change_user_status(user_id=user_id, current_user_id=user.get("user").id)
+        data=await service.change_user_status(
+            user_id=user_id, current_user_id=user.get("user").id
+        )
     )
 
 
@@ -373,7 +500,6 @@ async def get_all_users(
     user_ids: Annotated[list[str] | None, Query()] = None,
     search: Annotated[str | None, Query()] = None,
     role: Annotated[str | None, Query()] = None,
-
     client: Annotated[str | None, Query()] = None,
     is_active: Annotated[bool | None, Query()] = None,
     sortby: Annotated[UserSortBy | None, Query()] = None,

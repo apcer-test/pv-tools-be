@@ -9,7 +9,11 @@ from apps.master_modules.schemas.request import (
     UpdateCodeListLookupValueRequest,
     UpdateNFListLookupValueRequest,
 )
-from apps.master_modules.schemas.response import LookupResponse
+from apps.master_modules.schemas.response import (
+    CodeListLookupValueResponse,
+    LookupResponse,
+    NFListLookupValueResponse,
+)
 from apps.master_modules.services.setup import SetupService
 from apps.users.utils import permission_required
 from core.utils.pagination import PaginatedResponse, PaginationParams
@@ -161,7 +165,7 @@ async def get_codelist_lookup_values(
         ]
         | None
     ) = None,
-) -> BaseResponse:
+) -> BaseResponse[PaginatedResponse[CodeListLookupValueResponse]]:
     """
     Return lookup values for a specific codelist lookup. Only returns values for codelist type lookups.
     """
@@ -207,7 +211,7 @@ async def get_nflist_lookup_values(
         ]
         | None
     ) = None,
-) -> BaseResponse:
+) -> BaseResponse[PaginatedResponse[NFListLookupValueResponse]]:
     """
     Return lookup values for a specific nflist lookup. Only returns values for nflist type lookups.
     """

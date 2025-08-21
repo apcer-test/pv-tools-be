@@ -14,7 +14,7 @@ from apps.roles.schemas.response import RoleResponse, RoleStatusResponse
 from apps.roles.services import RoleService
 from apps.users.models.user import Users
 from apps.users.utils import current_user, permission_required
-from core.utils.schema import BaseResponse, SuccessResponse
+from core.utils.schema import BaseResponse
 
 router = APIRouter(prefix="/roles", tags=["Roles"])
 
@@ -69,7 +69,7 @@ async def get_all_roles(
     page_params: Annotated[Params, Depends()],
     user: Annotated[tuple[Users, str], Depends(current_user)],
     sortby: Annotated[RolesSortBy | None, Query()] = None,
-    name: Annotated[str | None, Query()] = None,
+    search: Annotated[str | None, Query()] = None,
 ) -> BaseResponse[Page[BaseRoleResponse]]:
     """
     Retrieve a paginated list of all roles with optional filtering and sorting.
@@ -87,7 +87,7 @@ async def get_all_roles(
     """
     return BaseResponse(
         data=await service.get_all_roles(
-            page_params, sortby, name, client_id=user.get("client_id")
+            page_params, sortby, name=search, client_id=user.get("client_id")
         )
     )
 
@@ -194,5 +194,7 @@ async def change_role_status(
     """
 
     return BaseResponse(
-        data=await service.change_role_status(role_id=role_id, current_user_id=user.get("user").id)
+        data=await service.change_role_status(
+            role_id=role_id, current_user_id=user.get("user").id
+        )
     )

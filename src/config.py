@@ -84,6 +84,9 @@ class Settings(BaseSettings):
 
     LOGIN_REDIRECT_URL: Optional[str] = Field(None, alias="LOGIN_REDIRECT_URL")
     UI_LOGIN_SCREEN: Optional[str] = Field(None, alias="UI_LOGIN_SCREEN")
+    LOGIN_REDIRECT_URL_ERROR: Optional[str] = Field(
+        None, alias="LOGIN_REDIRECT_URL_ERROR"
+    )
 
     MASTER_ENUM_FILE_PATH: Optional[str] = Field(None, alias="MASTER_ENUM_FILE_PATH")
 
@@ -100,6 +103,13 @@ class Settings(BaseSettings):
     AICB_URL: Optional[str] = Field(None, alias="AICB_URL")
     AICB_USERNAME: Optional[str] = Field(None, alias="AICB_USERNAME")
     AICB_PASSWORD: Optional[str] = Field(None, alias="AICB_PASSWORD")
+    SENTRY_SDK_DSN: Optional[str] = Field(None, alias="SENTRY_SDK_DSN")
+
+    IS_SINGLE_DEVICE_LOGIN_ENABLED: Optional[bool] = Field(
+        False, alias="IS_SINGLE_DEVICE_LOGIN_ENABLED"
+    )
+
+    WORKER_POOL: Optional[str] = Field(None, alias="WORKER_POOL")
     SENTRY_SDK_DSN: Optional[str] = Field(None, alias="SENTRY_SDK_DSN")
 
     model_config = {"env_file": ".env", "extra": "ignore"}

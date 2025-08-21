@@ -1,15 +1,18 @@
+from datetime import datetime
 from typing import TYPE_CHECKING, List
 
-from sqlalchemy import JSON, ForeignKey, String
+from sqlalchemy import JSON, ForeignKey, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from core.db import Base
+from core.types import LoginActivityStatus
 from core.utils.mixins import TimeStampMixin, ULIDPrimaryKeyMixin, UserMixin
 
 if TYPE_CHECKING:
-    from apps.roles.models import Roles
     from apps.clients.models.clients import Clients
+    from apps.roles.models import Roles
     from apps.tenant.models.models import Tenant, TenantUsers
+
 
 class Users(Base, ULIDPrimaryKeyMixin, TimeStampMixin, UserMixin):
     """Model for representing user information.
@@ -32,7 +35,9 @@ class Users(Base, ULIDPrimaryKeyMixin, TimeStampMixin, UserMixin):
 
     first_name: Mapped[str] = mapped_column(String(64), nullable=False)
     last_name: Mapped[str] = mapped_column(String(64), nullable=False)
-    email: Mapped[str] = mapped_column(String(64), unique=True, index=True, nullable=False)
+    email: Mapped[str] = mapped_column(
+        String(64), unique=True, index=True, nullable=False
+    )
     phone: Mapped[str | None] = mapped_column(String(16), nullable=True)
 
     description: Mapped[str | None] = mapped_column(String(255), nullable=True)
@@ -112,7 +117,7 @@ class Users(Base, ULIDPrimaryKeyMixin, TimeStampMixin, UserMixin):
         """
         if not username:
             username = f"{first_name.lower()}.{last_name.lower()}"
-        
+
         return cls(
             first_name=first_name,
             last_name=last_name,
@@ -137,9 +142,15 @@ class UserRoleLink(Base, ULIDPrimaryKeyMixin, TimeStampMixin, UserMixin):
 
     __tablename__ = "user_role_link"
 
-    client_id: Mapped[str] = mapped_column(ForeignKey("clients.id", use_alter=True, ondelete="CASCADE"), nullable=False)
-    user_id: Mapped[str] = mapped_column(ForeignKey("users.id", use_alter=True, ondelete="CASCADE"), nullable=False)
-    role_id: Mapped[str] = mapped_column(ForeignKey("roles.id", use_alter=True, ondelete="CASCADE"), nullable=False)
+    client_id: Mapped[str] = mapped_column(
+        ForeignKey("clients.id", use_alter=True, ondelete="CASCADE"), nullable=False
+    )
+    user_id: Mapped[str] = mapped_column(
+        ForeignKey("users.id", use_alter=True, ondelete="CASCADE"), nullable=False
+    )
+    role_id: Mapped[str] = mapped_column(
+        ForeignKey("roles.id", use_alter=True, ondelete="CASCADE"), nullable=False
+    )
 
     user: Mapped["Users"] = relationship(
         back_populates="role_links", primaryjoin="UserRoleLink.user_id == Users.id"
@@ -151,3 +162,35 @@ class UserRoleLink(Base, ULIDPrimaryKeyMixin, TimeStampMixin, UserMixin):
         "Clients", back_populates="user_role_links", foreign_keys=[client_id]
     )
 
+
+class LoginActivity(Base, ULIDPrimaryKeyMixin, TimeStampMixin):
+    """Model for storing login activity logs."""
+
+    __tablename__ = "login_activities"
+
+    user_id: Mapped[str | None] = mapped_column(
+        ForeignKey(
+            "users.id", use_alter=True, ondelete="SET NULL"
+        ),  # 👈 Change CASCADE to SET NULL
+        nullable=True,
+    )
+
+    client_id: Mapped[str | None] = mapped_column(
+        ForeignKey("clients.id", use_alter=True, ondelete="SET NULL"), nullable=True
+    )
+
+    status: Mapped[LoginActivityStatus] = mapped_column(String(64), nullable=False)
+    activity: Mapped[str] = mapped_column(String(64), nullable=False)
+    reason: Mapped[str | None] = mapped_column(String, nullable=True)
+    ip_address: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    timestamp: Mapped[datetime] = mapped_column(
+        default=datetime.utcnow, server_default=func.now()
+    )
+
+    # Relationships
+    user: Mapped["Users | None"] = relationship(
+        "Users", lazy="joined", foreign_keys=[user_id]
+    )
+    client: Mapped["Clients | None"] = relationship(
+        "Clients", lazy="joined", foreign_keys=[client_id]
+    )

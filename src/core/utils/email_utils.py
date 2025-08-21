@@ -4,64 +4,36 @@ from typing import Any
 import httpx
 
 from config import settings
-from constants import ALLOWED_ATTACHMENT_EXTENSIONS, DATE_TIME_FORMAT, OUTLOOK_PAGE_SIZE
+from constants.config import ALLOWED_ATTACHMENT_EXTENSIONS, OUTLOOK_PAGE_SIZE
+from constants.messages import DATE_TIME_FORMAT
 from core.utils import logger
 from core.utils.microsoft_oauth_util import generate_access_token
 
 
-def build_outlook_filter(
-    company_emails: list[str],
-    subject_lines: list[str],
-    last_execution_date: datetime | None = None,
-) -> str:
+def build_outlook_filter(last_execution_date: datetime | None = None) -> str:
     """Build filter for Outlook API to fetch emails based on configuration.
 
     Args:
-        company_emails: List of company email addresses to filter from
-        subject_lines: List of subject lines to match
         last_execution_date: Optional datetime to filter emails after this date
 
     Returns:
         str: Microsoft Graph API filter string
     """
-    # Filter for company emails (from addresses)
-    from_conditions = [
-        f"startswith(from/emailAddress/address, '{email}')" for email in company_emails
-    ]
-    from_filter = f"({' or '.join(from_conditions)})" if from_conditions else ""
-
-    # Filter for subject lines
-    subject_conditions = [
-        f"contains(subject, '{subject}')" for subject in subject_lines
-    ]
-    subject_filter = (
-        f"({' or '.join(subject_conditions)})" if subject_conditions else ""
-    )
-
-    # Combine filters
+    # Initialize filters list with no attachment restriction
     filters = []
-    if from_filter:
-        filters.append(from_filter)
-    if subject_filter:
-        filters.append(subject_filter)
 
-    # Add attachment and date filters
-    filters.append("hasAttachments eq true")
-
+    # Add date filter if provided
     if last_execution_date:
         date_str = last_execution_date.strftime("%Y-%m-%dT%H:%M:%SZ")
         filters.append(f"receivedDateTime ge {date_str}")
 
-    # Combine all filters with AND
-    return " and ".join(filters)
+    # Return the combined filters or a default filter that matches all emails
+    return " and ".join(filters) if filters else "1 eq 1"
 
 
 def fetch_email_outlook(
-    client_id: str,
+    microsoft_client_id: str,
     client_secret: str,
-    microsoft_tenant_id: str,
-    company_emails: list[str],
-    subject_lines: list[str],
     password: str,
     last_execution_date: datetime | None = None,
     additional_filter: str | None = None,
@@ -70,11 +42,8 @@ def fetch_email_outlook(
     """Fetch emails from Outlook based on configured filters.
 
     Args:
-        client_id: Microsoft app client ID
+        microsoft_client_id: Microsoft app client ID
         client_secret: Microsoft app client secret
-        microsoft_tenant_id: Microsoft tenant ID
-        company_emails: List of company email addresses to filter
-        subject_lines: List of subject lines to match
         password: App password/refresh token
         last_execution_date: Optional datetime to filter emails after this date
         additional_filter: Optional additional filter string
@@ -91,7 +60,7 @@ def fetch_email_outlook(
             return []
 
         access_token = generate_access_token(
-            password, client_id, client_secret, microsoft_tenant_id
+            password, microsoft_client_id, client_secret
         )
 
         url = f"{settings.MICROSOFT_GRAPH_URL}/mailFolders/Inbox/messages"
@@ -101,9 +70,7 @@ def fetch_email_outlook(
             params = {"$filter": additional_filter, "$top": OUTLOOK_PAGE_SIZE}
         else:
             filter_string = build_outlook_filter(
-                company_emails=company_emails,
-                subject_lines=subject_lines,
-                last_execution_date=last_execution_date,
+                last_execution_date=last_execution_date
             )
             params = {"$filter": filter_string, "$top": OUTLOOK_PAGE_SIZE}
 
@@ -115,10 +82,6 @@ def fetch_email_outlook(
             data = response.json()
 
             for email in data["value"]:
-                # Skip emails without attachments
-                if not email["hasAttachments"]:
-                    continue
-
                 # Get email metadata
                 email_id = email["id"]
                 from_address = email["from"]["emailAddress"]["address"]
@@ -130,40 +93,43 @@ def fetch_email_outlook(
                 if last_execution_date and received_date <= last_execution_date:
                     continue
 
-                # Get attachments
-                attachments_url = (
-                    f"{settings.MICROSOFT_GRAPH_URL}/messages/{email_id}/attachments"
-                )
-                attachments_response = httpx.get(attachments_url, headers=headers)
-                attachments = attachments_response.json()["value"]
-
-                # Process attachments
+                # Initialize attachment data
                 email_attachments = []
                 attachment_names = []
 
-                for attachment in attachments:
-                    file_name = attachment["name"]
-                    if (
-                        file_name.split(".")[-1].lower()
-                        in ALLOWED_ATTACHMENT_EXTENSIONS
-                    ):
-                        content_url = f"{settings.MICROSOFT_GRAPH_URL}/messages/{email_id}/attachments/{attachment['id']}/$value"
-                        content_response = httpx.get(content_url, headers=headers)
-                        email_attachments.append(content_response.content)
-                        attachment_names.append(file_name)
-
-                # Only add emails with valid attachments
-                if email_attachments:
-                    matching_emails.append(
-                        {
-                            "id": email_id,
-                            "from": from_address,
-                            "subject": email["subject"],
-                            "attachment": email_attachments,
-                            "filename": attachment_names,
-                            "date": received_date,
-                        }
+                # Process attachments if present
+                if email.get("hasAttachments"):
+                    # Get attachments
+                    attachments_url = (
+                        f"{settings.MICROSOFT_GRAPH_URL}/messages/{email_id}/attachments"
                     )
+                    attachments_response = httpx.get(attachments_url, headers=headers)
+                    attachments = attachments_response.json()["value"]
+
+                    # Process attachments
+                    for attachment in attachments:
+                        file_name = attachment["name"]
+                        if (
+                            file_name.split(".")[-1].lower()
+                            in ALLOWED_ATTACHMENT_EXTENSIONS
+                        ):
+                            content_url = f"{settings.MICROSOFT_GRAPH_URL}/messages/{email_id}/attachments/{attachment['id']}/$value"
+                            content_response = httpx.get(content_url, headers=headers)
+                            email_attachments.append(content_response.content)
+                            attachment_names.append(file_name)
+
+                # Add all emails, with or without attachments
+                matching_emails.append(
+                    {
+                        "id": email_id,
+                        "from": from_address,
+                        "subject": email["subject"],
+                        "attachment": email_attachments,
+                        "filename": attachment_names,
+                        "date": received_date,
+                        "body": email.get("body", {}).get("content", ""),
+                    }
+                )
 
             # Get next page if available
             url = data.get("@odata.nextLink")

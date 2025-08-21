@@ -4,8 +4,11 @@ from cryptography.hazmat.primitives import serialization
 # from fastapi_limiter import FastAPILimiter
 
 from config import settings
-from core.db import redis
+
+# from core.db import redis
 from core.utils import logger, scheduler
+
+# from fastapi_limiter import FastAPILimiter
 
 
 @asynccontextmanager

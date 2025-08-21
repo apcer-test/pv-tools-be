@@ -72,6 +72,7 @@ class UpdateCodeListLookupValueRequest(BaseModel):
     e2b_code_r2: str | None = None
     e2b_code_r3: str | None = None
     is_active: bool | None = None
+    reason: str
 
     @field_validator("name", "e2b_code_r2", "e2b_code_r3")
     @classmethod
@@ -102,6 +103,7 @@ class UpdateNFListLookupValueRequest(BaseModel):
 
     name: str | None = None
     is_active: bool | None = None
+    reason: str
 
     @field_validator("name")
     @classmethod

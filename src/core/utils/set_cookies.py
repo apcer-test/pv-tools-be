@@ -1,7 +1,14 @@
-from fastapi.responses import JSONResponse
+import json
 
+from fastapi.responses import JSONResponse
+from ulid import ULID
+
+from apps.users.schemas.request import LoginActivityCreate
 from config import settings
-from core.types import RoleType
+from core.db import async_session, redis
+from core.types import LoginActivityStatus, RoleType
+from core.utils.hashing import Hash
+from core.utils.login_logger import log_login_activity
 
 
 def set_auth_cookies(
@@ -80,3 +87,78 @@ def delete_cookies(response: JSONResponse, role: RoleType) -> JSONResponse:
         response.delete_cookie("adminRefreshToken", **cookie_params)
 
     return response
+
+
+async def create_user_token_caching(
+    tokens: dict, user_id: ULID, client_slug: str
+) -> None:
+    """
+     Create caching for access-token and refresh-token.
+    :param user_id:
+    :param tokens: access-token and refresh-token
+    :return: None
+    """
+    hashed_user_id = Hash.make("uid:" + str(user_id) + ":" + client_slug)
+    if settings.IS_SINGLE_DEVICE_LOGIN_ENABLED:
+        await delete_user_previous_tokens(user_id=user_id, client_slug=client_slug)
+    dumped_data = json.dumps(
+        {
+            "access_token": tokens.get("access_token"),
+            "refresh_token": tokens.get("refresh_token"),
+        }
+    )
+    await redis.set(
+        name=hashed_user_id, value=dumped_data, ex=settings.ACCESS_TOKEN_EXP
+    )
+    await create_tokens_caching(tokens)
+
+
+async def create_tokens_caching(tokens: dict) -> None:
+    """
+    Create caching for access-token and refresh-token.
+    :param tokens: access-token and refresh-token
+    :return: None
+    """
+    access_token = tokens.get("access_token")
+    refresh_token = tokens.get("refresh_token")
+    dumped_data = json.dumps(
+        {"access_token": access_token, "refresh_token": refresh_token}
+    )
+    access_token_key = Hash.make(access_token)
+    refresh_token_key = Hash.make(refresh_token)
+    await redis.set(
+        name=access_token_key, value=dumped_data, ex=settings.ACCESS_TOKEN_EXP
+    )
+    await redis.set(
+        name=refresh_token_key, value=dumped_data, ex=settings.REFRESH_TOKEN_EXP
+    )
+
+
+async def delete_user_previous_tokens(user_id: ULID, client_slug: str) -> None:
+    """
+    Create caching for access-token and refresh-token.
+    :param user_id:
+    :return: None
+    """
+    hashed_user_id = Hash.make("uid:" + str(user_id) + ":" + client_slug)
+    get_active_user = await redis.get(name=hashed_user_id)
+    if get_active_user:
+        old_access_token = json.loads(get_active_user).get("access_token")
+        old_refresh_token = json.loads(get_active_user).get("refresh_token")
+        await redis.delete(hashed_user_id)
+        await redis.delete(Hash.make(old_access_token))
+        await redis.delete(Hash.make(old_refresh_token))
+        # ✅ Add activity log using a safe scoped session
+        async with async_session() as session:
+            async with session.begin():
+                await log_login_activity(
+                    session,
+                    LoginActivityCreate(
+                        user_id=user_id,
+                        client_id=client_slug,
+                        status=LoginActivityStatus.LOGOUT,
+                        activity="System Logout",
+                        reason="User logged out successfully by deleting previous session",
+                        ip_address=None,
+                    ),
+                )

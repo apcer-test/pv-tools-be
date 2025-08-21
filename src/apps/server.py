@@ -1,6 +1,10 @@
-from fastapi import APIRouter, Depends, FastAPI, status
+from fastapi import APIRouter, FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+<<<<<<< HEAD
+=======
+
+>>>>>>> da83d8098089862ea1b52f2fa0e25b5395d1585e
 # from fastapi_limiter.depends import RateLimiter
 from starlette.middleware.sessions import SessionMiddleware
 
@@ -27,6 +31,10 @@ from apps.permissions.controllers import permissions_router
 from apps.roles.controllers import roles_router
 from apps.users.controllers import user_router
 from config import AppEnvironment, settings
+<<<<<<< HEAD
+=======
+
+>>>>>>> da83d8098089862ea1b52f2fa0e25b5395d1585e
 # from constants.config import rate_limiter_config
 from core.middlewares.memory_usage import MemoryUsageMiddleware
 from core.task.lifespan import lifespan
@@ -44,10 +52,17 @@ def init_routers(_app: FastAPI) -> None:
     base_router = APIRouter(
         # dependencies=[
         #     Depends(
+<<<<<<< HEAD
         #         RateLimiter(
         #             times=rate_limiter_config["request_limit"],
         #             seconds=rate_limiter_config["time"],
         #         )
+=======
+        #         # RateLimiter(
+        #         #     times=rate_limiter_config["request_limit"],
+        #         #     seconds=rate_limiter_config["time"],
+        #         # )
+>>>>>>> da83d8098089862ea1b52f2fa0e25b5395d1585e
         #     )
         # ]
     )

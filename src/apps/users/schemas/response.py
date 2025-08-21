@@ -1,10 +1,11 @@
 """Response Model for user."""
 
 from datetime import datetime
-from typing import Any
+from typing import Any, Optional
 
 from apps.roles.schemas.response import ModuleBasicResponse
 from apps.users.constants import UserAuthAction
+from core.types import LoginActivityStatus
 from core.utils.schema import CamelCaseModel
 
 
@@ -185,3 +186,30 @@ class UserSelfResponse(CamelCaseModel):
     phone: str | None = None
     role: UserSelfRoleResponse | None = None
     is_active: bool
+
+
+class UserMiniOut(CamelCaseModel):
+    """Response model for user mini information."""
+
+    id: str
+    email: str
+
+
+class ClientMiniOut(CamelCaseModel):
+    """Response model for client mini information."""
+
+    id: str
+    name: str
+
+
+class LoginActivityOut(CamelCaseModel):
+    """Response model for login activity information."""
+
+    id: str
+    user: Optional[UserMiniOut] = None
+    client: Optional[ClientMiniOut] = None
+    status: LoginActivityStatus
+    activity: str
+    reason: Optional[str] = None
+    ip_address: Optional[str] = None
+    timestamp: datetime

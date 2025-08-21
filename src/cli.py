@@ -13,7 +13,7 @@ from rich.theme import Theme
 from typer import Typer
 
 from config import settings
-from core.utils.celery_config import celery_app
+from core.utils.celery_worker import celery_app
 from core.utils.logging_config import init_default_logging
 
 # Initialize logging
@@ -634,7 +634,7 @@ def worker() -> None:
         loglevel="INFO",
         logfile="logs/application.log",
         task_events=True,
-        pool="prefork",
+        pool=settings.WORKER_POOL,
         autoscale="5,0",
     )
     _worker.start()

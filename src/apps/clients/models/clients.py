@@ -8,6 +8,7 @@ from core.utils.mixins import TimeStampMixin, ULIDPrimaryKeyMixin, UserMixin
 
 if TYPE_CHECKING:
     from apps.case.models.case import CaseNumberConfiguration
+    from apps.mail_box_config.models.mail_box import MicrosoftMailBoxConfig
     from apps.media.models.media import Media
     from apps.users.models.user import UserRoleLink, Users
 
@@ -39,6 +40,10 @@ class Clients(Base, ULIDPrimaryKeyMixin, TimeStampMixin, UserMixin):
 
     media: Mapped["Media"] = relationship(
         "Media", back_populates="clients", foreign_keys=[media_id]
+    )
+
+    microsoft_mail_box_configs: Mapped[List["MicrosoftMailBoxConfig"]] = relationship(
+        "MicrosoftMailBoxConfig", back_populates="client", cascade="all, delete-orphan"
     )
 
     users: Mapped[List["Users"]] = relationship(

@@ -1,15 +1,12 @@
 """Request Schema for creating,updating,login operations of user."""
 
-from typing import Any, Optional
+from typing import Optional
 
 from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator
 
-from apps.users.exceptions import (
-    PhoneOrEmailRequiredError,
-    PhoneRequiredError,
-    UserMfaCodeRequiredError,
-)
+from apps.users.exceptions import PhoneOrEmailRequiredError, PhoneRequiredError
 from core.common_helpers import validate_string_fields
+from core.types import LoginActivityStatus
 from core.utils.phone_validator import validate_and_format_phone_number
 
 
@@ -24,10 +21,12 @@ class LoginRequest(BaseModel):
     @field_validator("email", mode="before")
     @classmethod
     def normalize_email(cls, v: str | None) -> str | None:
+        """Normalize email."""
         return v.lower() if v else v
 
     @model_validator(mode="after")
     def check_login_fields(self) -> "LoginRequest":
+        """Check login fields."""
         # If OTP is present, phone is required
         if self.otp is not None and not self.phone:
             raise PhoneRequiredError
@@ -40,9 +39,15 @@ class LoginRequest(BaseModel):
 class CreateUserRequest(BaseModel):
     """Request model for creating a user."""
 
-    first_name: str = Field(..., min_length=1, max_length=30, description="First name of the user")
-    last_name: str = Field(..., min_length=1, max_length=30, description="Last name of the user")
-    phone: Optional[str] = Field(None, min_length=1, max_length=16, description="Phone number of the user")
+    first_name: str = Field(
+        ..., min_length=1, max_length=30, description="First name of the user"
+    )
+    last_name: str = Field(
+        ..., min_length=1, max_length=30, description="Last name of the user"
+    )
+    phone: Optional[str] = Field(
+        None, min_length=1, max_length=16, description="Phone number of the user"
+    )
     email: EmailStr = Field(..., description="Email of the user")
 
     _validate_string_fields = model_validator(mode="before")(validate_string_fields)
@@ -50,6 +55,7 @@ class CreateUserRequest(BaseModel):
     @field_validator("email", mode="before")
     @classmethod
     def normalize_email(cls, v: str | None) -> str | None:
+        """Normalize email."""
         return v.lower() if v else v
 
     @field_validator("phone")
@@ -64,15 +70,22 @@ class CreateUserRequest(BaseModel):
 class UpdateUserRequest(BaseModel):
     """Request model for updating a user."""
 
-    first_name: str = Field(..., min_length=1, max_length=30, description="First name of the user")
-    last_name: str = Field(..., min_length=1, max_length=30, description="Last name of the user")
-    phone: Optional[str] = Field(None, min_length=1, max_length=16, description="Phone number of the user")
+    first_name: str = Field(
+        ..., min_length=1, max_length=30, description="First name of the user"
+    )
+    last_name: str = Field(
+        ..., min_length=1, max_length=30, description="Last name of the user"
+    )
+    phone: Optional[str] = Field(
+        None, min_length=1, max_length=16, description="Phone number of the user"
+    )
     email: EmailStr = Field(..., description="Email of the user")
     reason: str = Field(..., description="Reason for updating the user")
 
     @field_validator("email", mode="before")
     @classmethod
     def normalize_email(cls, v: str | None) -> str | None:
+        """Normalize email."""
         return v.lower() if v else v
 
     @field_validator("phone")
@@ -98,3 +111,13 @@ class AssignUserClientsRequest(BaseModel):
 
     assignments: list[UserClientAssignment]
 
+
+class LoginActivityCreate(BaseModel):
+    """Request model for creating a login activity."""
+
+    user_id: Optional[str] = None
+    client_id: Optional[str] = None
+    status: LoginActivityStatus
+    activity: str
+    reason: Optional[str] = None
+    ip_address: Optional[str] = None
