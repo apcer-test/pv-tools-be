@@ -68,7 +68,7 @@ variable "services" {
     domain               = string
     # Optional fields with sensible defaults
     desired_count        = optional(number, 1)
-    image_tag            = optional(string, "latest")
+    image_tag            = optional(string, "")
     priority             = optional(number, 100)
     command              = optional(list(string), [])
     # Auto-scaling configuration
@@ -87,9 +87,16 @@ variable "services" {
       valueFrom = string
     })), [])
     # X-Ray configuration
-    enable_xray          = optional(bool, true)
-    xray_daemon_cpu     = optional(number, 32)
-    xray_daemon_memory  = optional(number, 256)
+    enable_xray          = optional(bool, false)
+    xray_daemon_cpu     = optional(number, 0)
+    xray_daemon_memory  = optional(number, 512)
+    # ECS Exec configuration
+    enable_exec          = optional(bool, false)
+    # Celery worker container configuration
+    enable_celery_worker = optional(bool, false)
+    celery_worker_command = optional(list(string), [])
+    celery_worker_cpu    = optional(number, 0)
+    celery_worker_memory = optional(number, 512)
     # CodePipeline configuration (only used when create_codepipelines is true)
     service_name         = optional(string, "")  # Service name for pipeline and connection naming (e.g., "api-backend-service")
     repository_path      = optional(string, "")  # Full GitLab repository path (e.g., "webelight/api-backend-service")
@@ -115,4 +122,10 @@ variable "services" {
     })
   }))
   default = {}
+}
+
+variable "tags" {
+  description = "Additional tags for ECS resources"
+  type        = map(string)
+  default     = {}
 } 

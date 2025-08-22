@@ -44,4 +44,9 @@ output "distribution_config" {
     aliases     = aws_cloudfront_distribution.this[0].aliases
     price_class = aws_cloudfront_distribution.this[0].price_class
   } : null
+}
+
+output "cloudfront_aliases" {
+  description = "The aliases (CNAMEs) of the CloudFront distribution"
+  value       = var.enabled ? aws_cloudfront_distribution.this[0].aliases : []
 } 

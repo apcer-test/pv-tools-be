@@ -101,7 +101,13 @@ version: 0.2
 phases:
   build:
     commands:
-      - echo "Invalidating CloudFront distribution..."
+      - echo "Checking CloudFront distribution ID..."
+      - if [ -z "$DISTRIBUTION_ID" ]; then
+      -   echo "ERROR: DISTRIBUTION_ID is empty. CloudFront distribution may not exist yet."
+      -   echo "Skipping CloudFront invalidation."
+      -   exit 0
+      - fi
+      - echo "Invalidating CloudFront distribution: $DISTRIBUTION_ID"
       - aws cloudfront create-invalidation --distribution-id $DISTRIBUTION_ID --paths '/*'
 EOF
   }

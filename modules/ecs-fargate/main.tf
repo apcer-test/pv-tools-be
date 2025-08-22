@@ -42,11 +42,17 @@ resource "aws_ecs_task_definition" "services" {
   family                   = "${var.project_name}-${each.value.container_name}-${var.env}"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
-  cpu                      = each.value.enable_xray ? (each.value.cpu + each.value.xray_daemon_cpu) : each.value.cpu
-  memory                   = each.value.enable_xray ? (each.value.memory + each.value.xray_daemon_memory) : each.value.memory
+  # Calculate total CPU and memory for valid Fargate combinations
+  cpu                      = each.value.cpu + (each.value.enable_xray ? each.value.xray_daemon_cpu : 0) + (each.value.enable_celery_worker ? each.value.celery_worker_cpu : 0)
+  memory                   = each.value.memory + (each.value.enable_xray ? each.value.xray_daemon_memory : 0) + (each.value.enable_celery_worker ? each.value.celery_worker_memory : 0)
+  
+  # Validate Fargate CPU and memory combinations
+  # Valid combinations: 0.25vCPU(256)-0.5GB, 0.5vCPU(512)-1GB, 1vCPU(1024)-2GB, 2vCPU(2048)-4GB, 4vCPU(4096)-8GB, etc.
   execution_role_arn       = var.ecs_execution_role_arn
   task_role_arn            = var.ecs_task_role_arn
 
+  # Use a local variable to ensure both containers use the same dynamic tag
+  # The image_tag will be updated by CodePipeline, and both containers should use the same tag
   container_definitions = jsonencode(
     concat(
       [
@@ -56,10 +62,12 @@ resource "aws_ecs_task_definition" "services" {
 
           cpu    = each.value.cpu
           memory = each.value.memory
+          enable_execute_command = each.value.enable_exec
 
           portMappings = [
             {
               containerPort = each.value.container_port
+              hostPort      = each.value.container_port
               protocol      = "tcp"
             }
           ]
@@ -109,15 +117,23 @@ resource "aws_ecs_task_definition" "services" {
             startPeriod = 60
           }
 
-          dependsOn = each.value.enable_xray ? [
-            {
-              containerName = "xray-daemon"
-              condition     = "START"
-            }
-          ] : []
+          dependsOn = concat(
+            each.value.enable_xray ? [
+              {
+                containerName = "xray-daemon"
+                condition     = "START"
+              }
+            ] : [],
+            each.value.enable_celery_worker ? [
+              {
+                containerName = "celery-worker"
+                condition     = "START"
+              }
+            ] : []
+          )
         }
       ],
-      each.value.enable_xray ? [
+      [
         {
           name  = "xray-daemon"
           image = "public.ecr.aws/xray/aws-xray-daemon:latest"
@@ -150,17 +166,73 @@ resource "aws_ecs_task_definition" "services" {
 
           essential = true
         }
+      ],
+      each.value.enable_celery_worker ? [
+        {
+          name  = "celery-worker"
+          image = "${var.ecr_repository_urls[each.key]}:${each.value.image_tag}"
+
+          cpu    = each.value.celery_worker_cpu
+          memory = each.value.celery_worker_memory
+
+          entrypoint = []
+          command = each.value.celery_worker_command
+
+          environment = concat(
+            [
+              {
+                name  = "ENVIRONMENT"
+                value = var.env
+              },
+              {
+                name  = "SERVICE_NAME"
+                value = "celery-worker"
+              },
+              {
+                name  = "CELERY_WORKER_NAME"
+                value = "celery-worker"
+              },
+              {
+                name  = "PYTHONUNBUFFERED"
+                value = "1"
+              },
+              {
+                name  = "CELERY_LOG_LEVEL"
+                value = "INFO"
+              }
+            ],
+            each.value.environment_variables != null ? each.value.environment_variables : []
+          )
+
+          secrets = each.value.secrets != null ? each.value.secrets : []
+
+          logConfiguration = {
+            logDriver = "awslogs"
+            options = {
+              awslogs-group         = aws_cloudwatch_log_group.services[each.key].name
+              awslogs-region        = var.region
+              awslogs-stream-prefix = "celery-worker"
+              awslogs-create-group  = "true"
+              awslogs-datetime-format = "%Y-%m-%d %H:%M:%S"
+            }
+          }
+
+          essential = true
+        }
       ] : []
     )
   )
 
-  tags = {
+  tags = merge({
     Name        = "${var.project_name}-${each.value.container_name}-task-${var.env}"
     Project     = var.project_name
     Service     = "${var.project_name}-${each.value.container_name}-task-${var.env}"
     Environment = var.env
+    Component   = "ecs-task-definition"
+    Container   = each.value.container_name
+    LaunchType  = "FARGATE"
     Terraform   = "true"
-  }
+  }, var.tags)
 }
 
 ##########################################################
@@ -174,6 +246,7 @@ resource "aws_ecs_service" "services" {
   task_definition = aws_ecs_task_definition.services[each.key].arn
   desired_count   = each.value.desired_count
   launch_type     = "FARGATE"
+  enable_execute_command = each.value.enable_exec
 
   network_configuration {
     subnets          = var.private_subnet_ids

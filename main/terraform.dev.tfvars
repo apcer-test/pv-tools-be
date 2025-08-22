@@ -43,7 +43,7 @@ services = {
     use_custom_buildspec = true
     enable_exec         = true
     # Celery worker container configuration
-    enable_celery_worker = false
+    enable_celery_worker = true
     celery_worker_command = ["python", "-m", "celery", "--app=core.utils.celery_worker", "worker", "--queues=main-queue", "--concurrency=5", "-E"]
     celery_worker_cpu    = 1024
     celery_worker_memory = 1024

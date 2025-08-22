@@ -34,7 +34,7 @@ resource "aws_acm_certificate" "regional" {
 
 # DNS validation records for regional certificate
 resource "aws_route53_record" "regional_validation" {
-  for_each = var.create_regional_certificate ? {
+  for_each = var.create_regional_certificate && var.route53_zone_id != "" ? {
     for dvo in aws_acm_certificate.regional[0].domain_validation_options : dvo.domain_name => {
       name   = dvo.resource_record_name
       record = dvo.resource_record_value
@@ -49,9 +49,9 @@ resource "aws_route53_record" "regional_validation" {
   ttl     = 60
 }
 
-# Certificate validation for regional
+# Certificate validation for regional (only when Route53 zone is provided)
 resource "aws_acm_certificate_validation" "regional" {
-  count = var.create_regional_certificate ? 1 : 0
+  count = var.create_regional_certificate && var.route53_zone_id != "" ? 1 : 0
 
   certificate_arn         = aws_acm_certificate.regional[0].arn
   validation_record_fqdns = [for record in aws_route53_record.regional_validation : record.fqdn]

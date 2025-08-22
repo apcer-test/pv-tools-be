@@ -84,7 +84,7 @@ locals {
       compute_type      = try(frontend.compute_type, "BUILD_GENERAL1_SMALL")
       
       # CloudFront distribution ID (to be populated from CloudFront module)
-      cloudfront_distribution_id = ""
+      cloudfront_distribution_id = try(module.cloudfront_s3["${frontend_key}-cloudfront"].cloudfront_distribution_id, "")
       
       env_vars = [
         {
@@ -295,7 +295,8 @@ module "codepipeline" {
   
   depends_on = [
     module.s3,                  # Ensure S3 buckets are created first
-    module.iam_assumable_role
+    module.iam_assumable_role,
+    module.cloudfront_s3        # Ensure CloudFront distributions are created first
   ]
 }
 

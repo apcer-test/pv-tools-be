@@ -1,5 +1,16 @@
 # CloudFront Distribution Module
 
+# Origin Access Control for S3
+resource "aws_cloudfront_origin_access_control" "this" {
+  count = var.create_origin_access_control ? 1 : 0
+
+  name                              = "${var.project_name}-${var.app_name}-oac-${var.env}"
+  description                       = "Origin Access Control for ${var.project_name}-${var.app_name}-${var.env}"
+  origin_access_control_origin_type = "s3"
+  signing_behavior                  = "always"
+  signing_protocol                  = "sigv4"
+}
+
 # Local values for computed configurations
 locals {
   certificate_arn = var.viewer_certificate_arn != "" ? var.viewer_certificate_arn : var.acm_certificate_arn
@@ -28,12 +39,17 @@ resource "aws_cloudfront_distribution" "this" {
     origin_id   = var.origin_id
     origin_path = var.origin_path
 
-    # Custom origin config for ALB/API origins
-    custom_origin_config {
-      http_port              = 80
-      https_port             = 443
-      origin_protocol_policy = var.origin_protocol_policy
-      origin_ssl_protocols   = ["TLSv1.2"]
+    # Use OAC for S3 origins, custom origin config for ALB/API origins
+    origin_access_control_id = var.create_origin_access_control ? aws_cloudfront_origin_access_control.this[0].id : null
+
+    dynamic "custom_origin_config" {
+      for_each = var.create_origin_access_control ? [] : [1]
+      content {
+        http_port              = 80
+        https_port             = 443
+        origin_protocol_policy = var.origin_protocol_policy
+        origin_ssl_protocols   = ["TLSv1.2"]
+      }
     }
   }
 
@@ -114,13 +130,4 @@ resource "aws_cloudfront_distribution" "this" {
   )
 }
 
-# CloudFront Origin Access Control (OAC) for S3 origins
-resource "aws_cloudfront_origin_access_control" "this" {
-  count = var.enabled && var.create_origin_access_control ? 1 : 0
-
-  name                              = "${var.cloudfront_distribution_name}-oac"
-  description                       = "Origin Access Control for ${var.cloudfront_distribution_name}"
-  origin_access_control_origin_type = "s3"
-  signing_behavior                  = "always"
-  signing_protocol                  = "sigv4"
-} 
+ 
