@@ -14,7 +14,7 @@ phases:
   build:
     commands:
       - echo Building the Docker image...
-      - TAG="v${CODEBUILD_RESOLVED_SOURCE_VERSION:0:5}-$(date +%m-%d-%y-%H-%M)"
+      - TAG="v$(date +%m-%d-%y-%H-%M)"
       - docker build -t ${ECS_REPOSITORY_URI}:${TAG} .
 
   post_build:
