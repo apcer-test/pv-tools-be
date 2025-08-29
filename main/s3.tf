@@ -21,7 +21,7 @@ locals {
   # Generate S3 buckets from frontends configuration
   frontend_buckets = {
     for frontend_key, frontend in var.frontends : "${frontend.service_name}_bucket" => {
-      bucket_name        = "${var.project_name}-${frontend.service_name}-${var.env}"
+      bucket_name        = "${var.project_name}-${frontend.service_name}-${var.env}-bucket"
       project_name       = var.project_name
       env               = var.env
       index_document    = try(frontend.index_document, var.s3_index_document)
@@ -57,7 +57,7 @@ locals {
   # Note: CodePipeline artifacts bucket is only created when create_codepipelines = true
   infrastructure_buckets = {
     for bucket_key, bucket in var.storage_buckets : bucket_key => {
-      bucket_name     = "${var.project_name}-${bucket.service_name}-${var.env}"
+      bucket_name     = "${var.project_name}-${bucket.service_name}-${var.env}-bucket"
       project_name    = var.project_name
       env            = var.env
       index_document = var.s3_index_document

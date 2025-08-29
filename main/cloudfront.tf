@@ -7,6 +7,8 @@ locals {
   # ])
 }
 
+
+
 resource "tls_private_key" "cloudfront_key" {
   count     = local.has_media_service ? 1 : 0
   algorithm = "RSA"
@@ -318,18 +320,40 @@ resource "aws_cloudfront_response_headers_policy" "cors_policy" {
   comment = "CORS policy for API CloudFront distribution"
 
   cors_config {
-    access_control_allow_credentials = false
+    access_control_allow_credentials = true
     access_control_allow_headers {
-      items = ["*"]
+      items = [
+        "Origin",
+        "Content-Type",
+        "Accept",
+        "Authorization",
+        "X-Requested-With",
+        "Access-Control-Request-Method",
+        "Cookie",
+        "Access-Control-Request-Headers"
+      ]
     }
     access_control_allow_methods {
-      items = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
+      items = [
+        "GET",
+        "HEAD",
+        "PUT",
+        "PATCH",
+        "POST",
+        "DELETE",
+        "OPTIONS"
+      ]
     }
     access_control_allow_origins {
-      items = ["*"]
+      items = [
+        "http://localhost",
+        "http://localhost:5173",
+        "https://viper-related-foal.ngrok-free.app",
+        "https://fe-dev.apcerls.com"
+      ]
     }
     access_control_expose_headers {
-      items = ["*"]
+      items = []
     }
     access_control_max_age_sec = 600
     origin_override = true

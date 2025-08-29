@@ -74,7 +74,7 @@ locals {
       # Build configuration
       build_project_name        = "${var.project_name}-${frontend.service_name}-${var.env}"
       cloudfront_project_name   = "${var.project_name}-${frontend.service_name}-${var.env}-invalidate-cloudfront"
-      s3_bucket_name           = "${var.project_name}-${frontend.service_name}-${var.env}"
+      s3_bucket_name           = "${var.project_name}-${frontend.service_name}-${var.env}-bucket"
       env_file_s3_path         = frontend.bucket_path
       
       # Build settings from frontend configuration
