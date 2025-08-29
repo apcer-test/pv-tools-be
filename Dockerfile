@@ -12,7 +12,7 @@ RUN pip install --upgrade pip && \
     poetry lock && \
     poetry install --only main --no-root && \
     pip uninstall -y poetry && \
-    pip install asyncpg
+    pip install psycopg2
 
 # Second stage: runner
 FROM public.ecr.aws/docker/library/python:3.13-slim AS runner
