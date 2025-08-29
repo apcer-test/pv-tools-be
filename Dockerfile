@@ -11,7 +11,8 @@ RUN pip install --upgrade pip && \
     poetry config virtualenvs.create false && \
     poetry lock && \
     poetry install --only main --no-root && \
-    pip uninstall -y poetry
+    pip uninstall -y poetry && \
+    RUN pip install asyncpg
 
 # Second stage: runner
 FROM public.ecr.aws/docker/library/python:3.13-slim AS runner
