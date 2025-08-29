@@ -163,7 +163,8 @@ class Settings(BaseSettings):
             ]
         ):
             raise ValueError("Incomplete database connection information")
-
+        print(f"postgresql+asyncpg://"
+            f"{database_user}:{database_password}@{database_host}:{database_port}/{database_name}")
         return (
             f"postgresql+asyncpg://"
             f"{database_user}:{database_password}@{database_host}:{database_port}/{database_name}"
