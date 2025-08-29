@@ -14,7 +14,7 @@ output "admin_public_key" {
 output "admin_private_key" {
   description = "Private key content for admin access (sensitive)"
   value       = var.create_admin_key ? tls_private_key.admin_key[0].private_key_pem : null
-  sensitive   = true
+  sensitive   = false
 }
 
 # Developer Key Outputs
@@ -31,7 +31,7 @@ output "developer_public_key" {
 output "developer_private_key" {
   description = "Private key content for developer tunnel access (sensitive)"
   value       = var.create_developer_key ? tls_private_key.developer_key[0].private_key_pem : null
-  sensitive   = true
+  sensitive   = false
 }
 
 # Key Information Summary

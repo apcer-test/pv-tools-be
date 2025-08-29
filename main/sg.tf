@@ -34,15 +34,15 @@ module "ecs-alb-sg" {
 # RDS Security Group
 ##########################################################
 module "rds-sg" {
-  count  = var.create_rds_database ? 1 : 0
+  count  = var.create_rds ? 1 : 0
   source = "../modules/security/security-group"
-  create_security_group      = var.create_rds_database
+      create_security_group      = var.create_rds
   security_group_name        = "${var.project_name}-${var.env}-rds-sg"
   security_group_description = "Security group for RDS database"
   vpc_id                     = module.vpc.vpc_id
   project_name               = var.project_name
   env                        = var.env
-  use_cidr_rules             = var.create_rds_database
+      use_cidr_rules             = var.create_rds
   use_sg_rules               = false
   ingress_rules_cidr         = [
     { from_port = 5432, to_port = 5432, protocol = "tcp", description = "Allow PostgreSQL from VPC", cidr_blocks = "10.10.0.0/16" }
@@ -100,10 +100,10 @@ module "redis-sg" {
   vpc_id                     = module.vpc.vpc_id
   project_name               = var.project_name
   env                        = var.env
-  use_cidr_rules             = false
-  use_sg_rules               = var.create_elasticache
-  ingress_rules_sg           = [
-    { from_port = 6379, to_port = 6379, protocol = "tcp", description = "Allow Redis from ECS", source_security_group_id = module.ecs-alb-sg.security_group_id }
+  use_cidr_rules             = var.create_elasticache
+  use_sg_rules               = false
+  ingress_rules_cidr         = [
+    { from_port = 6379, to_port = 6379, protocol = "tcp", description = "Allow Redis from ECS services in VPC", cidr_blocks = "10.10.0.0/16" }
   ]
   egress_rules_cidr          = [
     { from_port = 0, to_port = 0, protocol = "-1", description = "Allow all outbound IPv4 traffic", cidr_blocks = "0.0.0.0/0" }

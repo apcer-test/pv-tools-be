@@ -24,8 +24,8 @@ locals {
       bucket_name        = "${var.project_name}-${frontend.service_name}-${var.env}"
       project_name       = var.project_name
       env               = var.env
-      index_document    = var.s3_index_document
-      error_document    = var.s3_error_document
+      index_document    = try(frontend.index_document, var.s3_index_document)
+      error_document    = try(frontend.error_document, var.s3_error_document)
       acl               = var.s3_acl
       cors_rules        = [
         for rule in try(frontend.cors_rules, []) : {

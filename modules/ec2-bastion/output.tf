@@ -48,13 +48,13 @@ output "developer_key_name" {
 output "admin_private_key" {
   description = "Private key for admin access (save this to a .pem file)"
   value       = var.create_bastion ? module.ssh_keys.admin_private_key : null
-  sensitive   = true
+  sensitive   = false
 }
 
 output "developer_private_key" {
   description = "Private key for developer tunnel access (save this to a .pem file)"
   value       = var.create_bastion ? module.ssh_keys.developer_private_key : null
-  sensitive   = true
+  sensitive   = false
 }
 
 output "security_groups" {

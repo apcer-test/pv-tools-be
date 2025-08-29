@@ -28,6 +28,12 @@ variable "create_origin_access_control" {
   default     = false
 }
 
+variable "is_website_endpoint" {
+  description = "Whether the origin is a website endpoint (requires custom origin config)"
+  type        = bool
+  default     = false
+}
+
 variable "cloudfront_distribution_name" {
   description = "Name of the CloudFront distribution"
   type        = string
@@ -144,6 +150,13 @@ variable "forwarded_values" {
 # WAF Configuration
 variable "web_acl_arn" {
   description = "ARN of the WAF Web ACL to associate with CloudFront"
+  type        = string
+  default     = ""
+}
+
+# Response Headers Policy Configuration
+variable "response_headers_policy_id" {
+  description = "ID of the response headers policy to associate with the distribution"
   type        = string
   default     = ""
 }

@@ -56,6 +56,7 @@ variable "services" {
     container_port      = number
     domain              = string
     health_check_path   = string
+    expose_via_alb      = optional(bool, true)
   }))
   default = {}
 } 

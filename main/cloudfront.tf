@@ -53,15 +53,11 @@ output "cloudfront_public_key" {
   value       = local.has_media_service ? tls_private_key.cloudfront_key[0].public_key_pem : null
 }
 
-# Debug outputs for certificate lookup
-output "debug_certificate_lookup" {
-  description = "Debug information for automatic certificate lookup"
-  value       = local.debug_cert_lookup
-}
+
 
 output "certificate_arn_used" {
   description = "The certificate ARN being used for CloudFront distributions"
-  value       = local.final_cloudfront_certificate_arn
+  value       = var.cloudfront_acm_certificate_arn
 }
 
 
@@ -86,6 +82,7 @@ locals {
         }
       })
       bucket_key          = "${frontend.service_name}_bucket"  # Reference to S3 bucket
+      enable_website      = try(frontend.enable_website, false)  # Pass website configuration
     } if try(frontend.create_cloudfront, false) && try(frontend.create, true) && contains(keys(local.s3_buckets), "${frontend.service_name}_bucket")
   }
   # Service-specific CloudFront distributions (ALB origin)
@@ -238,14 +235,14 @@ locals {
       origin_domain_name            = cdn.origin_type == "s3" ? (
         # For frontend CloudFronts, use bucket_key to reference S3 bucket
         try(cdn.bucket_key, null) != null ? 
-          coalesce(try(module.s3[cdn.bucket_key].website_endpoint, null), "${module.s3[cdn.bucket_key].bucket_name}.s3.${var.region}.amazonaws.com") :
+          (try(module.s3[cdn.bucket_key].website_endpoint, null) != null ? module.s3[cdn.bucket_key].website_endpoint : "${module.s3[cdn.bucket_key].bucket_name}.s3.${var.region}.amazonaws.com") :
           # Fallback for old-style bucket references
-          coalesce(try(module.s3["${cdn.service_name}_bucket"].website_endpoint, null), "${module.s3["${cdn.service_name}_bucket"].bucket_name}.s3.${var.region}.amazonaws.com")
+          (try(module.s3["${cdn.service_name}_bucket"].website_endpoint, null) != null ? module.s3["${cdn.service_name}_bucket"].website_endpoint : "${module.s3["${cdn.service_name}_bucket"].bucket_name}.s3.${var.region}.amazonaws.com")
       ) : (cdn.origin_type == "alb" ? try(module.ecs-alb.alb_dns_name, "") : try(cdn.origin_domain_name, ""))
       origin_path                   = try(cdn.origin_path, "")
       origin_protocol_policy        = try(cdn.protocol_policy, "http-only")  # Use HTTP-only for both S3 and ALB origins
       viewer_certificate_arn        = try(cdn.certificate_arn, "")
-      acm_certificate_arn           = local.final_cloudfront_certificate_arn
+      acm_certificate_arn           = var.cloudfront_acm_certificate_arn
       alternate_domain_names        = try(cdn.aliases, [])
       default_root_object           = try(cdn.default_root_object, "")
       price_class                   = try(cdn.price_class, "PriceClass_100")
@@ -259,13 +256,35 @@ locals {
   }
 }
 
+# Debug output to check aliases
+output "debug_frontend_aliases" {
+  description = "Debug: Frontend CloudFront aliases"
+  value = {
+    for cdn_key, cdn in local.cloudfront_distributions : cdn_key => {
+      aliases = cdn.aliases
+      alternate_domain_names = cdn.alternate_domain_names
+    } if contains(keys(local.frontend_cloudfront_distributions), cdn_key)
+  }
+}
+
+output "debug_frontend_config" {
+  description = "Debug: Frontend configuration"
+  value = {
+    for frontend_key, frontend in var.frontends : frontend_key => {
+      cloudfront_aliases = try(frontend.cloudfront_aliases, [])
+      create_cloudfront = frontend.create_cloudfront
+      create = frontend.create
+    }
+  }
+}
+
 # Create CloudFront distributions for S3 buckets (admin/media)
 # Create when targeting S3 + CloudFront OR when infrastructure buckets need CloudFront access
 module "cloudfront_s3" {
-  for_each = local.auto_create_cloudfront ? {
+  for_each = {
     for cdn_key, cdn in local.cloudfront_distributions : cdn_key => cdn
-    if contains(keys(local.frontend_cloudfront_distributions), cdn_key) || contains(keys(local.infrastructure_cloudfront_distributions), cdn_key)
-  } : {}
+    if local.auto_create_cloudfront && cdn.origin_type == "s3"
+  }
   source   = "../modules/cloudfront"
   
   project_name                  = each.value.project_name
@@ -279,24 +298,72 @@ module "cloudfront_s3" {
   origin_path                   = each.value.origin_path
   origin_protocol_policy        = each.value.origin_protocol_policy
   viewer_certificate_arn        = each.value.viewer_certificate_arn
-  acm_certificate_arn           = local.final_cloudfront_certificate_arn  # Use automatic certificate lookup or manual ARN
+  acm_certificate_arn           = var.cloudfront_acm_certificate_arn
   alternate_domain_names        = each.value.alternate_domain_names
   default_root_object           = each.value.default_root_object
   price_class                   = each.value.price_class
   comment                       = each.value.comment
   error_pages                   = each.value.error_pages
   default_cache_behavior        = each.value.default_cache_behavior
-  create_origin_access_control  = true  # Enable OAC for S3 origins
+  create_origin_access_control  = contains(["frontend", "media"], each.value.service_name)  # Enable OAC only for frontend and media
+  is_website_endpoint           = try(each.value.enable_website, false)  # Use custom origin for website endpoints
   tags                          = each.value.tags
 }
+
+# Response Headers Policy for CORS
+resource "aws_cloudfront_response_headers_policy" "cors_policy" {
+  count = local.services_need_cloudfront ? 1 : 0
+  
+  name    = "${var.project_name}-${var.env}-cors-policy"
+  comment = "CORS policy for API CloudFront distribution"
+
+  cors_config {
+    access_control_allow_credentials = false
+    access_control_allow_headers {
+      items = ["*"]
+    }
+    access_control_allow_methods {
+      items = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
+    }
+    access_control_allow_origins {
+      items = ["*"]
+    }
+    access_control_expose_headers {
+      items = ["*"]
+    }
+    access_control_max_age_sec = 600
+    origin_override = true
+  }
+
+  security_headers_config {
+    content_type_options {
+      override = true
+    }
+    frame_options {
+      frame_option = "SAMEORIGIN"
+      override     = true
+    }
+    referrer_policy {
+      referrer_policy = "strict-origin-when-cross-origin"
+      override        = true
+    }
+    strict_transport_security {
+      access_control_max_age_sec = 31536000
+      include_subdomains         = true
+      override                   = true
+      preload                    = true
+    }
+  }
+}
+
 
 # Create CloudFront distributions for ECS services
 # Only create when targeting ECS + CloudFront
 module "cloudfront_ecs" {
-  for_each = local.services_need_cloudfront && var.create_ecs_ecosystem ? {
+  for_each = {
     for cdn_key, cdn in local.cloudfront_distributions : cdn_key => cdn
-    if contains(keys(local.service_cloudfront_distributions), cdn_key)
-  } : {}
+    if local.services_need_cloudfront && var.create_ecs_ecosystem && cdn.origin_type == "alb"
+  }
   source   = "../modules/cloudfront"
   
   project_name                  = each.value.project_name
@@ -310,7 +377,7 @@ module "cloudfront_ecs" {
   origin_path                   = each.value.origin_path
   origin_protocol_policy        = each.value.origin_protocol_policy
   viewer_certificate_arn        = each.value.viewer_certificate_arn
-  acm_certificate_arn           = local.final_cloudfront_certificate_arn
+  acm_certificate_arn           = var.cloudfront_acm_certificate_arn
   alternate_domain_names        = each.value.alternate_domain_names
   default_root_object           = each.value.default_root_object
   price_class                   = each.value.price_class
@@ -319,5 +386,6 @@ module "cloudfront_ecs" {
   default_cache_behavior        = each.value.default_cache_behavior
   forwarded_values              = each.value.default_cache_behavior.forwarded_values
   create_origin_access_control  = false  # ECS services use ALB, not S3
+  response_headers_policy_id    = aws_cloudfront_response_headers_policy.cors_policy[0].id
   tags                          = each.value.tags
 } 

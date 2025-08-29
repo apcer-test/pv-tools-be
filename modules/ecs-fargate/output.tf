@@ -90,3 +90,25 @@ output "autoscaling_policy_arns" {
     for k, v in aws_appautoscaling_policy.ecs_cpu_policy : k => v.arn
   }
 } 
+
+# Service Discovery outputs
+output "service_discovery_service_names" {
+  description = "Map of service discovery service names"
+  value = var.enable_service_discovery ? {
+    for k, v in aws_service_discovery_service.services : k => v.name
+  } : {}
+}
+
+output "service_discovery_service_arns" {
+  description = "Map of service discovery service ARNs"
+  value = var.enable_service_discovery ? {
+    for k, v in aws_service_discovery_service.services : k => v.arn
+  } : {}
+}
+
+output "service_discovery_service_ids" {
+  description = "Map of service discovery service IDs"
+  value = var.enable_service_discovery ? {
+    for k, v in aws_service_discovery_service.services : k => v.id
+  } : {}
+}

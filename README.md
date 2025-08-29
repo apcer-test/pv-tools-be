@@ -202,6 +202,70 @@ frontends = {
 - **Compute Optimization**: Fargate spot instances (configurable)
 - **Monitoring**: Cost alerts and budget tracking
 
+## Bastion Host Access
+
+The infrastructure includes a bastion host for secure SSH access to the VPC. The bastion host provides two types of access:
+
+### Access Types
+
+1. **Admin Access**: Full access to the bastion host (ubuntu user)
+2. **Developer Access**: Tunnel-only access for database connections (developer user)
+
+### Getting PEM Keys
+
+After applying the Terraform configuration, you can extract the private keys using one of these methods:
+
+#### Method 1: Using the Extraction Script
+```bash
+# From the project root directory
+./scripts/extract-pem-keys.sh
+```
+
+#### Method 2: Manual Extraction
+```bash
+# From the main directory
+cd main
+
+# Extract admin key
+terraform output -raw admin_key_pem > ../admin-key.pem
+chmod 600 ../admin-key.pem
+
+# Extract developer key
+terraform output -raw developer_key_pem > ../developer-key.pem
+chmod 600 ../developer-key.pem
+```
+
+#### Method 3: Direct Terraform Output
+```bash
+# View the keys directly
+terraform output admin_key_pem
+terraform output developer_key_pem
+```
+
+### Connection Commands
+
+Get the bastion host IP:
+```bash
+terraform output bastion_public_ip
+```
+
+#### Admin Access
+```bash
+ssh -i admin-key.pem ubuntu@<bastion-ip>
+```
+
+#### Developer Tunnel (for RDS access)
+```bash
+ssh -i developer-key.pem -L 5432:<rds-endpoint>:5432 developer@<bastion-ip> -N
+```
+
+### Security Notes
+
+- Keep your private keys secure and never share them
+- The keys are automatically saved with 600 permissions
+- Consider using SSH agents for better security
+- The bastion host is configured with security groups that only allow SSH access from authorized IPs
+
 ## Troubleshooting
 
 ### Common Issues

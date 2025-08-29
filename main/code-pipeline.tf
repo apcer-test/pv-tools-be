@@ -108,6 +108,7 @@ locals {
       pipeline_name   = "${service.container_name}-${var.env}"
       repo_path       = service.repository_path
       repo_branch     = service.repository_branch
+      # Create separate connections for each service
       connection_name = "${service.container_name}-${var.env}"
       
       # ECS-specific configuration
@@ -279,6 +280,7 @@ module "codepipeline" {
   full_repo_path                = each.value.repo_path
   repo_branch                   = each.value.repo_branch
   codestart_connection_name     = each.value.connection_name
+
   
   # Build configuration
   build_compute_type            = lookup(each.value, "compute_type", "BUILD_GENERAL1_SMALL")

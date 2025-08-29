@@ -136,42 +136,8 @@ serverless_microservices_codepipeline = {
 # ECS ECOSYSTEM
 create_ecs_ecosystem = true
 
-# ECS Services Configuration
-services = {
-  service1 = {
-    container_name      = "api"
-    container_port      = 8000
-    cpu                 = 480
-    memory              = 768
-    domain              = "api-test.webelight.co.in"
-    command             = ["/bin/sh", "-c", "python main.py migrate && python main.py run"]
-    health_check_path   = "/healthcheck"
-    repository_path     = "webelight/riddhi-gsp/riddhi-gsp-api"
-    repository_branch   = "main"
-    bucket_path         = "api/dev"
-    compute_type        = "BUILD_GENERAL1_SMALL"
-    create_cloudfront   = true
-    enable_xray         = true
-    xray_daemon_cpu    = 32
-    xray_daemon_memory = 256
-  }
-  service4 = {
-    container_name      = "notification-svc"
-    container_port      = 4242
-    cpu                 = 480
-    memory              = 768
-    domain              = "notification-test.webelight.co.in"
-    health_check_path   = "/notification/healthcheck"
-    repository_path     = "webelight/microservices/notification-microservice"
-    repository_branch   = "main"
-    bucket_path         = "microservices/notification-service/dev"  # change to env_bucket_path
-    compute_type        = "BUILD_GENERAL1_SMALL"
-    create_cloudfront   = true
-    enable_xray         = true
-    xray_daemon_cpu    = 32
-    xray_daemon_memory = 256
-  }
-}
+# ECS Services Configuration - Moved to terraform.dev.tfvars
+# services = {}
 
 # CodePipeline Configuration
 create_codepipelines = true

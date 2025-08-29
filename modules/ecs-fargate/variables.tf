@@ -39,6 +39,19 @@ variable "alb_security_group_id" {
 variable "alb_target_group_arns" {
   description = "Map of ALB target group ARNs for each service"
   type        = map(string)
+  default     = {}
+}
+
+variable "enable_service_discovery" {
+  description = "Whether to enable service discovery for ECS services"
+  type        = bool
+  default     = false
+}
+
+variable "service_discovery_namespace_id" {
+  description = "ID of the service discovery namespace"
+  type        = string
+  default     = ""
 }
 
 variable "ecs_execution_role_arn" {
@@ -65,7 +78,7 @@ variable "services" {
     health_check_path    = string
     cpu                  = number
     memory               = number
-    domain               = string
+    domain               = optional(string, "")
     # Optional fields with sensible defaults
     desired_count        = optional(number, 1)
     image_tag            = optional(string, "")
@@ -89,14 +102,17 @@ variable "services" {
     # X-Ray configuration
     enable_xray          = optional(bool, false)
     xray_daemon_cpu     = optional(number, 0)
-    xray_daemon_memory  = optional(number, 512)
+    xray_daemon_memory  = optional(number, 0)
     # ECS Exec configuration
     enable_exec          = optional(bool, false)
     # Celery worker container configuration
     enable_celery_worker = optional(bool, false)
     celery_worker_command = optional(list(string), [])
     celery_worker_cpu    = optional(number, 0)
-    celery_worker_memory = optional(number, 512)
+    celery_worker_memory = optional(number, 0)
+    # Service Discovery configuration
+    enable_service_discovery = optional(bool, false)
+    service_discovery_name    = optional(string, "")
     # CodePipeline configuration (only used when create_codepipelines is true)
     service_name         = optional(string, "")  # Service name for pipeline and connection naming (e.g., "api-backend-service")
     repository_path      = optional(string, "")  # Full GitLab repository path (e.g., "webelight/api-backend-service")
@@ -104,6 +120,8 @@ variable "services" {
     bucket_path          = optional(string, "")  # S3 env bucket path for this service (e.g., "microservices/api/dev")
     compute_type         = optional(string, "BUILD_GENERAL1_SMALL")  # CodeBuild compute type
     
+    # ALB Configuration
+    expose_via_alb       = optional(bool, true)  # Whether to expose service via ALB
     # CloudFront Configuration (ALB origin)
     create_cloudfront    = optional(bool, false)
     cloudfront_aliases   = optional(list(string), [])  # If empty, automatically uses 'domain' field

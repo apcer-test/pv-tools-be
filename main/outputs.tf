@@ -214,3 +214,65 @@ output "vpn_configuration" {
 }
 
 # CodePipeline Outputs
+
+# Bastion Host Outputs
+output "bastion_instance_id" {
+  description = "ID of the bastion host instance"
+  value       = try(module.ec2-bastion[0].instance_id, "")
+}
+
+output "bastion_public_ip" {
+  description = "Public IP address of the bastion host"
+  value       = try(module.ec2-bastion[0].elastic_ip, "")
+}
+
+output "bastion_admin_private_key" {
+  description = "Private key for admin access to bastion host (save as .pem file)"
+  value       = try(module.ec2-bastion[0].admin_private_key, "")
+  sensitive   = true
+}
+
+output "bastion_developer_private_key" {
+  description = "Private key for developer tunnel access to bastion host (save as .pem file)"
+  value       = try(module.ec2-bastion[0].developer_private_key, "")
+  sensitive   = true
+}
+
+output "bastion_connection_info" {
+  description = "Complete connection information for bastion host"
+  value       = try(module.ec2-bastion[0].connection_info, {})
+}
+
+output "bastion_ssh_command" {
+  description = "SSH command to connect to bastion host (admin access)"
+  value       = try(module.ec2-bastion[0].ssh_connection_command, "")
+}
+
+output "bastion_tunnel_command" {
+  description = "SSH tunnel command for RDS database access"
+  value       = try(module.ec2-bastion[0].tunnel_connection_command, "")
+}
+
+# PEM File Outputs (for direct copying)
+output "admin_key_pem" {
+  description = "Admin private key in PEM format (copy this to a .pem file)"
+  value       = try(module.ec2-bastion[0].admin_private_key, "")
+  sensitive   = true
+}
+
+output "developer_key_pem" {
+  description = "Developer private key in PEM format (copy this to a .pem file)"
+  value       = try(module.ec2-bastion[0].developer_private_key, "")
+  sensitive   = true
+}
+
+# Quick commands to save PEM files
+output "save_admin_key_command" {
+  description = "Command to save admin key to PEM file"
+  value       = try("terraform output -raw admin_key_pem > admin-key.pem && chmod 600 admin-key.pem", "")
+}
+
+output "save_developer_key_command" {
+  description = "Command to save developer key to PEM file"
+  value       = try("terraform output -raw developer_key_pem > developer-key.pem && chmod 600 developer-key.pem", "")
+}

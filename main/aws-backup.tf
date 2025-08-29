@@ -58,7 +58,7 @@ locals {
   # Collect resource ARNs for backup
   backup_resource_arns = concat(
     # RDS Database ARNs
-    var.create_rds_database ? [module.rds[0].db_instance_arn] : [],
+    var.create_rds ? [module.rds[0].db_instance_arn] : [],
     
     # ECS Service ARNs (if ECS ecosystem is created)
     var.create_ecs_ecosystem ? [

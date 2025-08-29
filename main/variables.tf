@@ -36,7 +36,7 @@ variable "services" {
     health_check_path    = string
     cpu                  = number
     memory               = number
-    domain               = string
+    domain               = optional(string, "")
     # Optional fields with sensible defaults
     desired_count        = optional(number, 1)
     image_tag            = optional(string, "")
@@ -56,9 +56,27 @@ variable "services" {
     env_bucket_path      = optional(string, "")  # Environment-specific S3 bucket path for this service (e.g., "api/dev")
     compute_type         = optional(string, "BUILD_GENERAL1_SMALL")  # CodeBuild compute type
     
+    # ALB Configuration
+    expose_via_alb       = optional(bool, true)  # Whether to expose service via ALB
     # CloudFront Configuration (ALB origin)
     create_cloudfront    = optional(bool, false)
     cloudfront_aliases   = optional(list(string), [])  # If empty, automatically uses 'domain' field
+    # X-Ray configuration
+    enable_xray          = optional(bool, false)
+    xray_daemon_cpu     = optional(number, 0)
+    xray_daemon_memory  = optional(number, 0)
+    # ECS Exec configuration
+    enable_exec          = optional(bool, false)
+    # Celery worker container configuration
+    enable_celery_worker = optional(bool, false)
+    celery_worker_command = optional(list(string), [])
+    celery_worker_cpu    = optional(number, 0)
+    celery_worker_memory = optional(number, 0)
+    # Service Discovery configuration
+    enable_service_discovery = optional(bool, false)
+    service_discovery_name    = optional(string, "")
+    # Build configuration
+    use_custom_buildspec = optional(bool, false)
     cloudfront_forwarded_values = optional(object({
       query_string = bool
       headers      = list(string)
@@ -86,9 +104,7 @@ variable "create_rds" {
   default     = false
 }
 
-variable "create_rds_database" {
-  type    = bool
-}
+
 
 variable "rds_allocated_storage" {
   type    = number
@@ -207,7 +223,10 @@ variable "frontends" {
     compute_type      = optional(string, "BUILD_GENERAL1_SMALL")
     create_codepipeline = optional(bool, false)
     create_cloudfront = optional(bool, true)
+    cloudfront_aliases   = optional(list(string), [])  # If empty, automatically uses 'domain' field
     enable_website     = optional(bool, false)
+    index_document     = optional(string, "index.html")
+    error_document     = optional(string, "error.html")
     enable_versioning  = optional(bool, true)
     enable_encryption  = optional(bool, true)
     cors_rules         = optional(list(object({
@@ -222,6 +241,12 @@ variable "frontends" {
       noncurrent_version_expiration_days = optional(number, 0)
       transition_to_ia_days      = optional(number, 0)
       transition_to_glacier_days = optional(number, 0)
+    })), [])
+    error_pages        = optional(list(object({
+      error_code = number
+      response_code = string
+      response_page_path = string
+      error_caching_min_ttl = optional(number, 0)
     })), [])
     microservices      = optional(list(string), [])
     # environments will be auto-generated based on var.env
@@ -633,30 +658,7 @@ variable "cloudfront_acm_certificate_arn" {
   default     = ""
 }
 
-# ACM Certificate Configuration
-variable "create_acm_certificate" {
-  description = "Whether to create ACM certificate"
-  type        = bool
-  default     = false
-}
 
-variable "acm_domain_name" {
-  description = "Primary domain name for ACM certificate"
-  type        = string
-  default     = ""
-}
-
-variable "acm_subject_alternative_names" {
-  description = "List of additional domain names for ACM certificate"
-  type        = list(string)
-  default     = []
-}
-
-variable "route53_zone_id" {
-  description = "Route53 hosted zone ID for DNS validation"
-  type        = string
-  default     = ""
-}
 
 variable "cdn_distributions" {
   description = "Master configuration for all CloudFront distributions"

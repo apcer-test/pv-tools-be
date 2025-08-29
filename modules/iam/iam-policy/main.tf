@@ -26,16 +26,23 @@ resource "aws_iam_policy" "iam_policy" {
             "logs:DescribeLogGroups",
             "logs:DescribeLogStreams",
             "logs:GetLogEvents",
+            "logs:TagResource",
+            "logs:UntagResource",
+            "logs:ListTagsLogGroup",
+            "logs:DeleteLogGroup",
+            "logs:*",  # Full CloudWatch Logs access
             "cloudwatch:PutMetricData",
             "cloudwatch:GetMetricStatistics",
-            "cloudwatch:ListMetrics"
+            "cloudwatch:ListMetrics",
+            "cloudwatch:*"  # Full CloudWatch access
           ]
           Effect   = "Allow"
           Resource = [
             "arn:aws:logs:${var.region}:${var.account_id}:log-group:/ecs/${var.project_name}-${var.env}/*",
             "arn:aws:logs:${var.region}:${var.account_id}:log-group:/ecs/${var.project_name}-${var.env}/*:*",
             "arn:aws:logs:${var.region}:${var.account_id}:log-stream:/ecs/${var.project_name}-${var.env}/*/*",
-            "*"  # For CloudWatch metrics
+            "arn:aws:logs:${var.region}:${var.account_id}:*",  # Full CloudWatch Logs access
+            "*"  # For CloudWatch metrics and full access
           ]
         }
       ] : [],
@@ -70,7 +77,15 @@ resource "aws_iam_policy" "iam_policy" {
             "s3:GetObject",         # To read objects from the S3 bucket
             "s3:PutObject",         # To upload objects to the S3 bucket
             "s3:DeleteObject",      # To delete objects from the S3 bucket
-            "s3:CreateBucket"       # To create new S3 buckets (optional)
+            "s3:CreateBucket",      # To create new S3 buckets (optional)
+            "s3:PutBucketTagging",  # To tag S3 buckets
+            "s3:GetBucketTagging",  # To read S3 bucket tags
+            "s3:DeleteBucketTagging", # To delete S3 bucket tags
+            "s3:PutEncryptionConfiguration", # To configure bucket encryption
+            "s3:GetEncryptionConfiguration", # To read bucket encryption settings
+            "s3:PutBucketPolicy",    # To create/update bucket policies
+            "s3:GetBucketPolicy",    # To read bucket policies
+            "s3:DeleteBucketPolicy"  # To delete bucket policies
           ]
           Effect = "Allow"
           Resource = [
@@ -103,10 +118,22 @@ resource "aws_iam_policy" "iam_policy" {
             "lambda:RemovePermission",         # Allows removing permissions from Lambda functions
             "lambda:ListVersionsByFunction",    # Allows listing versions of a Lambda function
             "lambda:PublishVersion",
-            "lambda:GetFunction"
+            "lambda:GetFunction",
+            "lambda:PublishLayerVersion",       # Allows publishing Lambda layers
+            "lambda:GetLayerVersion",           # Allows getting Lambda layer versions
+            "lambda:ListLayerVersions",         # Allows listing Lambda layer versions
+            "lambda:DeleteLayerVersion",        # Allows deleting Lambda layer versions
+            "lambda:ListLayers",                # Allows listing Lambda layers
+            "lambda:GetLayerVersionPolicy",     # Allows getting Lambda layer version policies
+            "lambda:AddLayerVersionPermission", # Allows adding permissions to Lambda layer versions
+            "lambda:RemoveLayerVersionPermission" # Allows removing permissions from Lambda layer versions
           ]
           Effect   = "Allow"
-          Resource = "arn:aws:lambda:${var.region}:${var.account_id}:function:*"  # Applies to all Lambda functions
+          Resource = [
+            "arn:aws:lambda:${var.region}:${var.account_id}:function:*",  # Applies to all Lambda functions
+            "arn:aws:lambda:${var.region}:${var.account_id}:layer:*",     # Applies to all Lambda layers
+            "arn:aws:lambda:${var.region}:${var.account_id}:*"            # Full Lambda access
+          ]
         }
       ] : [],
 
@@ -115,9 +142,16 @@ resource "aws_iam_policy" "iam_policy" {
         {
           Action = [
             "iam:CreateRole",        # Allows creating IAM roles
+            "iam:GetRole",           # Allows getting IAM role details
             "iam:TagRole",           # Allows tagging IAM roles
             "iam:AttachRolePolicy",  # Allows attaching IAM policies to roles
-            "iam:PutRolePolicy"      # Allows adding inline policies to roles
+            "iam:PutRolePolicy",     # Allows adding inline policies to roles
+            "iam:DeleteRole",        # Allows deleting IAM roles
+            "iam:UpdateRole",        # Allows updating IAM roles
+            "iam:ListRolePolicies",  # Allows listing inline policies for roles
+            "iam:ListAttachedRolePolicies", # Allows listing attached policies for roles
+            "iam:DetachRolePolicy",  # Allows detaching policies from roles
+            "iam:DeleteRolePolicy"   # Allows deleting inline policies from roles
           ]
           Effect   = "Allow"
           Resource = "*"  # Applies to all IAM roles
@@ -318,8 +352,9 @@ resource "aws_iam_policy" "iam_policy" {
           ]
           Effect   = "Allow"
           Resource = [
-            "arn:aws:apigateway:${var.region}::/restapis/*",
-            "arn:aws:execute-api:${var.region}:${var.account_id}:*"
+            "arn:aws:apigateway:${var.region}::/*",
+            "arn:aws:execute-api:${var.region}:${var.account_id}:*",
+            "*"  # Full API Gateway access
           ]
         }
       ] : [],
@@ -332,15 +367,24 @@ resource "aws_iam_policy" "iam_policy" {
             "cloudformation:UpdateStack",      # Update CloudFormation stacks
             "cloudformation:DeleteStack",      # Delete CloudFormation stacks
             "cloudformation:DescribeStacks",   # Describe CloudFormation stacks
+            "cloudformation:DescribeStackEvents", # Describe CloudFormation stack events
+            "cloudformation:DescribeStackResource", # Describe CloudFormation stack resources
             "cloudformation:ListStacks",       # List CloudFormation stacks
             "cloudformation:GetTemplate",      # Get CloudFormation templates
-            "cloudformation:ValidateTemplate", # Validate CloudFormation templates
             "cloudformation:CreateChangeSet",  # Create change sets
             "cloudformation:ExecuteChangeSet", # Execute change sets
-            "cloudformation:DescribeChangeSet" # Describe change sets
+            "cloudformation:DescribeChangeSet", # Describe change sets
+            "cloudformation:DeleteChangeSet",  # Delete change sets
+            "cloudformation:ValidateTemplate"  # Validate CloudFormation templates (global permission)
           ]
           Effect   = "Allow"
-          Resource = "arn:aws:cloudformation:${var.region}:${var.account_id}:stack/${var.project_name}-*/*"
+          Resource = [
+            "arn:aws:cloudformation:${var.region}:${var.account_id}:stack/${var.project_name}-*/*",
+            "arn:aws:cloudformation:${var.region}:${var.account_id}:stack/*-${var.env}/*",
+            "arn:aws:cloudformation:${var.region}:${var.account_id}:stack/*-document-*/*",
+            "arn:aws:cloudformation:${var.region}:${var.account_id}:stack/*-microservice-*/*",
+            "*"  # Global permission for template validation
+          ]
         }
       ] : []
     ])

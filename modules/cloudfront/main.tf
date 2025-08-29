@@ -39,11 +39,11 @@ resource "aws_cloudfront_distribution" "this" {
     origin_id   = var.origin_id
     origin_path = var.origin_path
 
-    # Use OAC for S3 origins, custom origin config for ALB/API origins
-    origin_access_control_id = var.create_origin_access_control ? aws_cloudfront_origin_access_control.this[0].id : null
+    # Use OAC for S3 origins, custom origin config for ALB/API origins or website endpoints
+    origin_access_control_id = var.create_origin_access_control && !var.is_website_endpoint ? aws_cloudfront_origin_access_control.this[0].id : null
 
     dynamic "custom_origin_config" {
-      for_each = var.create_origin_access_control ? [] : [1]
+      for_each = (var.create_origin_access_control && !var.is_website_endpoint) ? [] : [1]
       content {
         http_port              = 80
         https_port             = 443
@@ -75,13 +75,19 @@ resource "aws_cloudfront_distribution" "this" {
     default_ttl = local.default_cache_behavior.default_ttl
     max_ttl     = local.default_cache_behavior.max_ttl
 
-    # Forwarded Values - Use variable or default for ALB origins
-    forwarded_values {
-      query_string = try(var.forwarded_values.query_string, false)
-      headers      = try(var.forwarded_values.headers, [])
-      cookies {
-        forward           = try(var.forwarded_values.cookies.forward, "none")
-        whitelisted_names = try(var.forwarded_values.cookies.whitelisted_names, [])
+    # Response Headers Policy for CORS (mutually exclusive with forwarded_values)
+    response_headers_policy_id = var.response_headers_policy_id != "" ? var.response_headers_policy_id : null
+
+    # Forwarded Values - Use variable or default for ALB origins (only when no response headers policy)
+    dynamic "forwarded_values" {
+      for_each = var.response_headers_policy_id == "" ? [1] : []
+      content {
+        query_string = try(var.forwarded_values.query_string, false)
+        headers      = try(var.forwarded_values.headers, [])
+        cookies {
+          forward           = try(var.forwarded_values.cookies.forward, "none")
+          whitelisted_names = try(var.forwarded_values.cookies.whitelisted_names, [])
+        }
       }
     }
   }

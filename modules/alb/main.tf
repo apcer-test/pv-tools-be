@@ -14,7 +14,7 @@ locals {
       health_check_port  = "traffic-port"
       domain             = service.domain
       priority           = (idx + 1) * 100  # Generate priority: 100, 200, 300, etc.
-    }
+    } if service.expose_via_alb && service.domain != ""
   }
 }
 

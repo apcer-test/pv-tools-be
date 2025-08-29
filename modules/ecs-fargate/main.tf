@@ -126,14 +126,14 @@ resource "aws_ecs_task_definition" "services" {
             ] : [],
             each.value.enable_celery_worker ? [
               {
-                containerName = "celery-worker"
+                containerName = "celery-worker-container"
                 condition     = "START"
               }
             ] : []
           )
         }
       ],
-      [
+      each.value.enable_xray ? [
         {
           name  = "xray-daemon"
           image = "public.ecr.aws/xray/aws-xray-daemon:latest"
@@ -166,7 +166,7 @@ resource "aws_ecs_task_definition" "services" {
 
           essential = true
         }
-      ],
+      ] : [],
       each.value.enable_celery_worker ? [
         {
           name  = "celery-worker"
@@ -254,11 +254,21 @@ resource "aws_ecs_service" "services" {
     assign_public_ip = false
   }
 
-      load_balancer {
+  dynamic "load_balancer" {
+    for_each = each.value.expose_via_alb && contains(keys(var.alb_target_group_arns), each.key) ? [1] : []
+    content {
       target_group_arn = var.alb_target_group_arns[each.key]
       container_name   = each.value.container_name
       container_port   = each.value.container_port
     }
+  }
+
+  dynamic "service_registries" {
+    for_each = var.enable_service_discovery && each.value.enable_service_discovery ? [1] : []
+    content {
+      registry_arn = aws_service_discovery_service.services[each.key].arn
+    }
+  }
 
   tags = {
     Name        = "${var.project_name}-${each.value.container_name}-service-${var.env}"
@@ -297,11 +307,14 @@ resource "aws_security_group" "ecs_services" {
   description = "Security group for ECS service ${each.value.container_name}"
   vpc_id      = var.vpc_id
 
-  ingress {
-    from_port       = each.value.container_port
-    to_port         = each.value.container_port
-    protocol        = "tcp"
-    security_groups = [var.alb_security_group_id]
+  dynamic "ingress" {
+    for_each = each.value.expose_via_alb ? [1] : []
+    content {
+      from_port       = each.value.container_port
+      to_port         = each.value.container_port
+      protocol        = "tcp"
+      security_groups = [var.alb_security_group_id]
+    }
   }
 
   egress {
@@ -367,4 +380,36 @@ resource "aws_appautoscaling_policy" "ecs_memory_policy" {
     }
     target_value = each.value.target_memory_utilization
   }
-} 
+}
+
+##########################################################
+# Service Discovery
+##########################################################
+resource "aws_service_discovery_service" "services" {
+  for_each = var.create_ecs_cluster && var.enable_service_discovery ? { for k, v in var.services : k => v if v.enable_service_discovery } : {}
+
+  name = each.value.service_discovery_name != "" ? each.value.service_discovery_name : each.value.container_name
+
+  dns_config {
+    namespace_id = var.service_discovery_namespace_id
+
+    dns_records {
+      ttl  = 10
+      type = "A"
+    }
+
+    routing_policy = "MULTIVALUE"
+  }
+
+  health_check_custom_config {
+    failure_threshold = 1
+  }
+
+  tags = {
+    Name        = "${var.project_name}-${each.value.container_name}-service-discovery-${var.env}"
+    Project     = var.project_name
+    Service     = "${var.project_name}-${each.value.container_name}-service-discovery-${var.env}"
+    Environment = var.env
+    Terraform   = "true"
+  }
+}

@@ -6,7 +6,7 @@ module "cloudtrail_s3_bucket" {
   count  = var.create_cloudtrail ? 1 : 0
   source = "../modules/s3"
 
-  bucket_name        = "${var.project_name}-${var.env}-cloudtrail-logs"
+      bucket_name        = "${var.project_name}-${var.env}-cloudtrail-logs"
   project_name       = var.project_name
   app_name           = var.project_name
   env                = var.env

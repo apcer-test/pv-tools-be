@@ -108,6 +108,23 @@ resource "aws_iam_role_policy" "ecs_task_role_exec_policy" {
   })
 }
 
+# Service Discovery Namespace
+resource "aws_service_discovery_private_dns_namespace" "ecs" {
+  count = var.create_ecs_ecosystem ? 1 : 0
+  
+  name        = "${var.project_name}.${var.env}.local"
+  description = "Service discovery namespace for ${var.project_name} ${var.env} environment"
+  vpc         = module.vpc.vpc_id
+
+  tags = {
+    Name        = "${var.project_name}-${var.env}-service-discovery-namespace"
+    Project     = var.project_name
+    Service     = "service-discovery-namespace"
+    Environment = var.env
+    Terraform   = "true"
+  }
+}
+
 # ECS Fargate Cluster and Services
 
 # Create mapping from service keys to ECR repository URLs
@@ -116,9 +133,10 @@ locals {
     for service_key, service in var.services : service_key => module.ecs-ecr.repository_urls_map["${var.project_name}-${service.container_name}-${var.env}"]
   } : {}
   
-  # Create mapping from service keys to ALB target group ARNs
+  # Create mapping from service keys to ALB target group ARNs (only for services exposed via ALB)
   alb_target_group_arns_map = var.create_ecs_ecosystem ? {
     for service_key, service in var.services : service_key => module.ecs-alb.target_group_arns["${service.container_name}-${var.env}"]
+    if service.expose_via_alb && service.domain != ""
   } : {}
 }
 
@@ -140,4 +158,10 @@ module "ecs_fargate" {
   ecr_repository_urls   = local.ecr_repository_urls_map
   services           = var.services
   tags                = local.common_tags
+  
+  # Service Discovery Configuration
+  enable_service_discovery = true
+  service_discovery_namespace_id = aws_service_discovery_private_dns_namespace.ecs[0].id
+  
+  depends_on = [module.ecs-alb]
 } 
