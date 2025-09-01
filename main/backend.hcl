@@ -1,6 +1,6 @@
 # Webelight Development Backend Configuration
 
-bucket         = "apcer-terraform-state"
+bucket         = "apcer-terraform-state-bucket"
 key            = "apcer-dev/terraform.tfstate"
-region         = "us-west-1"
+region         = "eu-west-2"
 encrypt        = true

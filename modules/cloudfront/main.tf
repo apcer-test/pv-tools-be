@@ -79,15 +79,12 @@ resource "aws_cloudfront_distribution" "this" {
     response_headers_policy_id = var.response_headers_policy_id != "" ? var.response_headers_policy_id : null
 
     # Forwarded Values - Use variable or default for ALB origins (only when no response headers policy)
-    dynamic "forwarded_values" {
-      for_each = var.response_headers_policy_id == "" ? [1] : []
-      content {
-        query_string = try(var.forwarded_values.query_string, false)
-        headers      = try(var.forwarded_values.headers, [])
-        cookies {
-          forward           = try(var.forwarded_values.cookies.forward, "none")
-          whitelisted_names = try(var.forwarded_values.cookies.whitelisted_names, [])
-        }
+    forwarded_values {
+      query_string = try(var.forwarded_values.query_string, false)
+      headers      = try(var.forwarded_values.headers, [])
+      cookies {
+        forward           = try(var.forwarded_values.cookies.forward, "none")
+        whitelisted_names = try(var.forwarded_values.cookies.whitelisted_names, [])
       }
     }
   }

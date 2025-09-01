@@ -342,6 +342,7 @@ variable "storage_buckets" {
   description = "Master configuration for all S3 buckets"
   type = map(object({
     service_name       = string  # "admin", "media", "api", etc.
+    cloudfront_aliases   = optional(list(string), [])  # If empty, automatically uses 'domain' field
     enable_website     = optional(bool, false)
     enable_versioning  = optional(bool, true)
     enable_encryption  = optional(bool, true)

@@ -30,20 +30,19 @@ services = {
   service1 = {
     container_name      = "api"
     container_port      = 9094
-    cpu                 = 1024
-    memory              = 2048
+    cpu                 = 992
+    memory              = 1792
     domain              = "api-dev.apcerls.com"  # Updated domain for dev environment
     command             = ["/bin/sh", "-c", "python main.py migrate && python main.py run"]
     health_check_path   = "/healthcheck"
-    # repository_path     = "APCER-Life-Sciences-Inc/pv-tool-be" 
-    repository_path     = "apcer-test/pv-tools-be" # GitHub repository path
+    repository_path     = "APCER-Life-Sciences-Inc/pv-tool-be"
     repository_branch   = "main"
     env_bucket_path     = "api/dev"
     compute_type        = "BUILD_GENERAL1_SMALL"
     create_cloudfront   = true
     enable_xray         = true
-    xray_daemon_cpu    = 1024
-    xray_daemon_memory = 2048
+    xray_daemon_cpu    = 32
+    xray_daemon_memory = 256
     use_custom_buildspec = true
     enable_exec         = true
     # Celery worker configuration - disabled for API service
@@ -53,44 +52,9 @@ services = {
     # Auto-scaling configuration for API
     enable_auto_scaling = true
     min_capacity        = 1
-    max_capacity        = 5
+    max_capacity        = 3
     target_cpu_utilization = 70
     target_memory_utilization = 80
-  }
-  
-  service2 = {
-    container_name      = "celery-worker-container"
-    container_port      = 9095  # Different port for Celery worker
-    cpu                 = 1024
-    memory              = 2048
-    # No domain needed for Celery worker - internal service only
-    expose_via_alb      = false  # Don't expose Celery worker via ALB
-    command             = ["python", "-m", "celery", "--app=core.utils.celery_worker", "worker", "--queues=main-queue", "--concurrency=5", "-E"]
-    health_check_path   = "/healthcheck"
-    # repository_path     = "APCER-Life-Sciences-Inc/pv-tool-be" 
-    repository_path     = "apcer-test/pv-tools-be" # GitHub repository path
-    repository_branch   = "main"
-    env_bucket_path     = "api/dev"  # Same env bucket as API
-    compute_type        = "BUILD_GENERAL1_SMALL"
-    create_cloudfront   = false  # No need for CloudFront for Celery worker
-    enable_xray         = true
-    xray_daemon_cpu    = 1024
-    xray_daemon_memory = 2048
-    use_custom_buildspec = true
-    enable_exec         = true
-    # Celery worker configuration - disabled for Celery service itself
-    enable_celery_worker = false
-    # Service Discovery configuration
-    enable_service_discovery = true
-    service_discovery_name    = "celery-worker"
-    # Service configuration
-    desired_count       = 2  # Start with 2 Celery workers
-    # Auto-scaling configuration for Celery - can scale independently
-    enable_auto_scaling = true
-    min_capacity        = 1
-    max_capacity        = 10  # Can scale up to 10 Celery workers
-    target_cpu_utilization = 60  # Lower threshold for Celery
-    target_memory_utilization = 70
   }
 }
 # EC2 Bastion Host
@@ -141,7 +105,7 @@ storage_buckets = {
   }
   document_microservice_bucket = {
     service_name        = "document-microservice"
-    enable_versioning   = true
+    enable_versioning   = false
     service_folders     = ["uploads", "processed", "temp", "backups"]
     lifecycle_rules     = [
       {
@@ -161,6 +125,7 @@ storage_buckets = {
   media_bucket = {
     service_name        = "media"
     enable_versioning   = true
+    cloudfront_aliases   = ["media-dev.apcerls.com"]
     service_folders     = []
     lifecycle_rules     = [
       {
@@ -178,7 +143,6 @@ media = {
     service_name         = "media"
     domain              = "media-dev.apcerls.com"  # Primary domain
     cloudfront_aliases   = ["media-dev.apcerls.com"]  # Primary and alternate domain
-    # repository_path     = "webelight/media-service"  # GitHub repository path (if needed)
     repository_path     = ""  # No repository needed for static media
     repository_branch   = "main"
     bucket_path         = "media/dev"
@@ -219,8 +183,7 @@ frontends = {
     service_name         = "frontend"
     domain              = "fe-dev.apcerls.com"  # Primary domain
     cloudfront_aliases   = ["fe-dev.apcerls.com"]  # Primary and alternate domain
-    # repository_path     = "APCER-Life-Sciences-Inc/pv-tool-fe"  # GitHub repository path
-    repository_path     = "apcer-test/pv-tools-fe" # GitHub repository path
+    repository_path     = "APCER-Life-Sciences-Inc/pv-tool-fe"  # GitHub repository path
     repository_branch   = "main"
     bucket_path         = "frontend/dev"
     node_version        = "22.11.0"
@@ -233,7 +196,7 @@ frontends = {
     create_cloudfront  = true
     use_custom_buildspec = true
     # Enable static website hosting
-    enable_website = true
+    enable_website = false
     index_document = "index.html"
     error_document = "error.html"
     # Error pages configuration for CloudFront
@@ -308,7 +271,7 @@ create_cloudfront = true
 cloudfront_price_class = "PriceClass_100"
 # ACM Certificate Configuration
 # Add your ACM certificate ARN here (must be in us-east-1 for CloudFront)
-cloudfront_acm_certificate_arn = "arn:aws:acm:us-east-1:912106457730:certificate/8b8ae7bb-b1ee-42a3-bd10-b6c72c7936e1"
+cloudfront_acm_certificate_arn = "arn:aws:acm:us-east-1:193363646479:certificate/4addba11-4204-403f-834e-97174519f67e"
 
 # =============================================================================
 # CI/CD SERVICES
@@ -326,7 +289,7 @@ create_codebuild = true
 serverless_microservices_codepipeline = {
   serverless_service-1 = {
     service_name          = "document-svc"
-    repository_path       = "apcer-test/document-svc"
+    repository_path       = "APCER-Life-Sciences-Inc/pv-tool-document-svc"
     repository_branch     = "main"
     node_version          = "22.17.0"
     bucket_path           = "microservices/document-microservice/dev"

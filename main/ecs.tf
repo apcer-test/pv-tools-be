@@ -109,21 +109,21 @@ resource "aws_iam_role_policy" "ecs_task_role_exec_policy" {
 }
 
 # Service Discovery Namespace
-resource "aws_service_discovery_private_dns_namespace" "ecs" {
-  count = var.create_ecs_ecosystem ? 1 : 0
-  
-  name        = "${var.project_name}.${var.env}.local"
-  description = "Service discovery namespace for ${var.project_name} ${var.env} environment"
-  vpc         = module.vpc.vpc_id
+#resource "aws_service_discovery_private_dns_namespace" "ecs" {
+#  count = var.create_ecs_ecosystem ? 1 : 0
+#  
+#  name        = "${var.project_name}.${var.env}.local"
+#  description = "Service discovery namespace for ${var.project_name} ${var.env} environment"
+#  vpc         = module.vpc.vpc_id
 
-  tags = {
-    Name        = "${var.project_name}-${var.env}-service-discovery-namespace"
-    Project     = var.project_name
-    Service     = "service-discovery-namespace"
-    Environment = var.env
-    Terraform   = "true"
-  }
-}
+#  tags = {
+#    Name        = "${var.project_name}-${var.env}-service-discovery-namespace"
+#    Project     = var.project_name
+#    Service     = "service-discovery-namespace"
+#    Environment = var.env
+#    Terraform   = "true"
+#  }
+#}
 
 # ECS Fargate Cluster and Services
 
@@ -161,7 +161,7 @@ module "ecs_fargate" {
   
   # Service Discovery Configuration
   enable_service_discovery = true
-  service_discovery_namespace_id = aws_service_discovery_private_dns_namespace.ecs[0].id
+  #service_discovery_namespace_id = aws_service_discovery_private_dns_namespace.ecs[0].id
   
   depends_on = [module.ecs-alb]
 } 

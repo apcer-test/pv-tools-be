@@ -73,7 +73,7 @@ locals {
       service_name        = frontend.service_name
       
       origin_type         = "s3"
-      aliases             = try(frontend.cloudfront_aliases, [])
+      aliases             = length(try(frontend.cloudfront_aliases, [])) > 0 ? frontend.cloudfront_aliases : [frontend.domain]
       default_root_object = try(frontend.default_root_object, "index.html")
       error_pages         = try(frontend.error_pages, [])  # Allow frontend-specific error page overrides
       forwarded_values    = try(frontend.cloudfront_forwarded_values, {
@@ -276,6 +276,17 @@ output "debug_frontend_config" {
       cloudfront_aliases = try(frontend.cloudfront_aliases, [])
       create_cloudfront = frontend.create_cloudfront
       create = frontend.create
+    }
+  }
+}
+
+output "debug_media_config" {
+  description = "Debug: Media configuration"
+  value = {
+    for frontend_key, frontend in var.storage_buckets : frontend_key => {
+      cloudfront_aliases = try(frontend.cloudfront_aliases, [])
+      #create_cloudfront = frontend.create_cloudfront
+      #create = frontend.create
     }
   }
 }
