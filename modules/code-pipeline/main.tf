@@ -94,23 +94,28 @@ resource "aws_codebuild_project" "invalidate_cloudfront" {
     }
   }
 
+
+  
   source {
     type = "NO_SOURCE"
     buildspec = <<EOF
-version: 0.2
-phases:
-  build:
-    commands:
-      - echo "Checking CloudFront distribution ID..."
-      - if [ -z "$DISTRIBUTION_ID" ]; then
-      -   echo "ERROR: DISTRIBUTION_ID is empty. CloudFront distribution may not exist yet."
-      -   echo "Skipping CloudFront invalidation."
-      -   exit 0
-      - fi
-      - echo "Invalidating CloudFront distribution: $DISTRIBUTION_ID"
-      - aws cloudfront create-invalidation --distribution-id $DISTRIBUTION_ID --paths '/*'
-EOF
+    version: 0.2
+    phases:
+      build:
+        commands:
+          - echo "Checking CloudFront distribution ID..."
+          - |
+            if [ -z "$DISTRIBUTION_ID" ]; then
+              echo "ERROR: DISTRIBUTION_ID is empty. CloudFront distribution may not exist yet."
+              echo "Skipping CloudFront invalidation."
+              exit 0
+            fi
+          - aws cloudfront create-invalidation --distribution-id $DISTRIBUTION_ID --paths '/*'
+    EOF
+
   }
+
+
 
   artifacts {
     type = "NO_ARTIFACTS"

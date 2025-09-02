@@ -126,7 +126,10 @@ resource "aws_iam_policy" "iam_policy" {
             "lambda:ListLayers",                # Allows listing Lambda layers
             "lambda:GetLayerVersionPolicy",     # Allows getting Lambda layer version policies
             "lambda:AddLayerVersionPermission", # Allows adding permissions to Lambda layer versions
-            "lambda:RemoveLayerVersionPermission" # Allows removing permissions from Lambda layer versions
+            "lambda:RemoveLayerVersionPermission", # Allows removing permissions from Lambda layer versions
+            "lambda:TagResource",
+            "lambda:PutFunctionConcurrency",
+            "lambda:PutFunctionEventInvokeConfig"
           ]
           Effect   = "Allow"
           Resource = [
@@ -151,7 +154,8 @@ resource "aws_iam_policy" "iam_policy" {
             "iam:ListRolePolicies",  # Allows listing inline policies for roles
             "iam:ListAttachedRolePolicies", # Allows listing attached policies for roles
             "iam:DetachRolePolicy",  # Allows detaching policies from roles
-            "iam:DeleteRolePolicy"   # Allows deleting inline policies from roles
+            "iam:DeleteRolePolicy",   # Allows deleting inline policies from roles
+            "iam:GetRolePolicy"
           ]
           Effect   = "Allow"
           Resource = "*"  # Applies to all IAM roles
@@ -348,7 +352,8 @@ resource "aws_iam_policy" "iam_policy" {
             "apigateway:PATCH",         # Patch API Gateway resources
             "apigateway:DELETE",        # Delete API Gateway resources
             "apigateway:GET",           # Read API Gateway resources
-            "execute-api:Invoke"        # Invoke API Gateway APIs
+            "execute-api:Invoke",        # Invoke API Gateway APIs
+            "apigateway:TagResource"
           ]
           Effect   = "Allow"
           Resource = [
@@ -375,7 +380,8 @@ resource "aws_iam_policy" "iam_policy" {
             "cloudformation:ExecuteChangeSet", # Execute change sets
             "cloudformation:DescribeChangeSet", # Describe change sets
             "cloudformation:DeleteChangeSet",  # Delete change sets
-            "cloudformation:ValidateTemplate"  # Validate CloudFormation templates (global permission)
+            "cloudformation:ValidateTemplate",  # Validate CloudFormation templates (global permission)
+            "cloudformation:ListStackResources"
           ]
           Effect   = "Allow"
           Resource = [

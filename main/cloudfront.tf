@@ -1,7 +1,8 @@
 # Create RSA key pair for CloudFront signed cookies (only for media service)
 locals {
   # Temporarily disable key creation due to AWS limit - can be re-enabled later
-  has_media_service = false
+  #has_media_service = false
+  has_media_service = try(var.frontends["media"].enable_signed_cookies, false)
   # Auto-detects CloudFront need based on individual configurations
   #   for frontend_key, frontend in var.frontends : frontend.service_name == "media" && try(frontend.enable_signed_cookies, false) && try(frontend.create_cloudfront, false)
   # ])
@@ -280,16 +281,13 @@ output "debug_frontend_config" {
   }
 }
 
-output "debug_media_config" {
-  description = "Debug: Media configuration"
-  value = {
-    for frontend_key, frontend in var.storage_buckets : frontend_key => {
-      cloudfront_aliases = try(frontend.cloudfront_aliases, [])
-      #create_cloudfront = frontend.create_cloudfront
-      #create = frontend.create
-    }
-  }
-}
+
+
+#output "all_cloudfront_distributions_debug" {
+#  value = local.cloudfront_distributions
+#}
+
+
 
 # Create CloudFront distributions for S3 buckets (admin/media)
 # Create when targeting S3 + CloudFront OR when infrastructure buckets need CloudFront access

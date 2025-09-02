@@ -137,45 +137,6 @@ storage_buckets = {
   }
 }
 
-# Media Configuration (for CloudFront)
-media = {
-  media = {
-    service_name         = "media"
-    domain              = "media-dev.apcerls.com"  # Primary domain
-    cloudfront_aliases   = ["media-dev.apcerls.com"]  # Primary and alternate domain
-    repository_path     = ""  # No repository needed for static media
-    repository_branch   = "main"
-    bucket_path         = "media/dev"
-    node_version        = "22.11.0"
-    build_commands      = []
-    install_commands    = []
-    compute_type        = "BUILD_GENERAL1_SMALL"
-    create_codepipeline = false  # No pipeline needed for static media
-    create             = true
-    enable_oac         = true
-    create_cloudfront  = true
-    use_custom_buildspec = false
-    # Enable static website hosting
-    enable_website = false  # CloudFront will serve the content
-    index_document = ""
-    error_document = ""
-    # Error pages configuration for CloudFront
-    error_pages = [
-      {
-        error_code = 403
-        response_code = "200"
-        response_page_path = "/error.html"
-        error_caching_min_ttl = 0
-      },
-      {
-        error_code = 404
-        response_code = "200"
-        response_page_path = "/error.html"
-        error_caching_min_ttl = 0
-      }
-    ]
-  }
-}
 
 # Frontend Configuration (for CodePipeline)
 frontends = {
@@ -211,6 +172,43 @@ frontends = {
         error_code = 404
         response_code = "200"
         response_page_path = "/index.html"
+        error_caching_min_ttl = 0
+      }
+    ]
+  }
+  media = {
+    service_name         = "media"
+    domain              = "media-dev.apcerls.com"  # Primary domain
+    cloudfront_aliases   = ["media-dev.apcerls.com"]  # Primary and alternate domain
+    repository_path     = ""  # No repository needed for static media
+    repository_branch   = "main"
+    bucket_path         = "media/dev"
+    node_version        = "22.11.0"
+    build_commands      = []
+    install_commands    = []
+    compute_type        = "BUILD_GENERAL1_SMALL"
+    create_codepipeline = false  # No pipeline needed for static media
+    create             = true
+    enable_oac         = true
+    create_cloudfront  = true
+    use_custom_buildspec = false
+    enable_signed_cookies = true
+    # Enable static website hosting
+    enable_website = false  # CloudFront will serve the content
+    index_document = ""
+    error_document = ""
+    # Error pages configuration for CloudFront
+    error_pages = [
+      {
+        error_code = 403
+        response_code = "200"
+        response_page_path = "/error.html"
+        error_caching_min_ttl = 0
+      },
+      {
+        error_code = 404
+        response_code = "200"
+        response_page_path = "/error.html"
         error_caching_min_ttl = 0
       }
     ]

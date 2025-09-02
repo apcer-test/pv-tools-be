@@ -77,6 +77,7 @@ variable "services" {
     service_discovery_name    = optional(string, "")
     # Build configuration
     use_custom_buildspec = optional(bool, false)
+    enable_signed_cookies = optional(bool, false)
     cloudfront_forwarded_values = optional(object({
       query_string = bool
       headers      = list(string)
@@ -229,6 +230,7 @@ variable "frontends" {
     error_document     = optional(string, "error.html")
     enable_versioning  = optional(bool, true)
     enable_encryption  = optional(bool, true)
+    enable_signed_cookies = optional(bool, false)
     cors_rules         = optional(list(object({
       allowed_methods = list(string)
       allowed_origins = list(string)
