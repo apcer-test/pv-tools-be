@@ -288,6 +288,22 @@ resource "aws_codepipeline" "codepipeline" {
           FileName    = "imagedefinitions.json"
         }
       }
+      dynamic "action" {
+        for_each = var.ecs_additional_service_names
+        content {
+          name             = "DeployToECS-${replace(action.value, ":", "-")}"
+          category         = "Deploy"
+          owner            = "AWS"
+          provider         = "ECS"
+          input_artifacts  = ["build_output"]
+          version          = "1"
+          configuration = {
+            ClusterName = var.ecs_cluster_name
+            ServiceName = action.value
+            FileName    = "imagedefinitions.json"
+          }
+        }
+      }
     }
   }
 

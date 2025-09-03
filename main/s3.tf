@@ -65,11 +65,11 @@ locals {
       acl            = var.s3_acl
       cors_rules     = [
         for rule in try(bucket.cors_rules, []) : {
-          allowed_headers = ["*"]                                    # Static default
-          allowed_methods = rule.allowed_methods                     # From tfvars
-          allowed_origins = rule.allowed_origins                     # From tfvars
-          expose_headers  = ["ETag", "Content-Length"]              # Static default
-          max_age_seconds = 3600                                     # Static default
+          allowed_headers = try(rule.allowed_headers, ["*"])
+          allowed_methods = rule.allowed_methods
+          allowed_origins = rule.allowed_origins
+          expose_headers  = try(rule.expose_headers, ["ETag", "x-amz-server-side-encryption", "x-amz-request-id", "x-amz-id-2"])
+          max_age_seconds = try(rule.max_age_seconds, 3600)
         }
       ]
       enable_acl         = false

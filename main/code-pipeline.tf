@@ -129,7 +129,8 @@ locals {
       # ECS configuration
       container_name    = service.container_name
       ecs_cluster_name  = "${var.project_name}-cluster-${var.env}"
-      ecs_service_name  = "${var.project_name}-${service.container_name}-${var.env}"
+      ecs_service_name  = "${var.project_name}-${(try(service.service_resource_name, "") != "" ? service.service_resource_name : service.container_name)}-${var.env}"
+      ecs_additional_service_names = try(service.ecs_additional_service_names, [])
       compute_type      = service.compute_type
       
       # Build settings
@@ -275,6 +276,7 @@ module "codepipeline" {
   container_name                = lookup(each.value, "container_name", "")
   ecs_cluster_name              = lookup(each.value, "ecs_cluster_name", "")
   ecs_service_name              = lookup(each.value, "ecs_service_name", "")
+  ecs_additional_service_names  = lookup(each.value, "ecs_additional_service_names", [])
   
   # Repository configuration
   full_repo_path                = each.value.repo_path

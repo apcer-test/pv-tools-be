@@ -170,6 +170,12 @@ variable "ecs_service_name" {
   default     = ""
 }
 
+variable "ecs_additional_service_names" {
+  description = "Additional ECS service names to deploy in the same pipeline stage."
+  type        = list(string)
+  default     = []
+}
+
 variable "s3_bucket_name" {
   description = "S3 bucket name for S3 deploy stage."
   type        = string

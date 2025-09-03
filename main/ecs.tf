@@ -130,6 +130,7 @@ resource "aws_iam_role_policy" "ecs_task_role_exec_policy" {
 # Create mapping from service keys to ECR repository URLs
 locals {
   ecr_repository_urls_map = var.create_ecs_ecosystem ? {
+    # Map service key to repo URL based on its container_name (shared images supported)
     for service_key, service in var.services : service_key => module.ecs-ecr.repository_urls_map["${var.project_name}-${service.container_name}-${var.env}"]
   } : {}
   

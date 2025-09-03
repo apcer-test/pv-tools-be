@@ -32,6 +32,8 @@ variable "services" {
   description = "Master configuration for ECS services"
   type = map(object({
     container_name       = string
+    # Optional distinct name for ECS resources/log groups; defaults to container_name
+    service_resource_name = optional(string, "")
     container_port       = number
     health_check_path    = string
     cpu                  = number
@@ -55,6 +57,8 @@ variable "services" {
     bucket_path          = optional(string, "")  # S3 env bucket path for this service (e.g., "microservices/api/dev")
     env_bucket_path      = optional(string, "")  # Environment-specific S3 bucket path for this service (e.g., "api/dev")
     compute_type         = optional(string, "BUILD_GENERAL1_SMALL")  # CodeBuild compute type
+    # Additional ECS services to deploy in the same pipeline (by ECS service name)
+    ecs_additional_service_names = optional(list(string), [])
     
     # ALB Configuration
     expose_via_alb       = optional(bool, true)  # Whether to expose service via ALB
@@ -67,6 +71,8 @@ variable "services" {
     xray_daemon_memory  = optional(number, 0)
     # ECS Exec configuration
     enable_exec          = optional(bool, false)
+    # Optional custom container health check command (overrides default HTTP curl check)
+    custom_healthcheck_command = optional(list(string), [])
     # Celery worker container configuration
     enable_celery_worker = optional(bool, false)
     celery_worker_command = optional(list(string), [])
@@ -349,9 +355,12 @@ variable "storage_buckets" {
     enable_versioning  = optional(bool, true)
     enable_encryption  = optional(bool, true)
     cors_rules         = optional(list(object({
-      allowed_methods = list(string)
-      allowed_origins = list(string)
-    })), [])  # Headers and max_age are auto-configured with sensible defaults
+      allowed_methods  = list(string)
+      allowed_origins  = list(string)
+      allowed_headers  = optional(list(string), ["*"])
+      expose_headers   = optional(list(string), ["ETag", "x-amz-server-side-encryption", "x-amz-request-id", "x-amz-id-2"])
+      max_age_seconds  = optional(number, 3600)
+    })), [])
     lifecycle_rules    = optional(list(object({
       id                         = string
       enabled                    = optional(bool, true)

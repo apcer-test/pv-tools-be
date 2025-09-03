@@ -29,6 +29,8 @@ ecs_cluster_name = "apcer-pv-tool-dev-cluster"
 services = {
   service1 = {
     container_name      = "api"
+    # Deploy celery service in the same pipeline using the same image
+    ecs_additional_service_names = ["apcer-pv-tool-celery-dev"]
     container_port      = 9094
     cpu                 = 992
     memory              = 1792
@@ -53,6 +55,36 @@ services = {
     enable_auto_scaling = true
     min_capacity        = 1
     max_capacity        = 3
+    target_cpu_utilization = 70
+    target_memory_utilization = 80
+  }
+  # Celery worker as a separate ECS service (same image as API via container_name = "api")
+  service2 = {
+    container_name        = "api"                # reuse API ECR image
+    service_resource_name = "celery"            # distinct ECS service/task/log group name
+    container_port        = 9094
+    cpu                   = 512
+    memory                = 1024
+    domain                = ""
+    expose_via_alb        = false
+    # Run celery worker instead of API entrypoint
+    command               = ["python", "-m", "celery", "--app=core.utils.celery_worker", "worker", "--queues=main-queue", "--concurrency=5", "-E"]
+    # Override health check to a simple process check
+    health_check_path     = "/healthcheck"
+    custom_healthcheck_command = ["CMD-SHELL", "curl -f https://api-dev.apcerls.com/health/worker/public || exit 1"]
+    # Do not create a separate pipeline for celery
+    repository_path       = ""
+    repository_branch     = "main"
+    env_bucket_path       = "api/dev"
+    compute_type          = "BUILD_GENERAL1_SMALL"
+    create_cloudfront     = false
+    enable_xray           = false
+    use_custom_buildspec  = true
+    enable_exec           = true
+    desired_count         = 1
+    enable_auto_scaling   = true
+    min_capacity          = 1
+    max_capacity          = 5
     target_cpu_utilization = 70
     target_memory_utilization = 80
   }
@@ -126,6 +158,20 @@ storage_buckets = {
     service_name        = "media"
     enable_versioning   = true
     cloudfront_aliases   = ["media-dev.apcerls.com"]
+    cors_rules = [
+      {
+        allowed_methods  = ["POST", "GET", "PUT"]
+        allowed_origins  = [
+          "https://fe-dev.apcerls.com",
+          "http://localhost:4200",
+          "http://localhost:5173",
+          "http://localhost:3000"
+        ]
+        allowed_headers  = ["*"]
+        expose_headers   = ["ETag", "x-amz-server-side-encryption", "x-amz-request-id", "x-amz-id-2"]
+        max_age_seconds  = 3000
+      }
+    ]
     service_folders     = []
     lifecycle_rules     = [
       {

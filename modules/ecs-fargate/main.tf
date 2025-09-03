@@ -6,7 +6,7 @@ locals {
   
   # Generate ECR repository names for each service
   ecr_repositories = {
-    for service in local.services_list : service.container_name => {
+    for service in local.services_list : service.key => {
       name = "${var.project_name}-${service.container_name}-${var.env}"
     }
   }
@@ -39,7 +39,7 @@ resource "aws_ecs_cluster" "main" {
 resource "aws_ecs_task_definition" "services" {
   for_each = var.create_ecs_cluster ? var.services : {}
 
-  family                   = "${var.project_name}-${each.value.container_name}-${var.env}"
+  family                   = "${var.project_name}-${(each.value.service_resource_name != "" ? each.value.service_resource_name : each.value.container_name)}-${var.env}"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
   # Calculate total CPU and memory for valid Fargate combinations
@@ -109,7 +109,13 @@ resource "aws_ecs_task_definition" "services" {
 
           command = length(each.value.command) > 0 ? each.value.command : null
 
-          healthCheck = {
+          healthCheck = length(each.value.custom_healthcheck_command) > 0 ? {
+            command     = each.value.custom_healthcheck_command
+            interval    = 30
+            timeout     = 5
+            retries     = 5
+            startPeriod = 60
+          } : {
             command     = ["CMD-SHELL", "curl -f http://localhost:${each.value.container_port}${each.value.health_check_path} || exit 1"]
             interval    = 30
             timeout     = 5
@@ -126,7 +132,7 @@ resource "aws_ecs_task_definition" "services" {
             ] : [],
             each.value.enable_celery_worker ? [
               {
-                containerName = "celery-worker-container"
+                containerName = "celery-worker"
                 condition     = "START"
               }
             ] : []
@@ -224,9 +230,9 @@ resource "aws_ecs_task_definition" "services" {
   )
 
   tags = merge({
-    Name        = "${var.project_name}-${each.value.container_name}-task-${var.env}"
+    Name        = "${var.project_name}-${(each.value.service_resource_name != "" ? each.value.service_resource_name : each.value.container_name)}-task-${var.env}"
     Project     = var.project_name
-    Service     = "${var.project_name}-${each.value.container_name}-task-${var.env}"
+    Service     = "${var.project_name}-${(each.value.service_resource_name != "" ? each.value.service_resource_name : each.value.container_name)}-task-${var.env}"
     Environment = var.env
     Component   = "ecs-task-definition"
     Container   = each.value.container_name
@@ -241,7 +247,7 @@ resource "aws_ecs_task_definition" "services" {
 resource "aws_ecs_service" "services" {
   for_each = var.create_ecs_cluster ? var.services : {}
 
-  name            = "${var.project_name}-${each.value.container_name}-${var.env}"
+  name            = "${var.project_name}-${(each.value.service_resource_name != "" ? each.value.service_resource_name : each.value.container_name)}-${var.env}"
   cluster         = aws_ecs_cluster.main[0].id
   task_definition = aws_ecs_task_definition.services[each.key].arn
   desired_count   = each.value.desired_count
@@ -271,9 +277,9 @@ resource "aws_ecs_service" "services" {
   }
 
   tags = {
-    Name        = "${var.project_name}-${each.value.container_name}-service-${var.env}"
+    Name        = "${var.project_name}-${(each.value.service_resource_name != "" ? each.value.service_resource_name : each.value.container_name)}-service-${var.env}"
     Project     = var.project_name
-    Service     = "${var.project_name}-${each.value.container_name}-service-${var.env}"
+    Service     = "${var.project_name}-${(each.value.service_resource_name != "" ? each.value.service_resource_name : each.value.container_name)}-service-${var.env}"
     Environment = var.env
     Terraform   = "true"
   }
@@ -285,13 +291,13 @@ resource "aws_ecs_service" "services" {
 resource "aws_cloudwatch_log_group" "services" {
   for_each = var.create_ecs_cluster ? var.services : {}
 
-  name              = "/ecs/${var.project_name}-${each.value.container_name}-${var.env}"
+  name              = "/ecs/${var.project_name}-${(each.value.service_resource_name != "" ? each.value.service_resource_name : each.value.container_name)}-${var.env}"
   retention_in_days = 30
 
   tags = {
-    Name        = "${var.project_name}-${each.value.container_name}-logs-${var.env}"
+    Name        = "${var.project_name}-${(each.value.service_resource_name != "" ? each.value.service_resource_name : each.value.container_name)}-logs-${var.env}"
     Project     = var.project_name
-    Service     = "${var.project_name}-${each.value.container_name}-log-group-${var.env}"
+    Service     = "${var.project_name}-${(each.value.service_resource_name != "" ? each.value.service_resource_name : each.value.container_name)}-log-group-${var.env}"
     Environment = var.env
     Terraform   = "true"
   }
@@ -303,7 +309,7 @@ resource "aws_cloudwatch_log_group" "services" {
 resource "aws_security_group" "ecs_services" {
   for_each = var.create_ecs_cluster ? var.services : {}
 
-  name        = "${var.project_name}-${each.value.container_name}-sg-${var.env}"
+  name        = "${var.project_name}-${(each.value.service_resource_name != "" ? each.value.service_resource_name : each.value.container_name)}-sg-${var.env}"
   description = "Security group for ECS service ${each.value.container_name}"
   vpc_id      = var.vpc_id
 
@@ -325,9 +331,9 @@ resource "aws_security_group" "ecs_services" {
   }
 
   tags = {
-    Name        = "${var.project_name}-${each.value.container_name}-sg-${var.env}"
+    Name        = "${var.project_name}-${(each.value.service_resource_name != "" ? each.value.service_resource_name : each.value.container_name)}-sg-${var.env}"
     Project     = var.project_name
-    Service     = "${var.project_name}-${each.value.container_name}-security-group-${var.env}"
+    Service     = "${var.project_name}-${(each.value.service_resource_name != "" ? each.value.service_resource_name : each.value.container_name)}-security-group-${var.env}"
     Environment = var.env
     Terraform   = "true"
   }
@@ -350,7 +356,7 @@ resource "aws_appautoscaling_target" "ecs_target" {
 resource "aws_appautoscaling_policy" "ecs_cpu_policy" {
   for_each = var.create_ecs_cluster ? var.services : {}
 
-  name               = "${var.project_name}-${each.value.container_name}-cpu-autoscaling-${var.env}"
+  name               = "${var.project_name}-${(each.value.service_resource_name != "" ? each.value.service_resource_name : each.value.container_name)}-cpu-autoscaling-${var.env}"
   policy_type        = "TargetTrackingScaling"
   resource_id        = aws_appautoscaling_target.ecs_target[each.key].resource_id
   scalable_dimension = aws_appautoscaling_target.ecs_target[each.key].scalable_dimension
@@ -368,7 +374,7 @@ resource "aws_appautoscaling_policy" "ecs_cpu_policy" {
 resource "aws_appautoscaling_policy" "ecs_memory_policy" {
   for_each = var.create_ecs_cluster ? var.services : {}
 
-  name               = "${var.project_name}-${each.value.container_name}-memory-autoscaling-${var.env}"
+  name               = "${var.project_name}-${(each.value.service_resource_name != "" ? each.value.service_resource_name : each.value.container_name)}-memory-autoscaling-${var.env}"
   policy_type        = "TargetTrackingScaling"
   resource_id        = aws_appautoscaling_target.ecs_target[each.key].resource_id
   scalable_dimension = aws_appautoscaling_target.ecs_target[each.key].scalable_dimension
@@ -406,9 +412,9 @@ resource "aws_service_discovery_service" "services" {
   }
 
   tags = {
-    Name        = "${var.project_name}-${each.value.container_name}-service-discovery-${var.env}"
+    Name        = "${var.project_name}-${(each.value.service_resource_name != "" ? each.value.service_resource_name : each.value.container_name)}-service-discovery-${var.env}"
     Project     = var.project_name
-    Service     = "${var.project_name}-${each.value.container_name}-service-discovery-${var.env}"
+    Service     = "${var.project_name}-${(each.value.service_resource_name != "" ? each.value.service_resource_name : each.value.container_name)}-service-discovery-${var.env}"
     Environment = var.env
     Terraform   = "true"
   }

@@ -74,6 +74,8 @@ variable "services" {
   description = "Map of services for ECS Fargate deployment"
   type = map(object({
     container_name       = string
+    # Optional distinct name for ECS resources/log groups; defaults to container_name
+    service_resource_name = optional(string, "")
     container_port       = number
     health_check_path    = string
     cpu                  = number
@@ -105,6 +107,8 @@ variable "services" {
     xray_daemon_memory  = optional(number, 0)
     # ECS Exec configuration
     enable_exec          = optional(bool, false)
+    # Optional custom container health check command (overrides default HTTP curl check)
+    custom_healthcheck_command = optional(list(string), [])
     # Celery worker container configuration
     enable_celery_worker = optional(bool, false)
     celery_worker_command = optional(list(string), [])
