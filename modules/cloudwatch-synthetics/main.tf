@@ -78,6 +78,13 @@ resource "aws_iam_role_policy" "synthetics_policy" {
         ]
         Resource = aws_s3_bucket.synthetics_artifacts[0].arn
       },
+       {
+        Effect = "Allow",
+        Action = [
+          "s3:ListAllMyBuckets"
+        ],
+        Resource = "*"
+      },
       {
         Effect = "Allow"
         Action = [
@@ -87,6 +94,22 @@ resource "aws_iam_role_policy" "synthetics_policy" {
         ]
         Resource = "*"
       },
+      {
+  "Effect": "Allow",
+  "Action": [
+    "s3:GetBucketLocation",
+    "s3:GetBucketAcl",
+    "s3:GetBucketPolicy"
+  ],
+  "Resource": "arn:aws:s3:::apcer-pv-tool-dev-synthetics-artifacts"
+},
+{
+  Effect = "Allow"
+  Action = [
+    "cloudwatch:PutMetricData"
+  ]
+  Resource = "*"
+},
       {
         Effect = "Allow"
         Action = [
@@ -178,8 +201,8 @@ data "archive_file" "canary_scripts" {
 
   source {
     content = <<EOF
-const synthetics = require('Synthetics');
-const configuration = synthetics.getConfiguration();
+  const synthetics = Synthetics;
+  const configuration = synthetics.getConfiguration();
 
 const pageLoadBlueprint = async function () {
     const url = '${each.value.target_url}';

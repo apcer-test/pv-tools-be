@@ -2,5 +2,5 @@
 
 bucket         = "apcer-terraform-state-bucket"
 key            = "apcer-dev/terraform.tfstate"
-region         = "eu-west-2"
+region         = "eu-north-1"
 encrypt        = true

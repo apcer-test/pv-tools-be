@@ -24,6 +24,6 @@ provider "aws" {
 
 # AWS Provider for us-east-1 (required for CloudFront certificates)
 provider "aws" {
-  alias  = "us_east_1"
-  region = "us-east-1"
+  alias  = "eu-north-1"
+  region = "eu-north-1"
 }

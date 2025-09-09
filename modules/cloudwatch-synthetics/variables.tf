@@ -16,6 +16,11 @@ variable "env" {
   type        = string
 }
 
+variable "synthetics_alarm_emails" {
+  description = "List of email addresses to subscribe to CloudWatch Synthetics alarm notifications"
+  type        = list(string)
+}
+
 variable "artifacts_bucket_arn" {
   description = "ARN of the S3 bucket for canary artifacts"
   type        = string

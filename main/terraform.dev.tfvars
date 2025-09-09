@@ -5,13 +5,13 @@
 # Environment Configuration
 env = "dev"
 project_name = "apcer-pv-tool"
-region = "eu-west-2"
+region = "eu-north-1"
 app_name = "apcer-app"
 
 
 # VPC Configuration
 cidr = "10.10.0.0/16"
-vpc_availability_zones = ["eu-west-2a", "eu-west-2b", "eu-west-2c"]
+vpc_availability_zones = ["eu-north-1a", "eu-north-1b", "eu-north-1c"]
 create_database_subnet_group = true
 
 # VPC
@@ -34,10 +34,10 @@ services = {
     container_port      = 9094
     cpu                 = 992
     memory              = 1792
-    domain              = "api-dev.apcerls.com"  # Updated domain for dev environment
+    domain              = "apcer-api-dev.webelight.co.in"  # Updated domain for dev environment
     command             = ["/bin/sh", "-c", "python main.py migrate && python main.py run"]
     health_check_path   = "/healthcheck"
-    repository_path     = "APCER-Life-Sciences-Inc/pv-tool-be"
+    repository_path     = "1235keerti/pv-tool-be"
     repository_branch   = "main"
     env_bucket_path     = "api/dev"
     compute_type        = "BUILD_GENERAL1_SMALL"
@@ -188,9 +188,9 @@ storage_buckets = {
 frontends = {
   frontend = {
     service_name         = "frontend"
-    domain              = "fe-dev.apcerls.com"  # Primary domain
+    domain              = "apcer-fe-dev.webelight.co.in"  # Primary domain
     cloudfront_aliases   = ["fe-dev.apcerls.com"]  # Primary and alternate domain
-    repository_path     = "APCER-Life-Sciences-Inc/pv-tool-fe"  # GitHub repository path
+    repository_path     = "1235keerti/pv-tool-fe"  # GitHub repository path
     repository_branch   = "main"
     bucket_path         = "frontend/dev"
     node_version        = "22.11.0"
@@ -224,7 +224,7 @@ frontends = {
   }
   media = {
     service_name         = "media"
-    domain              = "media-dev.apcerls.com"  # Primary domain
+    domain              = " apcer-media-dev.webelight.co.in"  # Primary domain
     cloudfront_aliases   = ["media-dev.apcerls.com"]  # Primary and alternate domain
     repository_path     = ""  # No repository needed for static media
     repository_branch   = "main"
@@ -315,7 +315,7 @@ create_cloudfront = true
 cloudfront_price_class = "PriceClass_100"
 # ACM Certificate Configuration
 # Add your ACM certificate ARN here (must be in us-east-1 for CloudFront)
-cloudfront_acm_certificate_arn = "arn:aws:acm:us-east-1:193363646479:certificate/4addba11-4204-403f-834e-97174519f67e"
+cloudfront_acm_certificate_arn = "arn:aws:acm:us-east-1:912106457730:certificate/8b8ae7bb-b1ee-42a3-bd10-b6c72c7936e1"
 
 # =============================================================================
 # CI/CD SERVICES
@@ -333,7 +333,7 @@ create_codebuild = true
 serverless_microservices_codepipeline = {
   serverless_service-1 = {
     service_name          = "document-svc"
-    repository_path       = "APCER-Life-Sciences-Inc/pv-tool-document-svc"
+    repository_path       = "1235keerti/pv-tool-document-svc"
     repository_branch     = "main"
     node_version          = "22.17.0"
     bucket_path           = "microservices/document-microservice/dev"
@@ -405,7 +405,7 @@ aws_budgets = {
       threshold                  = 80
       threshold_type             = "PERCENTAGE"
       notification_type          = "ACTUAL"
-      subscriber_email_addresses = ["vinit.shah@apcerls.com", "amit.chaubey@apcerls.com"]
+      subscriber_email_addresses = ["keertib@webelight.co.in"]
       subscriber_sns_topic_arns  = []
     },
     {
@@ -413,7 +413,7 @@ aws_budgets = {
       threshold                  = 100
       threshold_type             = "PERCENTAGE"
       notification_type          = "ACTUAL"
-      subscriber_email_addresses = ["vinit.shah@apcerls.com", "amit.chaubey@apcerls.com"]
+      subscriber_email_addresses = ["keertib@webelight.co.in"]
       subscriber_sns_topic_arns  = []
     }
   ]
@@ -421,7 +421,7 @@ aws_budgets = {
   alarm_evaluation_periods = 1
   alarm_period = 86400
   create_sns_topic = true
-  subscriber_email_addresses = ["vinit.shah@apcerls.com", "amit.chaubey@apcerls.com"]
+  subscriber_email_addresses = ["keertib@webelight.co.in"]
 }
 
 # Cognito (Disabled)
